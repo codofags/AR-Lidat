@@ -56,7 +56,6 @@ namespace UnityEngine.XR.ARFoundation.Samples
             }
         }
 
-
         void OnEnable()
         {
             var faceManager = FindObjectsUtility.FindAnyObjectByType<ARFaceManager>();

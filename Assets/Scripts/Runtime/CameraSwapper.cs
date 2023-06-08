@@ -1,29 +1,41 @@
+using UnityEngine.XR.ARFoundation;
+
 namespace UnityEngine.XR.ARFoundation.Samples
 {
     public class CameraSwapper : MonoBehaviour
     {
-        [SerializeField]
-        ARCameraManager m_CameraManager;
-
         /// <summary>
         /// The camera manager for switching the camera direction.
         /// </summary>
         public ARCameraManager cameraManager
         {
-            get => m_CameraDirection.cameraManager;
-            set => m_CameraDirection.cameraManager = value;
+            get => m_CameraManager;
+            set => m_CameraManager = value;
         }
 
-        CameraDirection m_CameraDirection;
+        [SerializeField]
+        ARCameraManager m_CameraManager;
 
-        void Awake()
+        /// <summary>
+        /// On button press callback to toggle the requested camera facing direction.
+        /// </summary>
+        public void OnSwapCameraButtonPress()
         {
-            m_CameraDirection = new CameraDirection(m_CameraManager);
-        }
+            Debug.Assert(m_CameraManager != null, "camera manager cannot be null");
+            CameraFacingDirection newFacingDirection;
+            switch (m_CameraManager.requestedFacingDirection)
+            {
+                case CameraFacingDirection.World:
+                    newFacingDirection = CameraFacingDirection.User;
+                    break;
+                case CameraFacingDirection.User:
+                default:
+                    newFacingDirection = CameraFacingDirection.World;
+                    break;
+            }
 
-        public void SwapCamera()
-        {
-            m_CameraDirection.Toggle();
+            Debug.Log($"Switching ARCameraManager.requestedFacingDirection from {m_CameraManager.requestedFacingDirection} to {newFacingDirection}");
+            m_CameraManager.requestedFacingDirection = newFacingDirection;
         }
     }
 }

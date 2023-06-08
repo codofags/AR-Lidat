@@ -17,11 +17,11 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
         void Start()
         {
-            if (cameraManager == null)
+            if (m_CameraManager == null)
 #if UNITY_2023_1_OR_NEWER
-                cameraManager = FindAnyObjectByType<ARCameraManager>();
+                m_CameraManager = FindAnyObjectByType<ARCameraManager>();
 #else
-                cameraManager = FindObjectOfType<ARCameraManager>();
+                m_CameraManager = FindObjectOfType<ARCameraManager>();
 #endif
 
             m_Renderer = GetComponent<Renderer>();

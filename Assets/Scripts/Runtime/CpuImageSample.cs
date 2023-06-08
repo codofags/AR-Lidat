@@ -7,40 +7,62 @@ using UnityEngine.XR.ARSubsystems;
 namespace UnityEngine.XR.ARFoundation.Samples
 {
     /// <summary>
-    /// <para>This component tests getting the latest camera image and converting it to RGBA format. If successful,
-    /// it displays the image on the screen as a Raw Image and also displays information about the image.
-    /// This is useful for computer vision applications where you need to access the raw pixels from camera image
-    /// on the CPU.</para>
-    /// <para>This is different from the ARCameraBackground component, which efficiently displays the camera image on the screen.
-    /// If you just want to blit the camera texture to the screen, use the ARCameraBackground, or use Graphics.Blit to create
-    /// a GPU-friendly RenderTexture.</para>
-    /// <para>In this example, we get the camera image data on the CPU, convert it to an RGBA format, then display it on the screen
-    /// as a RawImage texture to demonstrate it is working. This is done as an example; do not use this technique simply
-    /// to render the camera image on screen.</para>
+    /// This component tests getting the latest camera image
+    /// and converting it to RGBA format. If successful,
+    /// it displays the image on the screen as a RawImage
+    /// and also displays information about the image.
+    ///
+    /// This is useful for computer vision applications where
+    /// you need to access the raw pixels from camera image
+    /// on the CPU.
+    ///
+    /// This is different from the ARCameraBackground component, which
+    /// efficiently displays the camera image on the screen. If you
+    /// just want to blit the camera texture to the screen, use
+    /// the ARCameraBackground, or use Graphics.Blit to create
+    /// a GPU-friendly RenderTexture.
+    ///
+    /// In this example, we get the camera image data on the CPU,
+    /// convert it to an RGBA format, then display it on the screen
+    /// as a RawImage texture to demonstrate it is working.
+    /// This is done as an example; do not use this technique simply
+    /// to render the camera image on screen.
     /// </summary>
     public class CpuImageSample : MonoBehaviour
     {
-        Texture2D m_CameraTexture;
-        XRCpuImage.Transformation m_Transformation = XRCpuImage.Transformation.MirrorY;
-
         [SerializeField]
         [Tooltip("The ARCameraManager which will produce frame events.")]
         ARCameraManager m_CameraManager;
 
-        [SerializeField]
-        [Tooltip("The AROcclusionManager which will produce human depth and stencil textures.")]
-        AROcclusionManager m_OcclusionManager;
+        /// <summary>
+        /// Get or set the <c>ARCameraManager</c>.
+        /// </summary>
+        public ARCameraManager cameraManager
+        {
+            get => m_CameraManager;
+            set => m_CameraManager = value;
+        }
 
         [SerializeField]
         RawImage m_RawCameraImage;
 
         /// <summary>
-        /// Get or set the UI RawImage used to display the image on screen.
+        /// The UI RawImage used to display the image on screen.
         /// </summary>
         public RawImage rawCameraImage
         {
             get => m_RawCameraImage;
             set => m_RawCameraImage = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The AROcclusionManager which will produce human depth and stencil textures.")]
+        AROcclusionManager m_OcclusionManager;
+
+        public AROcclusionManager occlusionManager
+        {
+            get => m_OcclusionManager;
+            set => m_OcclusionManager = value;
         }
 
         [SerializeField]
@@ -103,7 +125,6 @@ namespace UnityEngine.XR.ARFoundation.Samples
             set => m_ImageInfo = value;
         }
 
-        [HideInInspector]
         [SerializeField]
         Button m_TransformationButton;
 
@@ -116,7 +137,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
             set => m_TransformationButton = value;
         }
 
-        delegate bool TryAcquireDepthImageDelegate(out XRCpuImage image);
+        XRCpuImage.Transformation m_Transformation = XRCpuImage.Transformation.MirrorY;
 
         /// <summary>
         /// Cycles the image transformation to the next case.
@@ -139,36 +160,25 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
         void OnEnable()
         {
-            if (m_CameraManager == null)
+            if (m_CameraManager != null)
             {
-                Debug.LogException(new NullReferenceException(
-                    $"Serialized properties were not initialized on {name}'s {nameof(CpuImageSample)} component."), this);
-                return;
+                m_CameraManager.frameReceived += OnCameraFrameReceived;
             }
-
-            m_CameraManager.frameReceived += OnCameraFrameReceived;
         }
 
         void OnDisable()
         {
             if (m_CameraManager != null)
+            {
                 m_CameraManager.frameReceived -= OnCameraFrameReceived;
-        }
-
-        void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
-        {
-            UpdateCameraImage();
-            UpdateDepthImage(m_OcclusionManager.TryAcquireHumanDepthCpuImage, m_RawHumanDepthImage);
-            UpdateDepthImage(m_OcclusionManager.TryAcquireHumanStencilCpuImage, m_RawHumanStencilImage);
-            UpdateDepthImage(m_OcclusionManager.TryAcquireEnvironmentDepthCpuImage, m_RawEnvironmentDepthImage);
-            UpdateDepthImage(m_OcclusionManager.TryAcquireEnvironmentDepthConfidenceCpuImage, m_RawEnvironmentDepthConfidenceImage);
+            }
         }
 
         unsafe void UpdateCameraImage()
         {
             // Attempt to get the latest camera image. If this method succeeds,
             // it acquires a native resource that must be disposed (see below).
-            if (!m_CameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
+            if (!cameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
             {
                 return;
             }
@@ -186,10 +196,12 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
             // Choose an RGBA format.
             // See XRCpuImage.FormatSupported for a complete list of supported formats.
-            const TextureFormat format = TextureFormat.RGBA32;
+            var format = TextureFormat.RGBA32;
 
             if (m_CameraTexture == null || m_CameraTexture.width != image.width || m_CameraTexture.height != image.height)
+            {
                 m_CameraTexture = new Texture2D(image.width, image.height, format, false);
+            }
 
             // Convert the image to format, flipping the image across the Y axis.
             // We can also get a sub rectangle, but we'll get the full image here.
@@ -216,25 +228,83 @@ namespace UnityEngine.XR.ARFoundation.Samples
             m_RawCameraImage.texture = m_CameraTexture;
         }
 
-        /// <summary>
-        /// Calls <paramref name="tryAcquireDepthImageDelegate"/> and renders the resulting depth image contents to <paramref name="rawImage"/>.
-        /// </summary>
-        /// <param name="tryAcquireDepthImageDelegate">The method to call to acquire a depth image.</param>
-        /// <param name="rawImage">The Raw Image to use to render the depth image to the screen.</param>
-        void UpdateDepthImage(TryAcquireDepthImageDelegate tryAcquireDepthImageDelegate, RawImage rawImage)
+        void UpdateHumanDepthImage()
         {
-            if (tryAcquireDepthImageDelegate(out XRCpuImage cpuImage))
+            if (m_RawHumanDepthImage == null)
+                return;
+
+            // Attempt to get the latest human depth image. If this method succeeds,
+            // it acquires a native resource that must be disposed (see below).
+            if (occlusionManager && occlusionManager.TryAcquireHumanDepthCpuImage(out XRCpuImage image))
             {
-                // XRCpuImages, if successfully acquired, must be disposed.
-                // You can do this with a using statement as shown below, or by calling its Dispose() method directly.
-                using (cpuImage)
+                using (image)
                 {
-                    UpdateRawImage(rawImage, cpuImage, m_Transformation);
+                    UpdateRawImage(m_RawHumanDepthImage, image, m_Transformation);
                 }
             }
             else
             {
-                rawImage.enabled = false;
+                m_RawHumanDepthImage.enabled = false;
+            }
+        }
+
+        void UpdateHumanStencilImage()
+        {
+            if (m_RawHumanStencilImage == null)
+                return;
+
+            // Attempt to get the latest human stencil image. If this method succeeds,
+            // it acquires a native resource that must be disposed (see below).
+            if (occlusionManager && occlusionManager.TryAcquireHumanStencilCpuImage(out var image))
+            {
+                using (image)
+                {
+                    UpdateRawImage(m_RawHumanStencilImage, image, m_Transformation);
+                }
+            }
+            else
+            {
+                m_RawHumanStencilImage.enabled = false;
+            }
+        }
+
+        void UpdateEnvironmentDepthImage()
+        {
+            if (m_RawEnvironmentDepthImage == null)
+                return;
+
+            // Attempt to get the latest environment depth image. If this method succeeds,
+            // it acquires a native resource that must be disposed (see below).
+            if (occlusionManager && occlusionManager.TryAcquireEnvironmentDepthCpuImage(out var image))
+            {
+                using (image)
+                {
+                    UpdateRawImage(m_RawEnvironmentDepthImage, image, m_Transformation);
+                }
+            }
+            else
+            {
+                m_RawEnvironmentDepthImage.enabled = false;
+            }
+        }
+
+        void UpdateEnvironmentDepthConfidenceImage()
+        {
+            if (m_RawEnvironmentDepthConfidenceImage == null)
+                return;
+
+            // Attempt to get the latest environment depth image. If this method succeeds,
+            // it acquires a native resource that must be disposed (see below).
+            if (occlusionManager && occlusionManager.TryAcquireEnvironmentDepthConfidenceCpuImage(out var image))
+            {
+                using (image)
+                {
+                    UpdateRawImage(m_RawEnvironmentDepthConfidenceImage, image, m_Transformation);
+                }
+            }
+            else
+            {
+                m_RawEnvironmentDepthConfidenceImage.enabled = false;
             }
         }
 
@@ -272,5 +342,16 @@ namespace UnityEngine.XR.ARFoundation.Samples
             // Make sure it's enabled.
             rawImage.enabled = true;
         }
+
+        void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
+        {
+            UpdateCameraImage();
+            UpdateHumanDepthImage();
+            UpdateHumanStencilImage();
+            UpdateEnvironmentDepthImage();
+            UpdateEnvironmentDepthConfidenceImage();
+        }
+
+        Texture2D m_CameraTexture;
     }
 }

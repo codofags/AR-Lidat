@@ -7,7 +7,6 @@ namespace UnityEngine.XR.ARFoundation.Samples
     {
         [SerializeField]
         GameObject m_BackButton;
-
         public GameObject backButton
         {
             get => m_BackButton;
@@ -22,7 +21,6 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
         void Update()
         {
-            // Handles Android physical back button
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
                 BackButtonPressed();
         }

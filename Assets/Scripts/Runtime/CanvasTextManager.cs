@@ -20,7 +20,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
             get => m_TextElement ? m_TextElement.text : null;
             set
             {
-                if (m_TextElement != null)
+                if (m_TextElement)
                 {
                     m_TextElement.text = value;
                 }
@@ -30,18 +30,18 @@ namespace UnityEngine.XR.ARFoundation.Samples
         void OnEnable()
         {
             // Hook up the canvas's world space camera
-            if (m_TextElement == null)
-                return;
-
-            var canvas = m_TextElement.GetComponentInParent<Canvas>();
-            if (canvas == null)
-                return;
-
-            var xrOrigin = FindObjectsUtility.FindAnyObjectByType<XROrigin>();
-            if (xrOrigin == null || xrOrigin.Camera == null)
-                return;
-
-            canvas.worldCamera = xrOrigin.Camera;
+            if (m_TextElement)
+            {
+                var canvas = m_TextElement.GetComponentInParent<Canvas>();
+                if (canvas)
+                {
+                    var xrOrigin = FindObjectsUtility.FindAnyObjectByType<XROrigin>();
+                    if (xrOrigin && xrOrigin.Camera)
+                    {
+                        canvas.worldCamera = xrOrigin.Camera;
+                    }
+                }
+            }
         }
     }
 }

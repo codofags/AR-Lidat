@@ -102,7 +102,7 @@ namespace UnityEditor.XR.ARFoundation.Samples
             }
         }
 
-        static List<CollaborativeSession> s_CollaborativeSessions = new();
+        static List<CollaborativeSession> s_CollaborativeSessions = new List<CollaborativeSession>();
     }
 }
 #endif
