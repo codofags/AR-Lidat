@@ -1940,10 +1940,10 @@ MonoBehaviour:
   m_TrackingStateAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Tracking State
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: 03001ed6-69eb-4937-bb04-2825175b1ca9
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -1972,10 +1972,10 @@ MonoBehaviour:
   m_SelectActionValue:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Select Action Value
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: 795f36ef-e5d8-47a1-b7df-436c841a7dcf
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -1996,10 +1996,10 @@ MonoBehaviour:
   m_ActivateActionValue:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Activate Action Value
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: 8841755e-217d-4ca9-80bb-f8e6a4408ae5
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -2052,10 +2052,10 @@ MonoBehaviour:
   m_UIPressActionValue:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: UI Press Action Value
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: 2fa3d257-843d-46a3-8ca1-15020f0c3833
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -2088,10 +2088,10 @@ MonoBehaviour:
   m_DirectionalAnchorRotationAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Directional Anchor Rotation
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: 7a697958-5345-4377-8ad7-468e1df008f6
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
