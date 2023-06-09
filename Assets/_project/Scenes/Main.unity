@@ -2158,6 +2158,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1420145516}
   - component: {fileID: 1420145518}
+  - component: {fileID: 1420145519}
   - component: {fileID: 1420145517}
   m_Layer: 0
   m_Name: ARMeshManager
@@ -2195,6 +2196,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _meshPrefab: {fileID: 3233095215223683557, guid: 2563ef786a883104595413d6d19682c3,
     type: 3}
+  _cameraManager: {fileID: 929782452}
 --- !u!114 &1420145518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2215,6 +2217,23 @@ MonoBehaviour:
   m_TextureCoordinates: 0
   m_Colors: 0
   m_ConcurrentQueueSize: 4
+--- !u!114 &1420145519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1420145515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b15f82cc229284894964d2d30806969d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HumanSegmentationStencilMode: 0
+  m_HumanSegmentationDepthMode: 0
+  m_EnvironmentDepthMode: 1
+  m_EnvironmentDepthTemporalSmoothing: 1
+  m_OcclusionPreferenceMode: 0
 --- !u!1 &1469391809
 GameObject:
   m_ObjectHideFlags: 0
