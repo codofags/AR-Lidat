@@ -127,22 +127,43 @@ public class ScanMesh : MonoBehaviour
 
     private Texture2D CreateOcclusionTexture()
     {
-        if (_occlusionManager == null || !_occlusionManager.enabled)
+        if (_occlusionManager == null)
         {
-            Debug.LogError("AROcclusionManager is not available or not enabled.");
+            Debug.LogError("AROcclusionManager is not available.");
             return null;
         }
 
-        if (_occlusionTexture == null)
+        if (!_occlusionManager.enabled || !_occlusionManager.environmentDepthTexture)
         {
-            int textureWidth = _occlusionTexture.width;
-            int textureHeight = _occlusionTexture.height;
-
-            _occlusionTexture = new Texture2D(textureWidth, textureHeight, TextureFormat.RGBA32, false);
+            Debug.LogError("Environment depth texture is not supported.");
+            return null;
         }
 
-        return _occlusionTexture;
+        Texture2D occlusionTexture = new Texture2D(_occlusionManager.environmentDepthTexture.width, _occlusionManager.environmentDepthTexture.height, TextureFormat.RGBA32, false);
+        occlusionTexture.UpdateExternalTexture(_occlusionManager.environmentDepthTexture.GetNativeTexturePtr());
+        occlusionTexture.Apply();
+
+        return occlusionTexture;
     }
+
+    //private Texture2D CreateOcclusionTexture()
+    //{
+    //    if (_occlusionManager == null || !_occlusionManager.enabled)
+    //    {
+    //        Debug.LogError("AROcclusionManager is not available or not enabled.");
+    //        return null;
+    //    }
+
+    //    if (_occlusionTexture == null)
+    //    {
+    //        int textureWidth = _occlusionTexture.width;
+    //        int textureHeight = _occlusionTexture.height;
+
+    //        _occlusionTexture = new Texture2D(textureWidth, textureHeight, TextureFormat.RGBA32, false);
+    //    }
+
+    //    return _occlusionTexture;
+    //}
 
     //private void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     //{
