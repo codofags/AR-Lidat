@@ -70,7 +70,7 @@ public class ScanMesh : MonoBehaviour
         meshComponent.uv = uvs; // Передача текстурных координат
         meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
         meshObject.GetComponent<MeshRenderer>().material = _meshPrefab.GetComponent<MeshRenderer>().sharedMaterial;
-        meshObject.GetComponent<MeshRenderer>().material.SetTexture("_OcclusionMap", occlusionTexture); // Применение текстуры отсканированной области
+        //meshObject.GetComponent<MeshRenderer>().material.SetTexture("_OcclusionMap", occlusionTexture); // Применение текстуры отсканированной области
 
 
         // Расположение объекта в пространстве
