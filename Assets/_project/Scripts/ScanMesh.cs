@@ -189,7 +189,7 @@ public class ScanMesh : MonoBehaviour
 
     private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
     {
-        Texture2D cameraTexture = GetCameraTextureForMesh(meshFilter);
+        Texture2D cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
         rawImage.texture = cameraTexture;
         if (cameraTexture != null)
         {
