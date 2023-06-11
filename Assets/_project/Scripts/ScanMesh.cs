@@ -1,32 +1,32 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 public class ScanMesh : MonoBehaviour
 {
     [SerializeField] private GameObject _meshPrefab; // Префаб для отображения меша
-    [SerializeField] private ARCameraManager _cameraManager;
+    [SerializeField] private ARMeshManager _arMeshManager;
+    [SerializeField] private AROcclusionManager _occlusionManager;
 
-    private ARMeshManager _arMeshManager;
-    private AROcclusionManager _occlusionManager;
-    private Texture2D _occlusionTexture;
+    private MeshRenderer _meshRenderer;
+    private Texture2D _scannedTexture;
 
     private void Awake()
     {
-        _arMeshManager = GetComponent<ARMeshManager>();
-        _occlusionManager = GetComponent<AROcclusionManager>();
     }
 
     private void OnEnable()
     {
         _arMeshManager.meshesChanged += OnMeshesChanged;
-        _cameraManager.frameReceived += OnCameraFrameReceived;
+        _occlusionManager.frameReceived += OnOcclusionFrameReceived;
     }
 
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
-        _cameraManager.frameReceived -= OnCameraFrameReceived;
+        _occlusionManager.frameReceived -= OnOcclusionFrameReceived;
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -58,8 +58,6 @@ public class ScanMesh : MonoBehaviour
         // Получение текстурных координат меша
         Vector2[] uvs = meshFilter.mesh.uv;
 
-        // Создание текстуры отсканированной области
-        Texture2D occlusionTexture = CreateOcclusionTexture();
 
         GameObject meshObject = Instantiate(_meshPrefab, Vector3.zero, Quaternion.identity);
 
@@ -69,9 +67,8 @@ public class ScanMesh : MonoBehaviour
         meshComponent.triangles = triangles;
         meshComponent.uv = uvs; // Передача текстурных координат
         meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
-        meshObject.GetComponent<MeshRenderer>().material = _meshPrefab.GetComponent<MeshRenderer>().sharedMaterial;
-        //meshObject.GetComponent<MeshRenderer>().material.SetTexture("_OcclusionMap", occlusionTexture); // Применение текстуры отсканированной области
 
+        _meshRenderer = meshObject.GetComponent<MeshRenderer>();
 
         // Расположение объекта в пространстве
         meshObject.transform.position = meshFilter.transform.position;
@@ -102,11 +99,9 @@ public class ScanMesh : MonoBehaviour
         meshComponent.Clear(); // Очищаем меш перед обновлением
         meshComponent.vertices = vertices;
         meshComponent.triangles = triangles;
-        meshComponent.uv = uvs; // Передача текстурных
-        meshComponent.RecalculateNormals(); // Пересчитываем нормали
+        meshComponent.uv = uvs; // Передача текстурных координат
+        meshComponent.RecalculateNormals(); // Пересчитываем нормали\
 
-        // Передача данных обновленного меша объекту
-        meshObject.GetComponent<MeshRenderer>().sharedMaterial = meshFilter.GetComponent<MeshRenderer>().sharedMaterial;
 
         // Расположение объекта в пространстве (если требуется)
         meshObject.transform.position = meshFilter.transform.position;
@@ -125,86 +120,29 @@ public class ScanMesh : MonoBehaviour
         Destroy(meshFilter.gameObject);
     }
 
-    private Texture2D CreateOcclusionTexture()
+    private void OnOcclusionFrameReceived(AROcclusionFrameEventArgs eventArgs)
     {
-        if (_occlusionManager == null)
+        if (eventArgs.textures.Count > 0)
         {
-            Debug.LogError("AROcclusionManager is not available.");
-            return null;
+            _scannedTexture = eventArgs.textures[0];
+
+            // Применить текстуру к мешу
+            ApplyTextureToMesh(_scannedTexture, _meshRenderer);
         }
-
-        if (!_occlusionManager.enabled || !_occlusionManager.environmentDepthTexture)
-        {
-            Debug.LogError("Environment depth texture is not supported.");
-            return null;
-        }
-
-        Texture2D occlusionTexture = new Texture2D(_occlusionManager.environmentDepthTexture.width, _occlusionManager.environmentDepthTexture.height, TextureFormat.RGBA32, false);
-        occlusionTexture.UpdateExternalTexture(_occlusionManager.environmentDepthTexture.GetNativeTexturePtr());
-        occlusionTexture.Apply();
-
-        return occlusionTexture;
     }
 
-    //private Texture2D CreateOcclusionTexture()
-    //{
-    //    if (_occlusionManager == null || !_occlusionManager.enabled)
-    //    {
-    //        Debug.LogError("AROcclusionManager is not available or not enabled.");
-    //        return null;
-    //    }
-
-    //    if (_occlusionTexture == null)
-    //    {
-    //        int textureWidth = _occlusionTexture.width;
-    //        int textureHeight = _occlusionTexture.height;
-
-    //        _occlusionTexture = new Texture2D(textureWidth, textureHeight, TextureFormat.RGBA32, false);
-    //    }
-
-    //    return _occlusionTexture;
-    //}
-
-    //private void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
-    //{
-    //    if (_occlusionTexture != null)
-    //    {
-    //        if (eventArgs.textures.TryGetValue(_occlusionManager.currentEnvironmentDepthMipLevel, out var occlusionTexture))
-    //        {
-    //            Graphics.CopyTexture(occlusionTexture, _occlusionTexture);
-    //            _occlusionTexture.Apply();
-    //        }
-    //    }
-    //}
-
-    //private Texture2D CreateOcclusionTexture()
-    //{
-    //    // Получение информации об отсканированной текстуре из AROcclusionManager
-    //    ARTextureInfo occlusionTextureInfo = _occlusionManager.environmentDepthTexture;
-
-    //    if (occlusionTextureInfo.descriptor.dimension != TextureDimension.Tex2D)
-    //    {
-    //        Debug.LogError("Occlusion texture is not a 2D texture.");
-    //        return null;
-    //    }
-
-    //    // Создание новой Texture2D для отсканированной области
-    //    Texture2D occlusionTexture = new Texture2D(occlusionTextureInfo.descriptor.width, occlusionTextureInfo.descriptor.height, TextureFormat.RGBA32, false);
-
-    //    // Обновление внешней текстуры с помощью указателя на нативную текстуру
-    //    occlusionTexture.UpdateExternalTexture(occlusionTextureInfo.GetNativeTexturePtr());
-
-    //    // Освобождение ресурсов, связанных с текстурой
-    //    _occlusionManager.ReleaseEnvironmentDepthTexture();
-
-    //    return occlusionTexture;
-    //}
-
-    private void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
+    private void ApplyTextureToMesh(Texture2D texture, MeshRenderer meshRenderer)
     {
-        if (_occlusionTexture != null)
+        if (meshRenderer != null && texture != null)
         {
-            _occlusionTexture.UpdateExternalTexture(eventArgs.textures[0].GetNativeTexturePtr());
+            // Создаем новый материал для меша
+            Material material = new Material(Shader.Find("Standard"));
+
+            // Присваиваем текстуру новому материалу
+            material.mainTexture = texture;
+
+            // Применяем новый материал к мешу
+            meshRenderer.material = material;
         }
     }
 }
