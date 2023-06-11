@@ -190,7 +190,8 @@ public class ScanMesh : MonoBehaviour
     private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
     {
         Texture2D cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
-        //rawImage.texture = cameraTexture;
+        rawImage.texture = cameraTexture;
+        
         if (cameraTexture != null)
         {
             // Создаем новый материал для меша
@@ -199,25 +200,11 @@ public class ScanMesh : MonoBehaviour
             // Присваиваем текстуру новому материалу
             material.mainTexture = cameraTexture;
 
+            // Изменяем ориентацию текстуры
+            material.mainTextureScale = new Vector2(-1, -1); // Изменяем знаки X-координаты и Y-координаты
+
             // Применяем новый материал к мешу
             meshObject.GetComponent<MeshRenderer>().material = material;
-        }
-    }
-
-
-    private void ApplyTextureToMesh(GameObject meshObject, Texture2D texture)
-    {
-        if (meshObject != null && texture != null)
-        {
-            // Создаем новый материал для меша
-            Material material = new Material(Shader.Find("Standard"));
-
-            // Присваиваем текстуру новому материалу
-            material.mainTexture = texture;
-
-            // Применяем новый материал к мешу
-            MeshRenderer meshRenderer = meshObject.GetComponent<MeshRenderer>();
-            meshRenderer.material = material;
         }
     }
 
