@@ -132,10 +132,24 @@ public class ScanMesh : MonoBehaviour
             Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
 
             // Вычисляем размеры области кадра, соответствующей мешу
+            // Определяем размеры области кадра, соответствующей мешу
+            int imageWidth = image.width;
+            int imageHeight = image.height;
             int x = Mathf.FloorToInt(meshRect.x * image.width);
             int y = Mathf.FloorToInt(meshRect.y * image.height);
             int width = Mathf.CeilToInt(meshRect.width * image.width);
             int height = Mathf.CeilToInt(meshRect.height * image.height);
+
+            // Проверяем, чтобы размеры преобразованного изображения не превышали размеры оригинального изображения
+            if (x + width > imageWidth)
+            {
+                width = imageWidth - x;
+            }
+
+            if (y + height > imageHeight)
+            {
+                height = imageHeight - y;
+            }
 
             // Создаем новую текстуру с размерами меша
             Texture2D cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
