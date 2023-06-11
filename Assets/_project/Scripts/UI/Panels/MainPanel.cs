@@ -26,12 +26,14 @@ namespace ScanAR.UI
         private void OnRecordBtnClick()
         {
             //todo Начать скан местности
+            ScanController.Instance.ScanStart();
             SwitchBtns();
         }
 
         private void OnStopBtnClick()
         {
             //todo Остановить скан
+            ScanController.Instance.ScanStop();
             SwitchBtns();
         }
 

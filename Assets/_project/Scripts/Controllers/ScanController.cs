@@ -6,7 +6,7 @@ using UnityEngine.XR.ARFoundation;
 public class ScanController : Singleton<ScanController>
 {
     [SerializeField] private ARPlaneManager _planeManager;
-    [SerializeField] private ARMeshManager _meshManager;
+    [SerializeField] private ScanMesh _scanMesh;
 
     protected override void Awake()
     {
@@ -16,17 +16,11 @@ public class ScanController : Singleton<ScanController>
 
     public void ScanStart()
     {
-        _meshManager.meshesChanged += OnMeshesChanged;
-        //_planeManager.enabled = true;
-    }
-
-    private void OnMeshesChanged(ARMeshesChangedEventArgs obj)
-    {
-        throw new System.NotImplementedException();
+        _scanMesh.gameObject.SetActive(true);
     }
 
     public void ScanStop()
     {
-
+        _scanMesh.gameObject.SetActive(false);
     }
 }
