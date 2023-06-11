@@ -173,7 +173,7 @@ public class ScanMesh : MonoBehaviour
             }, buffer);
 
             //// Копируем данные из буфера в текстуру, переворачивая и отражая ее
-            //Color32[] colors = new Color32[width * height];
+            Color32[] colors = new Color32[width * height];
             //for (int i = 0; i < height; i++)
             //{
             //    int flippedIndex = (height - 1 - i) * width;
@@ -185,7 +185,7 @@ public class ScanMesh : MonoBehaviour
             //            buffer[originalIndex + j * 4 + 2], buffer[originalIndex + j * 4 + 3]);
             //    }
             //}
-            //cameraTexture.SetPixels32(colors);
+            cameraTexture.SetPixels32(colors);
             cameraTexture.Apply();
 
             // Освобождаем ресурсы
@@ -193,7 +193,7 @@ public class ScanMesh : MonoBehaviour
             buffer.Dispose();
 
             return cameraTexture;
-        }
+        } 
 
         return null;
     }
