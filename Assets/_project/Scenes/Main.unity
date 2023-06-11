@@ -2322,7 +2322,7 @@ MonoBehaviour:
     type: 3}
   _arMeshManager: {fileID: 1420145518}
   _arCameraManager: {fileID: 929782452}
-  rawImage: {fileID: 0}
+  rawImage: {fileID: 322571085}
 --- !u!114 &1420145518
 MonoBehaviour:
   m_ObjectHideFlags: 0
