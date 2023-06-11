@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using Unity.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -7,20 +9,18 @@ public class ScanMesh : MonoBehaviour
 {
     [SerializeField] private GameObject _meshPrefab; // Префаб для отображения меша
     [SerializeField] private ARMeshManager _arMeshManager;
-    [SerializeField] private AROcclusionManager _occlusionManager;
+    [SerializeField] private ARCameraManager _arCameraManager;
 
-    [SerializeField] private RawImage _rawImage;
+    [SerializeField] private RawImage rawImage;
 
     private void OnEnable()
     {
         _arMeshManager.meshesChanged += OnMeshesChanged;
-        _occlusionManager.frameReceived += OnOcclusionFrameReceived;
     }
 
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
-        _occlusionManager.frameReceived -= OnOcclusionFrameReceived;
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -65,6 +65,9 @@ public class ScanMesh : MonoBehaviour
         meshObject.transform.position = meshFilter.transform.position;
         meshObject.transform.rotation = meshFilter.transform.rotation;
         meshObject.transform.localScale = Vector3.one;
+
+        // Применяем текстуру к мешу
+        ApplyCameraTextureToMesh(meshObject, meshFilter);
     }
 
     private void UpdateMeshObject(MeshFilter meshFilter)
@@ -81,8 +84,8 @@ public class ScanMesh : MonoBehaviour
         // Получение треугольников меша
         int[] triangles = meshFilter.sharedMesh.triangles;
 
-        // Создание текстурных координат для меша
-        Vector2[] uvs = GenerateUVs(vertices);
+        // Получение текстурных координат меша
+        Vector2[] uvs = meshFilter.sharedMesh.uv;
 
         // Обновление существующего меша
         GameObject meshObject = meshFilter.gameObject;
@@ -97,6 +100,9 @@ public class ScanMesh : MonoBehaviour
         meshObject.transform.position = meshFilter.transform.position;
         meshObject.transform.rotation = meshFilter.transform.rotation;
         meshObject.transform.localScale = Vector3.one;
+
+        // Применяем текстуру к мешу
+        ApplyCameraTextureToMesh(meshObject, meshFilter);
     }
 
     private void RemoveMeshObject(MeshFilter meshFilter)
@@ -110,29 +116,93 @@ public class ScanMesh : MonoBehaviour
         Destroy(meshFilter.gameObject);
     }
 
-    private void OnOcclusionFrameReceived(AROcclusionFrameEventArgs eventArgs)
+    private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
     {
-        if (eventArgs.textures.Count > 0)
+        if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
-            Texture2D occlusionTexture = eventArgs.textures[0];
-            ApplyTextureToMesh(occlusionTexture);
+            // Получаем размеры меша
+            Bounds meshBounds = meshFilter.sharedMesh.bounds;
+            Vector3 meshSize = meshBounds.size;
+
+            // Преобразуем размеры меша в нормализованные координаты от 0 до 1
+            float normalizedWidth = meshSize.x / meshBounds.extents.x;
+            float normalizedHeight = meshSize.z / meshBounds.extents.z;
+
+            // Получаем прямоугольник, соответствующий размерам меша
+            Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
+
+            // Вычисляем размеры области кадра, соответствующей мешу
+            int x = Mathf.FloorToInt(meshRect.x * image.width);
+            int y = Mathf.FloorToInt(meshRect.y * image.height);
+            int width = Mathf.CeilToInt(meshRect.width * image.width);
+            int height = Mathf.CeilToInt(meshRect.height * image.height);
+
+            // Создаем новую текстуру с размерами меша
+            Texture2D cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+
+            // Определяем размер буфера для преобразования
+            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(x, y, width, height),
+                outputDimensions = new Vector2Int(width, height),
+                outputFormat = TextureFormat.RGBA32
+            });
+
+            // Создаем буфер для преобразования
+            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
+
+            // Выполняем преобразование
+            image.Convert(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(x, y, width, height),
+                outputDimensions = new Vector2Int(width, height),
+                outputFormat = TextureFormat.RGBA32
+            }, buffer);
+
+            // Копируем данные из буфера в текстуру
+            cameraTexture.LoadRawTextureData(buffer);
+            cameraTexture.Apply();
+
+            // Освобождаем ресурсы
+            image.Dispose();
+            buffer.Dispose();
+
+            return cameraTexture;
         }
+
+        return null;
     }
 
-    private void ApplyTextureToMesh(Texture2D occlusionTexture)
+    private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
     {
-        // Получаем компонент MeshRenderer текущего объекта
-        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
-        _rawImage.texture = occlusionTexture;
-        if (meshRenderer != null && occlusionTexture != null)
+        Texture2D cameraTexture = GetCameraTextureForMesh(meshFilter);
+        rawImage.texture = cameraTexture;
+        if (cameraTexture != null)
         {
             // Создаем новый материал для меша
             Material material = new Material(Shader.Find("Unlit/Texture"));
 
-            // Присваиваем текстуру оценки затенения новому материалу
-            material.mainTexture = occlusionTexture;
+            // Присваиваем текстуру новому материалу
+            material.mainTexture = cameraTexture;
 
             // Применяем новый материал к мешу
+            meshObject.GetComponent<MeshRenderer>().material = material;
+        }
+    }
+
+
+    private void ApplyTextureToMesh(GameObject meshObject, Texture2D texture)
+    {
+        if (meshObject != null && texture != null)
+        {
+            // Создаем новый материал для меша
+            Material material = new Material(Shader.Find("Unlit/Texture"));
+
+            // Присваиваем текстуру новому материалу
+            material.mainTexture = texture;
+
+            // Применяем новый материал к мешу
+            MeshRenderer meshRenderer = meshObject.GetComponent<MeshRenderer>();
             meshRenderer.material = material;
         }
     }

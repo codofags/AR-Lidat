@@ -1777,7 +1777,7 @@ MonoBehaviour:
   m_FocusMode: -1
   m_LightEstimationMode: -1
   m_AutoFocus: 1
-  m_LightEstimation: 0
+  m_LightEstimation: -1
   m_FacingDirection: 1
   m_RenderMode: 0
 --- !u!81 &929782453
@@ -1954,12 +1954,12 @@ RectTransform:
   m_Children:
   - {fileID: 1708915659}
   m_Father: {fileID: 1770895795}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 25}
-  m_SizeDelta: {x: 50, y: 50}
+  m_AnchoredPosition: {x: 0, y: 100}
+  m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &1148937917
 GameObject:
@@ -2321,8 +2321,8 @@ MonoBehaviour:
   _meshPrefab: {fileID: 3233095215223683557, guid: 2563ef786a883104595413d6d19682c3,
     type: 3}
   _arMeshManager: {fileID: 1420145518}
-  _occlusionManager: {fileID: 1420145519}
-  _rawImage: {fileID: 322571085}
+  _arCameraManager: {fileID: 929782452}
+  rawImage: {fileID: 0}
 --- !u!114 &1420145518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2485,7 +2485,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7f0c24d7b1924474fa4cfe8a8e3a5ea7, type: 2}
+  - {fileID: 2100000, guid: 105dbfb3c73b2a94793e212278971dc4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2894,7 +2894,6 @@ GameObject:
   - component: {fileID: 2143161557}
   - component: {fileID: 2143161556}
   - component: {fileID: 2143161555}
-  - component: {fileID: 2143161560}
   m_Layer: 0
   m_Name: XR Origin
   m_TagString: Untagged
@@ -2975,18 +2974,3 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2143161560
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2143161554}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4dea56a9eaadd1c439095de4f9a371cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedLibrary: {fileID: 0}
-  m_MaxNumberOfMovingImages: 0
-  m_TrackedImagePrefab: {fileID: 0}
