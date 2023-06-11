@@ -2340,8 +2340,8 @@ MonoBehaviour:
   m_Density: 1
   m_Normals: 1
   m_Tangents: 0
-  m_TextureCoordinates: 0
-  m_Colors: 0
+  m_TextureCoordinates: 1
+  m_Colors: 1
   m_ConcurrentQueueSize: 4
 --- !u!114 &1420145519
 MonoBehaviour:
@@ -2894,6 +2894,7 @@ GameObject:
   - component: {fileID: 2143161557}
   - component: {fileID: 2143161556}
   - component: {fileID: 2143161555}
+  - component: {fileID: 2143161560}
   m_Layer: 0
   m_Name: XR Origin
   m_TagString: Untagged
@@ -2974,3 +2975,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2143161560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143161554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dea56a9eaadd1c439095de4f9a371cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedLibrary: {fileID: 0}
+  m_MaxNumberOfMovingImages: 0
+  m_TrackedImagePrefab: {fileID: 0}

@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
-using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -10,14 +8,8 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private GameObject _meshPrefab; // Префаб для отображения меша
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private AROcclusionManager _occlusionManager;
-    [SerializeField] protected RawImage _rawImage;
 
-    private MeshRenderer _meshRenderer;
-    private Texture2D _scannedTexture;
-
-    private void Awake()
-    {
-    }
+    [SerializeField] private RawImage _rawImage;
 
     private void OnEnable()
     {
@@ -57,9 +49,8 @@ public class ScanMesh : MonoBehaviour
         // Получение треугольников меша
         int[] triangles = meshFilter.mesh.triangles;
 
-        // Получение текстурных координат меша
-        Vector2[] uvs = meshFilter.mesh.uv;
-
+        // Создание текстурных координат для меша
+        Vector2[] uvs = GenerateUVs(vertices);
 
         GameObject meshObject = Instantiate(_meshPrefab, Vector3.zero, Quaternion.identity);
 
@@ -69,8 +60,6 @@ public class ScanMesh : MonoBehaviour
         meshComponent.triangles = triangles;
         meshComponent.uv = uvs; // Передача текстурных координат
         meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
-
-        _meshRenderer = meshObject.GetComponent<MeshRenderer>();
 
         // Расположение объекта в пространстве
         meshObject.transform.position = meshFilter.transform.position;
@@ -92,8 +81,8 @@ public class ScanMesh : MonoBehaviour
         // Получение треугольников меша
         int[] triangles = meshFilter.sharedMesh.triangles;
 
-        // Получение текстурных координат меша
-        Vector2[] uvs = meshFilter.sharedMesh.uv;
+        // Создание текстурных координат для меша
+        Vector2[] uvs = GenerateUVs(vertices);
 
         // Обновление существующего меша
         GameObject meshObject = meshFilter.gameObject;
@@ -102,8 +91,7 @@ public class ScanMesh : MonoBehaviour
         meshComponent.vertices = vertices;
         meshComponent.triangles = triangles;
         meshComponent.uv = uvs; // Передача текстурных координат
-        meshComponent.RecalculateNormals(); // Пересчитываем нормали\
-
+        meshComponent.RecalculateNormals(); // Пересчитываем нормали
 
         // Расположение объекта в пространстве (если требуется)
         meshObject.transform.position = meshFilter.transform.position;
@@ -126,26 +114,43 @@ public class ScanMesh : MonoBehaviour
     {
         if (eventArgs.textures.Count > 0)
         {
-            _scannedTexture = eventArgs.textures[0];
-            _rawImage.texture = _scannedTexture;
-            // Применить текстуру к мешу
-            ApplyTextureToMesh(_scannedTexture, _meshRenderer);
+            Texture2D occlusionTexture = eventArgs.textures[0];
+            ApplyTextureToMesh(occlusionTexture);
         }
     }
 
-    private void ApplyTextureToMesh(Texture2D texture, MeshRenderer meshRenderer)
+    private void ApplyTextureToMesh(Texture2D occlusionTexture)
     {
-        if (meshRenderer != null && texture != null)
+        // Получаем компонент MeshRenderer текущего объекта
+        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+        _rawImage.texture = occlusionTexture;
+        if (meshRenderer != null && occlusionTexture != null)
         {
             // Создаем новый материал для меша
-            Material material = new Material(Shader.Find("Standard"));
+            Material material = new Material(Shader.Find("Unlit/Texture"));
 
-            // Присваиваем текстуру новому материалу
-            material.mainTexture = texture;
+            // Присваиваем текстуру оценки затенения новому материалу
+            material.mainTexture = occlusionTexture;
 
             // Применяем новый материал к мешу
             meshRenderer.material = material;
         }
     }
-}
 
+    private Vector2[] GenerateUVs(Vector3[] vertices)
+    {
+        // Создаем массив текстурных координат для каждой вершины меша
+        Vector2[] uvs = new Vector2[vertices.Length];
+
+        // Проходим по каждой вершине и создаем текстурную координату,
+        // основанную на позиции вершины в пространстве
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 vertex = vertices[i];
+            Vector2 uv = new Vector2(vertex.x, vertex.z);
+            uvs[i] = uv;
+        }
+
+        return uvs;
+    }
+}
