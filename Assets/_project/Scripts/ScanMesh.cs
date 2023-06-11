@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -9,6 +10,7 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private GameObject _meshPrefab; // Префаб для отображения меша
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private AROcclusionManager _occlusionManager;
+    [SerializeField] protected RawImage _rawImage;
 
     private MeshRenderer _meshRenderer;
     private Texture2D _scannedTexture;
@@ -125,7 +127,7 @@ public class ScanMesh : MonoBehaviour
         if (eventArgs.textures.Count > 0)
         {
             _scannedTexture = eventArgs.textures[0];
-
+            _rawImage.texture = _scannedTexture;
             // Применить текстуру к мешу
             ApplyTextureToMesh(_scannedTexture, _meshRenderer);
         }
