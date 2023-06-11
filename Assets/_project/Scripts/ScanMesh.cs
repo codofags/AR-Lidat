@@ -194,7 +194,7 @@ public class ScanMesh : MonoBehaviour
         if (cameraTexture != null)
         {
             // Создаем новый материал для меша
-            Material material = new Material(Shader.Find("Unlit/Texture"));
+            Material material = new Material(Shader.Find("Standard"));
 
             // Присваиваем текстуру новому материалу
             material.mainTexture = cameraTexture;
@@ -210,7 +210,7 @@ public class ScanMesh : MonoBehaviour
         if (meshObject != null && texture != null)
         {
             // Создаем новый материал для меша
-            Material material = new Material(Shader.Find("Unlit/Texture"));
+            Material material = new Material(Shader.Find("Standard"));
 
             // Присваиваем текстуру новому материалу
             material.mainTexture = texture;
