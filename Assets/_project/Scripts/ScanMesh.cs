@@ -34,7 +34,7 @@ public class ScanMesh : MonoBehaviour
             // Получаем первую текстуру из массива
             cameraTexture = eventArgs.textures[0];
 
-            cameraTexture = RotateTextureClockwise(cameraTexture);
+            cameraTexture.RotateImage(90);
             //cameraTexture = ApplyTextureOrientation(cameraTexture, Screen.orientation);
             // Поворачиваем текстуру по часовой стрелке на 90 градусов
             //cameraTexture = RotateClockwiseAndFlip(cameraTexture);
@@ -52,6 +52,7 @@ public class ScanMesh : MonoBehaviour
         }
     }
 
+    /*
     private Texture2D RotateTextureClockwise(Texture2D texture)
     {
         int width = texture.width;
@@ -80,63 +81,18 @@ public class ScanMesh : MonoBehaviour
             }
         }
 
-        // Применяем изменения к повернутой текстуре
-        rotatedTexture.LoadRawTextureData(rotatedData);
-        rotatedTexture.Apply();
-
-        return rotatedTexture;
-    }
-
-
-
-    private Texture2D ApplyTextureOrientation(Texture2D texture, ScreenOrientation orientation)
-    {
-        if (orientation == ScreenOrientation.Portrait)
-        {
-            // Повернуть текстуру на 90 градусов по часовой стрелке
-            Texture2D rotatedTexture = new Texture2D(texture.height, texture.width);
-            RenderTexture renderTexture = RenderTexture.GetTemporary(texture.width, texture.height);
-            Graphics.Blit(texture, renderTexture);
-            RenderTexture.active = renderTexture;
-            rotatedTexture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-            rotatedTexture.Apply();
-            RenderTexture.active = null;
-            RenderTexture.ReleaseTemporary(renderTexture);
-            return rotatedTexture;
-        }
-        else
-        {
-            // Возвращаем исходную текстуру без изменений
-            return texture;
-        }
-    }
-
-    private Texture2D RotateClockwiseAndFlip(Texture2D originalTexture)
-    {
-        // Создаем новую текстуру с теми же размерами и форматом пикселей
-        Texture2D rotatedTexture = new Texture2D(originalTexture.height, originalTexture.width, originalTexture.format, false);
-
-        // Получаем сырые данные оригинальной текстуры
-        byte[] originalData = originalTexture.GetRawTextureData();
-
-        // Создаем массив для сырых данных повернутой текстуры
-        byte[] rotatedData = new byte[originalData.Length];
-
-        int width = originalTexture.width;
-        int height = originalTexture.height;
-
-        // Поворачиваем каждый пиксель текстуры
+        // Поворачиваем пиксели по часовой стрелке
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                int index = (x * height + y) * 4; // RGBA формат, поэтому * 4
-                int rotatedIndex = ((height - y - 1) * width + x) * 4;
+                int originalIndex = (x + y * width) * 4; // RGBA формат, поэтому * 4
+                int rotatedIndex = ((height - y - 1) + x * height) * 4;
 
-                // Копируем данные из оригинальной текстуры в повернутую
+                // Копируем данные из исходной текстуры в повернутую
                 for (int i = 0; i < 4; i++)
                 {
-                    rotatedData[rotatedIndex + i] = originalData[index + i];
+                    rotatedData[rotatedIndex + i] = originalData[originalIndex + i];
                 }
             }
         }
@@ -145,37 +101,10 @@ public class ScanMesh : MonoBehaviour
         rotatedTexture.LoadRawTextureData(rotatedData);
         rotatedTexture.Apply();
 
-        width = rotatedTexture.width;
-        height = rotatedTexture.height;
-
-        // Создаем новую текстуру с теми же размерами и форматом пикселей
-        Texture2D flippedTexture = new Texture2D(width, height, rotatedTexture.format, false);
-
-        // Получаем сырые данные оригинальной текстуры
-        originalData = originalTexture.GetRawTextureData();
-
-        // Создаем массив для цветов пикселей отраженной текстуры
-        byte[] flippedPixels = new byte[originalData.Length];
-
-        // Отражаем каждый пиксель текстуры по горизонтали
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int originalIndex = x + y * width;
-                int flippedIndex = (width - x - 1) + y * width;
-
-                // Копируем цвет пикселя из оригинальной текстуры в отраженную
-                flippedPixels[flippedIndex] = originalData[originalIndex];
-            }
-        }
-
-        // Применяем изменения к отраженной текстуре
-        flippedTexture.LoadRawTextureData(flippedPixels);
-        flippedTexture.Apply();
-
-        return flippedTexture;
+        return rotatedTexture;
     }
+
+    */
 
     private void OnDisable()
     {
