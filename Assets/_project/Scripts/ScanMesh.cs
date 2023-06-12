@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
@@ -12,7 +13,6 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private ARCameraManager _arCameraManager;
 
     [SerializeField] private RawImage rawImage;
-    [SerializeField] private RawImage _fullRawImage;
 
     private List<MeshRenderer> _meshes = new List<MeshRenderer>();
 
@@ -119,69 +119,90 @@ public class ScanMesh : MonoBehaviour
         Destroy(meshFilter.gameObject);
     }
 
-    private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
+     private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
     {
-        _meshes.ForEach((renderer) =>
+        rawImage.enabled = false;
+        _meshes.ForEach(mesh =>
         {
-            if (renderer != null)
-                renderer.enabled = false;
+            if (mesh != null)
+                mesh.enabled = false;
         });
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
-            // Получаем ограничивающий прямоугольник меша в мировых координатах
+            // Получаем размеры меша
             Bounds meshBounds = meshFilter.sharedMesh.bounds;
-            Vector3[] meshCorners = new Vector3[8];
-            meshCorners[0] = meshBounds.min;
-            meshCorners[1] = new Vector3(meshBounds.min.x, meshBounds.min.y, meshBounds.max.z);
-            meshCorners[2] = new Vector3(meshBounds.min.x, meshBounds.max.y, meshBounds.min.z);
-            meshCorners[3] = new Vector3(meshBounds.min.x, meshBounds.max.y, meshBounds.max.z);
-            meshCorners[4] = new Vector3(meshBounds.max.x, meshBounds.min.y, meshBounds.min.z);
-            meshCorners[5] = new Vector3(meshBounds.max.x, meshBounds.min.y, meshBounds.max.z);
-            meshCorners[6] = new Vector3(meshBounds.max.x, meshBounds.max.y, meshBounds.min.z);
-            meshCorners[7] = meshBounds.max;
+            Vector3 meshSize = meshBounds.size;
 
-            Vector3 minWorldPoint = meshFilter.transform.TransformPoint(meshCorners[0]);
-            Vector3 maxWorldPoint = meshFilter.transform.TransformPoint(meshCorners[7]);
+            // Преобразуем размеры меша в нормализованные координаты от 0 до 1
+            float normalizedWidth = meshSize.x / meshBounds.extents.x;
+            float normalizedHeight = meshSize.z / meshBounds.extents.z;
 
-            // Получаем текущую активную камеру
-            Camera activeCamera = Camera.main;
+            // Получаем прямоугольник, соответствующий размерам меша
+            Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
 
-            // Преобразуем мировые точки в экранные точки
-            Vector3 minScreenPoint = activeCamera.WorldToScreenPoint(minWorldPoint);
-            Vector3 maxScreenPoint = activeCamera.WorldToScreenPoint(maxWorldPoint);
+            // Вычисляем размеры области кадра, соответствующей мешу
+            // Определяем размеры области кадра, соответствующей мешу
+            int imageWidth = image.width;
+            int imageHeight = image.height;
+            int x = Mathf.FloorToInt(meshRect.x * image.width);
+            int y = Mathf.FloorToInt(meshRect.y * image.height);
+            int width = Mathf.CeilToInt(meshRect.width * image.width);
+            int height = Mathf.CeilToInt(meshRect.height * image.height);
 
-            // Преобразуем экранные точки в локальные точки внутри RawImage
-            RectTransform rawImageRectTransform = _fullRawImage.GetComponent<RectTransform>();
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(rawImageRectTransform, minScreenPoint, activeCamera, out Vector2 minLocalPoint);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(rawImageRectTransform, maxScreenPoint, activeCamera, out Vector2 maxLocalPoint);
+            // Проверяем, чтобы размеры преобразованного изображения не превышали размеры оригинального изображения
+            if (x + width > imageWidth)
+            {
+                width = imageWidth - x;
+            }
 
-            // Вычисляем размеры прямоугольника в пикселях
-            float width = Mathf.Abs(maxLocalPoint.x - minLocalPoint.x);
-            float height = Mathf.Abs(maxLocalPoint.y - minLocalPoint.y);
+            if (y + height > imageHeight)
+            {
+                height = imageHeight - y;
+            }
 
-            // Создаем прямоугольник для обрезки кадра
-            Rect croppedRect = new Rect(minLocalPoint.x, minLocalPoint.y, width, height);
+            // Создаем новую текстуру с размерами меша
+            Texture2D cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
-            // Выполняем обрезку кадра с использованием созданного прямоугольника
-            Texture2D cameraTexture = new Texture2D(image.width, image.height, TextureFormat.RGBA32, false);
-            cameraTexture.LoadRawTextureData(image.GetPlane(0).data);
+            // Определяем размер буфера для преобразования
+            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(x, y, width, height),
+                outputDimensions = new Vector2Int(width, height),
+                outputFormat = TextureFormat.RGBA32
+            });
+
+            // Создаем буфер для преобразования
+            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
+
+            // Выполняем преобразование
+            image.Convert(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(x, y, width, height),
+                outputDimensions = new Vector2Int(width, height),
+                outputFormat = TextureFormat.RGBA32
+            }, buffer);
+
+            // Копируем данные из буфера в текстуру
+            cameraTexture.LoadRawTextureData(buffer);
             cameraTexture.Apply();
-            cameraTexture = cameraTexture.CropTexture(croppedRect);
 
             // Освобождаем ресурсы
             image.Dispose();
-            _meshes.ForEach((renderer) =>
+            buffer.Dispose();
+            _meshes.ForEach(mesh =>
             {
-                if (renderer != null)
-                    renderer.enabled = true;
+                if (mesh != null)
+                    mesh.enabled = true;
             });
+            rawImage.enabled = true;
             return cameraTexture;
         }
-        _meshes.ForEach((renderer) =>
+        _meshes.ForEach(mesh =>
         {
-            if (renderer != null)
-                renderer.enabled = true;
+            if (mesh != null)
+                mesh.enabled = true;
         });
+        rawImage.enabled = true;
         return null;
     }
 
