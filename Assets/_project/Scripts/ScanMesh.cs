@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using static UnityEngine.XR.ARSubsystems.XRCpuImage;
 
 public class ScanMesh : MonoBehaviour
 {
@@ -22,36 +24,14 @@ public class ScanMesh : MonoBehaviour
     private void OnEnable()
     {
         _arMeshManager.meshesChanged += OnMeshesChanged;
-        _arCameraManager.frameReceived += _arCameraManager_frameReceived;
     }
 
-    private void _arCameraManager_frameReceived(ARCameraFrameEventArgs eventArgs)
+    private void Update()
     {
-        if (eventArgs.textures.Count > 0)
-        {
-
-            //ToogleMeshes(false);
-            // Получаем первую текстуру из массива
-            cameraTexture = eventArgs.textures[0];
-
-            cameraTexture.RotateImage(90);
-            //cameraTexture = ApplyTextureOrientation(cameraTexture, Screen.orientation);
-            // Поворачиваем текстуру по часовой стрелке на 90 градусов
-            //cameraTexture = RotateClockwiseAndFlip(cameraTexture);
-
-            // Отражаем текстуру по горизонтали
-            //cameraTexture = FlipTextureHorizontally(cameraTexture);
-
-            rawFrameImage.texture = cameraTexture;
-
-            //ToogleMeshes(true);
-        }
-        else
-        {
-            Debug.Log("Текстур нет");
-        }
+        Texture2D texture = new Texture2D(1,1);
+        GetCameraTexture(ref texture);
+        rawFrameImage.texture = texture;
     }
-
     /*
     private Texture2D RotateTextureClockwise(Texture2D texture)
     {
@@ -109,7 +89,6 @@ public class ScanMesh : MonoBehaviour
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
-        _arCameraManager.frameReceived -= _arCameraManager_frameReceived;
     }
 
     private void OnDestroy()
@@ -213,6 +192,37 @@ public class ScanMesh : MonoBehaviour
         }
 
         Destroy(meshFilter.gameObject);
+    }
+
+    private void GetCameraTexture(ref Texture2D texture)
+    {
+        if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
+        {
+            // Получаем данные изображения
+            ConversionParams conversionParams = new ConversionParams
+            {
+                inputRect = new RectInt(0, 0, image.width, image.height),
+                outputDimensions = new Vector2Int(image.width, image.height),
+                outputFormat = TextureFormat.RGBA32,
+                transformation = XRCpuImage.Transformation.MirrorX
+            };
+
+            // Получаем нативный массив байтов
+            NativeArray<byte> nativeArray = image.GetPlane(0).data;
+
+            // Конвертируем изображение в массив байтов
+            byte[] buffer = new byte[nativeArray.Length];
+            NativeArray<byte>.Copy(nativeArray, buffer, nativeArray.Length);
+
+            // Создаем новую текстуру и загружаем в нее данные пикселей
+            texture = new Texture2D(image.width, image.height, TextureFormat.RGBA32, false);
+            texture.LoadRawTextureData(buffer);
+            texture.Apply();
+        }
+        else
+        {
+            Debug.Log("Не удалось получить кадр с камеры");
+        }
     }
 
     // private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
