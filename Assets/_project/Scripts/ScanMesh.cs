@@ -16,22 +16,18 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private ARCameraManager _arCameraManager;
 
     [SerializeField] private RawImage rawImage;
-    [SerializeField] private RawImage rawFrameImage;
+    [SerializeField] private Renderer _quadRenderer;
 
     private List<MeshRenderer> _meshes = new List<MeshRenderer>();
-    private Texture2D cameraTexture;
+
+    private Texture2D _cameraTexture;
 
     private void OnEnable()
     {
         _arMeshManager.meshesChanged += OnMeshesChanged;
+        _arCameraManager.frameReceived += OnCameraFrameReceived;
     }
 
-    private void Update()
-    {
-        Texture2D texture = new Texture2D(1,1);
-        GetCameraTexture(ref texture);
-        rawFrameImage.texture = texture;
-    }
     /*
     private Texture2D RotateTextureClockwise(Texture2D texture)
     {
@@ -89,11 +85,28 @@ public class ScanMesh : MonoBehaviour
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
+        _arCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
     private void OnDestroy()
     {
-        Destroy(cameraTexture);
+        Destroy(_cameraTexture);
+    }
+
+    private void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
+    {
+        if (_cameraTexture == null)
+        {
+            // Создаем текстуру с соответствующими размерами и форматом
+            _cameraTexture = new Texture2D(eventArgs.textures[0].width, eventArgs.textures[0].height, TextureFormat.RGBA32, false);
+        }
+
+        // Копируем данные пикселей с камеры в текстуру
+        _cameraTexture.SetPixels32(eventArgs.textures[0].GetPixels32());
+        _cameraTexture.Apply();
+
+        // Применяем текстуру к объекту в сцене
+        _quadRenderer.material.mainTexture = _cameraTexture;
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -384,8 +397,8 @@ public class ScanMesh : MonoBehaviour
         }
 
         // Преобразуем координаты в пиксельные координаты
-        int textureWidth = cameraTexture.width;
-        int textureHeight = cameraTexture.height;
+        int textureWidth = _cameraTexture.width;
+        int textureHeight = _cameraTexture.height;
 
         int pixelMinX = Mathf.FloorToInt(minX * textureWidth);
         int pixelMinY = Mathf.FloorToInt(minY * textureHeight);
@@ -397,7 +410,7 @@ public class ScanMesh : MonoBehaviour
 
         Texture2D meshTexture = new Texture2D(width, height);
 
-        Color[] meshPixels = cameraTexture.GetPixels(pixelMinX, pixelMinY, width, height);
+        Color[] meshPixels = _cameraTexture .GetPixels(pixelMinX, pixelMinY, width, height);
         meshTexture.SetPixels(meshPixels);
         meshTexture.Apply();
 
@@ -420,7 +433,7 @@ public class ScanMesh : MonoBehaviour
         if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
         {
             //cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
-            var texture = ColorMeshWithCameraTexture(meshObject.GetComponent<MeshFilter>(), cameraTexture);
+            var texture = ColorMeshWithCameraTexture(meshObject.GetComponent<MeshFilter>(), _cameraTexture);
             cpuImage.Dispose();
             //Texture2D cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
             //
