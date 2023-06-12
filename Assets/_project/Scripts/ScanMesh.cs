@@ -194,26 +194,33 @@ public class ScanMesh : MonoBehaviour
         Destroy(meshFilter.gameObject);
     }
 
-    private void GetCameraTexture(ref Texture2D texture)
+    private void GetCameraTexture(ref Texture2D refTexture)
     {
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
             // Получаем размеры данных плоскости изображения
-            int planeWidth = image.GetPlane(0).rowStride;
+            int planeWidth = image.width;
             int planeHeight = image.height;
+
+            // Создаем новую текстуру и загружаем в нее данные пикселей
+            Texture2D texture = new Texture2D(planeWidth, planeHeight, TextureFormat.RGBA32, false);
 
             // Получаем нативный массив байтов
             NativeArray<byte> nativeArray = image.GetPlane(0).data;
 
-            // Конвертируем изображение в массив байтов
-            byte[] buffer = new byte[planeWidth * planeHeight];
-            NativeArray<byte>.Copy(nativeArray, buffer, planeWidth * planeHeight);
+            // Копируем данные изображения в массив байтов текстуры
+            byte[] buffer = new byte[nativeArray.Length];
+            NativeArray<byte>.Copy(nativeArray, buffer, nativeArray.Length);
 
-            // Создаем новую текстуру и загружаем в нее данные пикселей
-            texture = new Texture2D(planeWidth, planeHeight, TextureFormat.RGBA32, false);
+            // Загружаем данные пикселей в текстуру
             texture.LoadRawTextureData(buffer);
             texture.Apply();
 
+            // Устанавливаем текстуру в RawImage
+            refTexture = texture;
+
+            // Освобождаем ресурсы изображения
+            image.Dispose();
         }
         else
         {
