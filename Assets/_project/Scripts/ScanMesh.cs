@@ -30,10 +30,12 @@ public class ScanMesh : MonoBehaviour
         if (eventArgs.textures.Count > 0)
         {
 
-            ToogleMeshes(false);
+            //ToogleMeshes(false);
             // Получаем первую текстуру из массива
             cameraTexture = eventArgs.textures[0];
-            cameraTexture = ApplyTextureOrientation(cameraTexture, Screen.orientation);
+
+            cameraTexture = RotateTextureClockwise(cameraTexture);
+            //cameraTexture = ApplyTextureOrientation(cameraTexture, Screen.orientation);
             // Поворачиваем текстуру по часовой стрелке на 90 градусов
             //cameraTexture = RotateClockwiseAndFlip(cameraTexture);
 
@@ -42,13 +44,50 @@ public class ScanMesh : MonoBehaviour
 
             rawFrameImage.texture = cameraTexture;
 
-            ToogleMeshes(true);
+            //ToogleMeshes(true);
         }
         else
         {
             Debug.Log("Текстур нет");
         }
     }
+
+    private Texture2D RotateTextureClockwise(Texture2D texture)
+    {
+        int width = texture.width;
+        int height = texture.height;
+
+        // Создаем новую текстуру с измененными размерами
+        Texture2D rotatedTexture = new Texture2D(height, width);
+
+        // Получаем сырые данные из исходной текстуры
+        byte[] originalData = texture.GetRawTextureData();
+        byte[] rotatedData = new byte[originalData.Length];
+
+        // Поворачиваем пиксели по часовой стрелке
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int originalIndex = (x + y * width) * 4; // RGBA формат, поэтому * 4
+                int rotatedIndex = ((height - y - 1) + x * height) * 4;
+
+                // Копируем данные из исходной текстуры в повернутую
+                for (int i = 0; i < 4; i++)
+                {
+                    rotatedData[rotatedIndex + i] = originalData[originalIndex + i];
+                }
+            }
+        }
+
+        // Применяем изменения к повернутой текстуре
+        rotatedTexture.LoadRawTextureData(rotatedData);
+        rotatedTexture.Apply();
+
+        return rotatedTexture;
+    }
+
+
 
     private Texture2D ApplyTextureOrientation(Texture2D texture, ScreenOrientation orientation)
     {
@@ -141,6 +180,7 @@ public class ScanMesh : MonoBehaviour
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
+        _arCameraManager.frameReceived -= _arCameraManager_frameReceived;
     }
 
     private void OnDestroy()
