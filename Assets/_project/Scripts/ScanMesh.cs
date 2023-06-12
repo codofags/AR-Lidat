@@ -17,6 +17,7 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private RawImage rawFrameImage;
 
     private List<MeshRenderer> _meshes = new List<MeshRenderer>();
+    private Texture2D cameraTexture;
 
     private void OnEnable()
     {
@@ -24,13 +25,18 @@ public class ScanMesh : MonoBehaviour
         _arCameraManager.frameReceived += _arCameraManager_frameReceived;
     }
 
-    private Texture2D cameraTexture;
     private void _arCameraManager_frameReceived(ARCameraFrameEventArgs eventArgs)
     {
         if (eventArgs.textures.Count > 0)
         {
             // Получаем первую текстуру из массива
-            Texture2D cameraTexture = eventArgs.textures[0];
+            cameraTexture = eventArgs.textures[0];
+            // Поворачиваем текстуру по часовой стрелке на 90 градусов
+            cameraTexture = RotateTextureClockwise(cameraTexture);
+
+            // Отражаем текстуру по горизонтали
+            cameraTexture = FlipTextureHorizontally(cameraTexture);
+
             rawFrameImage.texture = cameraTexture;
         }
         else
@@ -39,9 +45,54 @@ public class ScanMesh : MonoBehaviour
         }
     }
 
+    private Texture2D RotateTextureClockwise(Texture2D originalTexture)
+    {
+        // Создаем новую текстуру с измененными размерами и форматом пикселей
+        Texture2D rotatedTexture = new Texture2D(originalTexture.height, originalTexture.width, originalTexture.format, false);
+
+        // Поворачиваем каждый пиксель текстуры
+        for (int x = 0; x < originalTexture.width; x++)
+        {
+            for (int y = 0; y < originalTexture.height; y++)
+            {
+                rotatedTexture.SetPixel(y, originalTexture.width - x - 1, originalTexture.GetPixel(x, y));
+            }
+        }
+
+        // Применяем изменения
+        rotatedTexture.Apply();
+
+        return rotatedTexture;
+    }
+
+    private Texture2D FlipTextureHorizontally(Texture2D originalTexture)
+    {
+        // Создаем новую текстуру с теми же размерами и форматом пикселей
+        Texture2D flippedTexture = new Texture2D(originalTexture.width, originalTexture.height, originalTexture.format, false);
+
+        // Отражаем каждый пиксель текстуры по горизонтали
+        for (int x = 0; x < originalTexture.width; x++)
+        {
+            for (int y = 0; y < originalTexture.height; y++)
+            {
+                flippedTexture.SetPixel(originalTexture.width - x - 1, y, originalTexture.GetPixel(x, y));
+            }
+        }
+
+        // Применяем изменения
+        flippedTexture.Apply();
+
+        return flippedTexture;
+    }
+
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
+    }
+
+    private void OnDestroy()
+    {
+        Destroy(cameraTexture);
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -140,11 +191,6 @@ public class ScanMesh : MonoBehaviour
      private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
     {
         rawImage.enabled = false;
-        _meshes.ForEach(mesh =>
-        {
-            if (mesh != null)
-                mesh.enabled = false;
-        });
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
             // Получаем размеры меша
@@ -215,11 +261,6 @@ public class ScanMesh : MonoBehaviour
             rawImage.enabled = true;
             return cameraTexture;
         }
-        _meshes.ForEach(mesh =>
-        {
-            if (mesh != null)
-                mesh.enabled = true;
-        });
         rawImage.enabled = true;
         return null;
     }
@@ -291,9 +332,10 @@ public class ScanMesh : MonoBehaviour
 
     private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
     {
+        ToogleMeshes(false);
         if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
         {
-            Texture2D cameraTexture = CreateTextureFromCpuImage(cpuImage);
+            //cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
             var texture = ColorMeshWithCameraTexture(meshObject.GetComponent<MeshFilter>(), cameraTexture);
             cpuImage.Dispose();
             //Texture2D cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
@@ -308,13 +350,14 @@ public class ScanMesh : MonoBehaviour
                 // Присваиваем текстуру новому материалу
                 material.mainTexture = texture;
 
-                // Изменяем ориентацию текстуры
-                material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
+                //// Изменяем ориентацию текстуры
+                //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
 
                 // Применяем новый материал к мешу
                 meshObject.GetComponent<MeshRenderer>().material = material;
             }
         }
+        ToogleMeshes(true);
     }
 
     private Texture2D CreateTextureFromCpuImage(XRCpuImage cpuImage)
@@ -347,6 +390,17 @@ public class ScanMesh : MonoBehaviour
         texture.Apply();
     }
 
+    private void ToogleMeshes(bool activate)
+    {
+        if (_meshes == null || _meshes.Count <= 0)
+            return;
+
+        _meshes.ForEach(mesh =>
+        {
+            if (mesh != null)
+                mesh.enabled = activate;
+        });
+    }
 
     private Vector2[] GenerateUVs(Vector3[] vertices)
     {
