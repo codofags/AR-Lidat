@@ -79,30 +79,31 @@ public class ScanMesh : MonoBehaviour
         rotatedTexture.LoadRawTextureData(rotatedData);
         rotatedTexture.Apply();
 
-        // Отражаем повернутую текстуру по горизонтали
-        Texture2D flippedTexture = new Texture2D(rotatedTexture.width, rotatedTexture.height, rotatedTexture.format, false);
-        byte[] flippedData = rotatedTexture.GetRawTextureData();
+        //// Отражаем повернутую текстуру по горизонтали
+        //Texture2D flippedTexture = new Texture2D(rotatedTexture.width, rotatedTexture.height, rotatedTexture.format, false);
+        //byte[] flippedData = rotatedTexture.GetRawTextureData();
 
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int index = (x * height + y) * 4;
-                int flippedIndex = ((width - x - 1) * height + y) * 4;
 
-                // Копируем данные из повернутой текстуры в отраженную
-                for (int i = 0; i < 4; i++)
-                {
-                    flippedData[flippedIndex + i] = rotatedData[index + i];
-                }
-            }
-        }
+        //for (int x = 0; x < width; x++)
+        //{
+        //    for (int y = 0; y < height; y++)
+        //    {
+        //        int index = (x * height + y) * 4;
+        //        int flippedIndex = ((width - x - 1) * height + y) * 4;
 
-        // Применяем изменения к отраженной текстуре
-        flippedTexture.LoadRawTextureData(flippedData);
-        flippedTexture.Apply();
+        //        // Копируем данные из повернутой текстуры в отраженную
+        //        for (int i = 0; i < 4; i++)
+        //        {
+        //            flippedData[flippedIndex + i] = rotatedData[index + i];
+        //        }
+        //    }
+        //}
 
-        return flippedTexture;
+        //// Применяем изменения к отраженной текстуре
+        //flippedTexture.LoadRawTextureData(flippedData);
+        //flippedTexture.Apply();
+
+        return rotatedTexture;
     }
 
     private void OnDisable()
