@@ -120,66 +120,48 @@ public class ScanMesh : MonoBehaviour
     {
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
-            // Получаем размеры меша
+            // Получаем ограничивающий прямоугольник меша в мировых координатах
             Bounds meshBounds = meshFilter.sharedMesh.bounds;
-            Vector3 meshSize = meshBounds.size;
+            Vector3[] meshCorners = new Vector3[8];
+            meshCorners[0] = meshBounds.min;
+            meshCorners[1] = new Vector3(meshBounds.min.x, meshBounds.min.y, meshBounds.max.z);
+            meshCorners[2] = new Vector3(meshBounds.min.x, meshBounds.max.y, meshBounds.min.z);
+            meshCorners[3] = new Vector3(meshBounds.min.x, meshBounds.max.y, meshBounds.max.z);
+            meshCorners[4] = new Vector3(meshBounds.max.x, meshBounds.min.y, meshBounds.min.z);
+            meshCorners[5] = new Vector3(meshBounds.max.x, meshBounds.min.y, meshBounds.max.z);
+            meshCorners[6] = new Vector3(meshBounds.max.x, meshBounds.max.y, meshBounds.min.z);
+            meshCorners[7] = meshBounds.max;
 
-            // Преобразуем размеры меша в нормализованные координаты от 0 до 1
-            float normalizedWidth = meshSize.x / meshBounds.extents.x;
-            float normalizedHeight = meshSize.z / meshBounds.extents.z;
+            Vector3 minWorldPoint = meshFilter.transform.TransformPoint(meshCorners[0]);
+            Vector3 maxWorldPoint = meshFilter.transform.TransformPoint(meshCorners[7]);
 
-            // Получаем прямоугольник, соответствующий размерам меша
-            Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
+            // Получаем текущую активную камеру
+            Camera activeCamera = Camera.main;
 
-            // Вычисляем размеры области кадра, соответствующей мешу
-            // Определяем размеры области кадра, соответствующей мешу
-            int imageWidth = image.width;
-            int imageHeight = image.height;
-            int x = Mathf.FloorToInt(meshRect.x * image.width);
-            int y = Mathf.FloorToInt(meshRect.y * image.height);
-            int width = Mathf.CeilToInt(meshRect.width * image.width);
-            int height = Mathf.CeilToInt(meshRect.height * image.height);
+            // Преобразуем мировые точки в экранные точки
+            Vector3 minScreenPoint = activeCamera.WorldToScreenPoint(minWorldPoint);
+            Vector3 maxScreenPoint = activeCamera.WorldToScreenPoint(maxWorldPoint);
 
-            // Проверяем, чтобы размеры преобразованного изображения не превышали размеры оригинального изображения
-            if (x + width > imageWidth)
-            {
-                width = imageWidth - x;
-            }
+            // Преобразуем экранные точки в локальные точки внутри RawImage
+            RectTransform rawImageRectTransform = rawImage.GetComponent<RectTransform>();
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rawImageRectTransform, minScreenPoint, activeCamera, out Vector2 minLocalPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rawImageRectTransform, maxScreenPoint, activeCamera, out Vector2 maxLocalPoint);
 
-            if (y + height > imageHeight)
-            {
-                height = imageHeight - y;
-            }
+            // Вычисляем размеры прямоугольника в пикселях
+            float width = Mathf.Abs(maxLocalPoint.x - minLocalPoint.x);
+            float height = Mathf.Abs(maxLocalPoint.y - minLocalPoint.y);
 
-            // Создаем новую текстуру с размерами меша
-            Texture2D cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            // Создаем прямоугольник для обрезки кадра
+            Rect croppedRect = new Rect(minLocalPoint.x, minLocalPoint.y, width, height);
 
-            // Определяем размер буфера для преобразования
-            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
-            {
-                inputRect = new RectInt(x, y, width, height),
-                outputDimensions = new Vector2Int(width, height),
-                outputFormat = TextureFormat.RGBA32
-            });
-
-            // Создаем буфер для преобразования
-            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
-
-            // Выполняем преобразование
-            image.Convert(new XRCpuImage.ConversionParams
-            {
-                inputRect = new RectInt(x, y, width, height),
-                outputDimensions = new Vector2Int(width, height),
-                outputFormat = TextureFormat.RGBA32
-            }, buffer);
-
-            // Копируем данные из буфера в текстуру
-            cameraTexture.LoadRawTextureData(buffer);
+            // Выполняем обрезку кадра с использованием созданного прямоугольника
+            Texture2D cameraTexture = new Texture2D(image.width, image.height, TextureFormat.RGBA32, false);
+            cameraTexture.LoadRawTextureData(image.GetPlane(0).data);
             cameraTexture.Apply();
+            cameraTexture = cameraTexture.CropTexture(croppedRect);
 
             // Освобождаем ресурсы
             image.Dispose();
-            buffer.Dispose();
 
             return cameraTexture;
         }
@@ -201,7 +183,7 @@ public class ScanMesh : MonoBehaviour
             material.mainTexture = cameraTexture;
 
             // Изменяем ориентацию текстуры
-            material.mainTextureScale = new Vector2(-1, -1); // Изменяем знаки X-координаты и Y-координаты
+            material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
 
             // Применяем новый материал к мешу
             meshObject.GetComponent<MeshRenderer>().material = material;
