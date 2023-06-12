@@ -2323,7 +2323,7 @@ MonoBehaviour:
   _arMeshManager: {fileID: 1420145518}
   _arCameraManager: {fileID: 929782452}
   rawImage: {fileID: 322571085}
-  _fullRawImage: {fileID: 0}
+  _fullRawImage: {fileID: 1562610277}
 --- !u!114 &1420145518
 MonoBehaviour:
   m_ObjectHideFlags: 0
