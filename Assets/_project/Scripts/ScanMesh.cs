@@ -29,19 +29,50 @@ public class ScanMesh : MonoBehaviour
     {
         if (eventArgs.textures.Count > 0)
         {
+
+            ToogleMeshes(false);
             // Получаем первую текстуру из массива
             cameraTexture = eventArgs.textures[0];
+            cameraTexture = ApplyTextureOrientation(cameraTexture, Screen.orientation);
             // Поворачиваем текстуру по часовой стрелке на 90 градусов
-            cameraTexture = RotateClockwiseAndFlip(cameraTexture);
+            //cameraTexture = RotateClockwiseAndFlip(cameraTexture);
 
             // Отражаем текстуру по горизонтали
             //cameraTexture = FlipTextureHorizontally(cameraTexture);
 
             rawFrameImage.texture = cameraTexture;
+
+            ToogleMeshes(true);
         }
         else
         {
             Debug.Log("Текстур нет");
+        }
+    }
+
+    private Texture2D ApplyTextureOrientation(Texture2D texture, ScreenOrientation orientation)
+    {
+        if (orientation == ScreenOrientation.Portrait)
+        {
+            // Повернуть текстуру на 90 градусов по часовой стрелке
+            Texture2D rotatedTexture = new Texture2D(texture.height, texture.width);
+            Color[] pixels = texture.GetPixels();
+
+            for (int x = 0; x < texture.width; x++)
+            {
+                for (int y = 0; y < texture.height; y++)
+                {
+                    rotatedTexture.SetPixel(y, texture.width - x - 1, pixels[x + y * texture.width]);
+                }
+            }
+
+            rotatedTexture.Apply();
+            return rotatedTexture;
+        }
+        else
+        {
+            // Возвращаем исходную текстуру без изменений
+            return texture;
         }
     }
 
@@ -159,13 +190,18 @@ public class ScanMesh : MonoBehaviour
         meshComponent.uv = uvs; // Передача текстурных координат
         meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
 
+        Debug.Log($"Coords: {meshComponent.uv}");
         // Расположение объекта в пространстве
         meshObject.transform.position = meshFilter.transform.position;
         meshObject.transform.rotation = meshFilter.transform.rotation;
         meshObject.transform.localScale = Vector3.one;
+        var meshRenderer = meshObject.GetComponent<MeshRenderer>();
         _meshes.Add(meshObject.GetComponent<MeshRenderer>());
+
+        CutTexture(meshComponent, meshRenderer);
+
         // Применяем текстуру к мешу
-        ApplyCameraTextureToMesh(meshObject, meshFilter);
+        //ApplyCameraTextureToMesh(meshObject, meshFilter);
     }
 
     private void UpdateMeshObject(MeshFilter meshFilter)
@@ -200,7 +236,7 @@ public class ScanMesh : MonoBehaviour
         meshObject.transform.localScale = Vector3.one;
 
         // Применяем текстуру к мешу
-        ApplyCameraTextureToMesh(meshObject, meshFilter);
+        //ApplyCameraTextureToMesh(meshObject, meshFilter);
     }
 
     private void RemoveMeshObject(MeshFilter meshFilter)
@@ -351,10 +387,58 @@ public class ScanMesh : MonoBehaviour
         return meshTexture;
     }
 
+    private void CutTexture(Mesh mesh, MeshRenderer meshRenderer)
+    {
+        var uv = mesh.uv;
+        float minX = float.MaxValue;
+        float minY = float.MaxValue;
+        float maxX = float.MinValue;
+        float maxY = float.MinValue;
+
+        int numVertices = mesh.vertexCount;
+        for (int i = 0; i < numVertices; i++)
+        {
+            Vector2 uvCoordinate = uv[i];
+            minX = Mathf.Min(minX, uvCoordinate.x);
+            minY = Mathf.Min(minY, uvCoordinate.y);
+            maxX = Mathf.Max(maxX, uvCoordinate.x);
+            maxY = Mathf.Max(maxY, uvCoordinate.y);
+        }
+
+        // Преобразуем координаты в пиксельные координаты
+        int textureWidth = cameraTexture.width;
+        int textureHeight = cameraTexture.height;
+
+        int pixelMinX = Mathf.FloorToInt(minX * textureWidth);
+        int pixelMinY = Mathf.FloorToInt(minY * textureHeight);
+        int pixelMaxX = Mathf.FloorToInt(maxX * textureWidth);
+        int pixelMaxY = Mathf.FloorToInt(maxY * textureHeight);
+
+        int width = pixelMaxX - pixelMinX + 1;
+        int height = pixelMaxY - pixelMinY + 1;
+
+        Texture2D meshTexture = new Texture2D(width, height);
+
+        Color[] meshPixels = cameraTexture.GetPixels(pixelMinX, pixelMinY, width, height);
+        meshTexture.SetPixels(meshPixels);
+        meshTexture.Apply();
+
+
+        // Создаем новый материал для меша
+        Material material = new Material(Shader.Find("Standard"));
+
+        // Присваиваем текстуру новому материалу
+        material.mainTexture = meshTexture;
+
+        // Применяем новый материал к мешу
+        meshRenderer.material = material;
+    }
 
     private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
     {
         ToogleMeshes(false);
+
+
         if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
         {
             //cameraTexture = GetCameraTextureForMesh(meshObject.GetComponent<MeshFilter>());
