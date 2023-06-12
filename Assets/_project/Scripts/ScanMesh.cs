@@ -32,10 +32,10 @@ public class ScanMesh : MonoBehaviour
             // Получаем первую текстуру из массива
             cameraTexture = eventArgs.textures[0];
             // Поворачиваем текстуру по часовой стрелке на 90 градусов
-            cameraTexture = RotateTextureClockwise(cameraTexture);
+            cameraTexture = RotateClockwiseAndFlip(cameraTexture);
 
             // Отражаем текстуру по горизонтали
-            cameraTexture = FlipTextureHorizontally(cameraTexture);
+            //cameraTexture = FlipTextureHorizontally(cameraTexture);
 
             rawFrameImage.texture = cameraTexture;
         }
@@ -45,41 +45,61 @@ public class ScanMesh : MonoBehaviour
         }
     }
 
-    private Texture2D RotateTextureClockwise(Texture2D originalTexture)
-    {
-        // Создаем новую текстуру с измененными размерами и форматом пикселей
-        Texture2D rotatedTexture = new Texture2D(originalTexture.height, originalTexture.width, originalTexture.format, false);
-
-        // Поворачиваем каждый пиксель текстуры
-        for (int x = 0; x < originalTexture.width; x++)
-        {
-            for (int y = 0; y < originalTexture.height; y++)
-            {
-                rotatedTexture.SetPixel(y, originalTexture.width - x - 1, originalTexture.GetPixel(x, y));
-            }
-        }
-
-        // Применяем изменения
-        rotatedTexture.Apply();
-
-        return rotatedTexture;
-    }
-
-    private Texture2D FlipTextureHorizontally(Texture2D originalTexture)
+    private Texture2D RotateClockwiseAndFlip(Texture2D originalTexture)
     {
         // Создаем новую текстуру с теми же размерами и форматом пикселей
-        Texture2D flippedTexture = new Texture2D(originalTexture.width, originalTexture.height, originalTexture.format, false);
+        Texture2D rotatedTexture = new Texture2D(originalTexture.height, originalTexture.width, originalTexture.format, false);
 
-        // Отражаем каждый пиксель текстуры по горизонтали
-        for (int x = 0; x < originalTexture.width; x++)
+        // Получаем сырые данные оригинальной текстуры
+        byte[] originalData = originalTexture.GetRawTextureData();
+
+        // Создаем массив для сырых данных повернутой текстуры
+        byte[] rotatedData = new byte[originalData.Length];
+
+        int width = originalTexture.width;
+        int height = originalTexture.height;
+
+        // Поворачиваем каждый пиксель текстуры
+        for (int x = 0; x < width; x++)
         {
-            for (int y = 0; y < originalTexture.height; y++)
+            for (int y = 0; y < height; y++)
             {
-                flippedTexture.SetPixel(originalTexture.width - x - 1, y, originalTexture.GetPixel(x, y));
+                int index = (x * height + y) * 4; // RGBA формат, поэтому * 4
+                int rotatedIndex = ((height - y - 1) * width + x) * 4;
+
+                // Копируем данные из оригинальной текстуры в повернутую
+                for (int i = 0; i < 4; i++)
+                {
+                    rotatedData[rotatedIndex + i] = originalData[index + i];
+                }
             }
         }
 
-        // Применяем изменения
+        // Применяем изменения к повернутой текстуре
+        rotatedTexture.LoadRawTextureData(rotatedData);
+        rotatedTexture.Apply();
+
+        // Отражаем повернутую текстуру по горизонтали
+        Texture2D flippedTexture = new Texture2D(rotatedTexture.width, rotatedTexture.height, rotatedTexture.format, false);
+        byte[] flippedData = rotatedTexture.GetRawTextureData();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int index = (x * height + y) * 4;
+                int flippedIndex = ((width - x - 1) * height + y) * 4;
+
+                // Копируем данные из повернутой текстуры в отраженную
+                for (int i = 0; i < 4; i++)
+                {
+                    flippedData[flippedIndex + i] = rotatedData[index + i];
+                }
+            }
+        }
+
+        // Применяем изменения к отраженной текстуре
+        flippedTexture.LoadRawTextureData(flippedData);
         flippedTexture.Apply();
 
         return flippedTexture;
@@ -188,82 +208,77 @@ public class ScanMesh : MonoBehaviour
         Destroy(meshFilter.gameObject);
     }
 
-     private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
-    {
-        rawImage.enabled = false;
-        if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
-        {
-            // Получаем размеры меша
-            Bounds meshBounds = meshFilter.sharedMesh.bounds;
-            Vector3 meshSize = meshBounds.size;
+    // private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
+    //{
+    //    rawImage.enabled = false;
+    //    if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
+    //    {
+    //        // Получаем размеры меша
+    //        Bounds meshBounds = meshFilter.sharedMesh.bounds;
+    //        Vector3 meshSize = meshBounds.size;
 
-            // Преобразуем размеры меша в нормализованные координаты от 0 до 1
-            float normalizedWidth = meshSize.x / meshBounds.extents.x;
-            float normalizedHeight = meshSize.z / meshBounds.extents.z;
+    //        // Преобразуем размеры меша в нормализованные координаты от 0 до 1
+    //        float normalizedWidth = meshSize.x / meshBounds.extents.x;
+    //        float normalizedHeight = meshSize.z / meshBounds.extents.z;
 
-            // Получаем прямоугольник, соответствующий размерам меша
-            Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
+    //        // Получаем прямоугольник, соответствующий размерам меша
+    //        Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
 
-            // Вычисляем размеры области кадра, соответствующей мешу
-            // Определяем размеры области кадра, соответствующей мешу
-            int imageWidth = image.width;
-            int imageHeight = image.height;
-            int x = Mathf.FloorToInt(meshRect.x * image.width);
-            int y = Mathf.FloorToInt(meshRect.y * image.height);
-            int width = Mathf.CeilToInt(meshRect.width * image.width);
-            int height = Mathf.CeilToInt(meshRect.height * image.height);
+    //        // Вычисляем размеры области кадра, соответствующей мешу
+    //        // Определяем размеры области кадра, соответствующей мешу
+    //        int imageWidth = image.width;
+    //        int imageHeight = image.height;
+    //        int x = Mathf.FloorToInt(meshRect.x * image.width);
+    //        int y = Mathf.FloorToInt(meshRect.y * image.height);
+    //        int width = Mathf.CeilToInt(meshRect.width * image.width);
+    //        int height = Mathf.CeilToInt(meshRect.height * image.height);
 
-            // Проверяем, чтобы размеры преобразованного изображения не превышали размеры оригинального изображения
-            if (x + width > imageWidth)
-            {
-                width = imageWidth - x;
-            }
+    //        // Проверяем, чтобы размеры преобразованного изображения не превышали размеры оригинального изображения
+    //        if (x + width > imageWidth)
+    //        {
+    //            width = imageWidth - x;
+    //        }
 
-            if (y + height > imageHeight)
-            {
-                height = imageHeight - y;
-            }
+    //        if (y + height > imageHeight)
+    //        {
+    //            height = imageHeight - y;
+    //        }
 
-            // Создаем новую текстуру с размерами меша
-            Texture2D cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+    //        // Создаем новую текстуру с размерами меша
+    //        Texture2D cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
-            // Определяем размер буфера для преобразования
-            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
-            {
-                inputRect = new RectInt(x, y, width, height),
-                outputDimensions = new Vector2Int(width, height),
-                outputFormat = TextureFormat.RGBA32
-            });
+    //        // Определяем размер буфера для преобразования
+    //        int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
+    //        {
+    //            inputRect = new RectInt(x, y, width, height),
+    //            outputDimensions = new Vector2Int(width, height),
+    //            outputFormat = TextureFormat.RGBA32
+    //        });
 
-            // Создаем буфер для преобразования
-            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
+    //        // Создаем буфер для преобразования
+    //        NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
 
-            // Выполняем преобразование
-            image.Convert(new XRCpuImage.ConversionParams
-            {
-                inputRect = new RectInt(x, y, width, height),
-                outputDimensions = new Vector2Int(width, height),
-                outputFormat = TextureFormat.RGBA32
-            }, buffer);
+    //        // Выполняем преобразование
+    //        image.Convert(new XRCpuImage.ConversionParams
+    //        {
+    //            inputRect = new RectInt(x, y, width, height),
+    //            outputDimensions = new Vector2Int(width, height),
+    //            outputFormat = TextureFormat.RGBA32
+    //        }, buffer);
 
-            // Копируем данные из буфера в текстуру
-            cameraTexture.LoadRawTextureData(buffer);
-            cameraTexture.Apply();
+    //        // Копируем данные из буфера в текстуру
+    //        cameraTexture.LoadRawTextureData(buffer);
+    //        cameraTexture.Apply();
 
-            // Освобождаем ресурсы
-            image.Dispose();
-            buffer.Dispose();
-            _meshes.ForEach(mesh =>
-            {
-                if (mesh != null)
-                    mesh.enabled = true;
-            });
-            rawImage.enabled = true;
-            return cameraTexture;
-        }
-        rawImage.enabled = true;
-        return null;
-    }
+    //        // Освобождаем ресурсы
+    //        image.Dispose();
+    //        buffer.Dispose();
+    //        rawImage.enabled = true;
+    //        return cameraTexture;
+    //    }
+    //    rawImage.enabled = true;
+    //    return null;
+    //}
 
     private Texture2D ColorMeshWithCameraTexture(MeshFilter meshFilter, Texture2D cameraTexture)
     {
@@ -272,6 +287,7 @@ public class ScanMesh : MonoBehaviour
         Bounds meshBounds = mesh.bounds;
         Vector3 meshSize = meshBounds.size;
 
+        Debug.Log($"Size: {meshSize.x} : {meshSize.y}");
         // Создаем новую текстуру с размерами меша
         Texture2D meshTexture = new Texture2D((int)meshSize.x, (int)meshSize.y, TextureFormat.RGBA32, false);
 
@@ -392,6 +408,7 @@ public class ScanMesh : MonoBehaviour
 
     private void ToogleMeshes(bool activate)
     {
+        rawImage.enabled = activate;
         if (_meshes == null || _meshes.Count <= 0)
             return;
 
