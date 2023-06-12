@@ -12,6 +12,7 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private ARCameraManager _arCameraManager;
 
     [SerializeField] private RawImage rawImage;
+    [SerializeField] private RawImage _fullRawImage;
 
     private void OnEnable()
     {
@@ -143,7 +144,7 @@ public class ScanMesh : MonoBehaviour
             Vector3 maxScreenPoint = activeCamera.WorldToScreenPoint(maxWorldPoint);
 
             // Преобразуем экранные точки в локальные точки внутри RawImage
-            RectTransform rawImageRectTransform = rawImage.GetComponent<RectTransform>();
+            RectTransform rawImageRectTransform = _fullRawImage.GetComponent<RectTransform>();
             RectTransformUtility.ScreenPointToLocalPointInRectangle(rawImageRectTransform, minScreenPoint, activeCamera, out Vector2 minLocalPoint);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(rawImageRectTransform, maxScreenPoint, activeCamera, out Vector2 maxLocalPoint);
 
