@@ -56,17 +56,13 @@ public class ScanMesh : MonoBehaviour
         {
             // Повернуть текстуру на 90 градусов по часовой стрелке
             Texture2D rotatedTexture = new Texture2D(texture.height, texture.width);
-            Color[] pixels = texture.GetPixels();
-
-            for (int x = 0; x < texture.width; x++)
-            {
-                for (int y = 0; y < texture.height; y++)
-                {
-                    rotatedTexture.SetPixel(y, texture.width - x - 1, pixels[x + y * texture.width]);
-                }
-            }
-
+            RenderTexture renderTexture = RenderTexture.GetTemporary(texture.width, texture.height);
+            Graphics.Blit(texture, renderTexture);
+            RenderTexture.active = renderTexture;
+            rotatedTexture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
             rotatedTexture.Apply();
+            RenderTexture.active = null;
+            RenderTexture.ReleaseTemporary(renderTexture);
             return rotatedTexture;
         }
         else
