@@ -79,31 +79,36 @@ public class ScanMesh : MonoBehaviour
         rotatedTexture.LoadRawTextureData(rotatedData);
         rotatedTexture.Apply();
 
-        //// Отражаем повернутую текстуру по горизонтали
-        //Texture2D flippedTexture = new Texture2D(rotatedTexture.width, rotatedTexture.height, rotatedTexture.format, false);
-        //byte[] flippedData = rotatedTexture.GetRawTextureData();
+        width = rotatedTexture.width;
+        height = rotatedTexture.height;
 
+        // Создаем новую текстуру с теми же размерами и форматом пикселей
+        Texture2D flippedTexture = new Texture2D(width, height, rotatedTexture.format, false);
 
-        //for (int x = 0; x < width; x++)
-        //{
-        //    for (int y = 0; y < height; y++)
-        //    {
-        //        int index = (x * height + y) * 4;
-        //        int flippedIndex = ((width - x - 1) * height + y) * 4;
+        // Получаем сырые данные оригинальной текстуры
+        originalData = originalTexture.GetRawTextureData();
 
-        //        // Копируем данные из повернутой текстуры в отраженную
-        //        for (int i = 0; i < 4; i++)
-        //        {
-        //            flippedData[flippedIndex + i] = rotatedData[index + i];
-        //        }
-        //    }
-        //}
+        // Создаем массив для цветов пикселей отраженной текстуры
+        byte[] flippedPixels = new byte[originalData.Length];
 
-        //// Применяем изменения к отраженной текстуре
-        //flippedTexture.LoadRawTextureData(flippedData);
-        //flippedTexture.Apply();
+        // Отражаем каждый пиксель текстуры по горизонтали
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int originalIndex = x + y * width;
+                int flippedIndex = (width - x - 1) + y * width;
 
-        return rotatedTexture;
+                // Копируем цвет пикселя из оригинальной текстуры в отраженную
+                flippedPixels[flippedIndex] = originalData[originalIndex];
+            }
+        }
+
+        // Применяем изменения к отраженной текстуре
+        flippedTexture.LoadRawTextureData(flippedPixels);
+        flippedTexture.Apply();
+
+        return flippedTexture;
     }
 
     private void OnDisable()
