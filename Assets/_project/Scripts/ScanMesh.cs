@@ -97,22 +97,19 @@ public class ScanMesh : MonoBehaviour
     {
         if (eventArgs.textures.Count > 0)
         {
-            _cameraTexture = eventArgs.textures[0];
+            // Получаем текстуру с камеры
+            Texture2D cameraTexture = eventArgs.textures[0];
 
             // Создаем новую текстуру с соответствующими размерами и форматом
-            Texture2D pixelColorTexture = new Texture2D(_cameraTexture.width, _cameraTexture.height, TextureFormat.RGBA32, false);
+            Texture2D pixelColorTexture = new Texture2D(cameraTexture.width, cameraTexture.height, TextureFormat.RGBA32, false);
 
-            // Получаем сырые данные изображения
-            byte[] rawData = _cameraTexture.GetRawTextureData();
-
-            // Загружаем сырые данные в текстуру
-            pixelColorTexture.LoadRawTextureData(rawData);
+            // Читаем пиксели с экрана и загружаем их в текстуру
+            pixelColorTexture.ReadPixels(new Rect(0, 0, cameraTexture.width, cameraTexture.height), 0, 0);
             pixelColorTexture.Apply();
 
             // Применяем текстуру к объекту в сцене
             _quadRenderer.material.mainTexture = pixelColorTexture;
         }
-        
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
