@@ -112,6 +112,57 @@ public class ScanMesh : MonoBehaviour
         }
     }
 
+    public void Click()
+    {
+        GetCameraTextureForMesh();
+    }
+
+    private Texture2D GetCameraTextureForMesh()
+    {
+        if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
+        {
+
+            // Вычисляем размеры области кадра, соответствующей мешу
+            // Определяем размеры области кадра, соответствующей мешу
+            int imageWidth = image.width;
+            int imageHeight = image.height;
+
+            // Создаем новую текстуру с размерами меша
+            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGBA32, false);
+
+            // Определяем размер буфера для преобразования
+            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(0, 0, imageWidth, imageHeight),
+                outputDimensions = new Vector2Int(imageWidth, imageHeight),
+                outputFormat = TextureFormat.RGBA32
+            });
+
+            // Создаем буфер для преобразования
+            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
+
+            // Выполняем преобразование
+            image.Convert(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(0, 0, imageWidth, imageHeight),
+                outputDimensions = new Vector2Int(imageWidth, imageHeight),
+                outputFormat = TextureFormat.RGBA32
+            }, buffer);
+
+            // Копируем данные из буфера в текстуру
+            cameraTexture.LoadRawTextureData(buffer);
+            cameraTexture.Apply();
+
+            // Освобождаем ресурсы
+            image.Dispose();
+            buffer.Dispose();
+            _quadRenderer.material.mainTexture = cameraTexture;
+            return cameraTexture;
+        }
+
+        return null;
+    }
+
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
     {
         foreach (var meshFilter in eventArgs.added)
