@@ -25,7 +25,7 @@ public class ScanMesh : MonoBehaviour
     private void OnEnable()
     {
         _arMeshManager.meshesChanged += OnMeshesChanged;
-        _arCameraManager.frameReceived += OnCameraFrameReceived;
+        //_arCameraManager.frameReceived += OnCameraFrameReceived;
     }
 
     /*
@@ -85,7 +85,7 @@ public class ScanMesh : MonoBehaviour
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
-        _arCameraManager.frameReceived -= OnCameraFrameReceived;
+        //_arCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
     private void OnDestroy()
