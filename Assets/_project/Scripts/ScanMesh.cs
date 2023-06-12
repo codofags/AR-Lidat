@@ -14,6 +14,8 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private RawImage rawImage;
     [SerializeField] private RawImage _fullRawImage;
 
+    private List<MeshRenderer> _meshes = new List<MeshRenderer>();
+
     private void OnEnable()
     {
         _arMeshManager.meshesChanged += OnMeshesChanged;
@@ -66,7 +68,7 @@ public class ScanMesh : MonoBehaviour
         meshObject.transform.position = meshFilter.transform.position;
         meshObject.transform.rotation = meshFilter.transform.rotation;
         meshObject.transform.localScale = Vector3.one;
-
+        _meshes.Add(meshObject.GetComponent<MeshRenderer>());
         // Применяем текстуру к мешу
         ApplyCameraTextureToMesh(meshObject, meshFilter);
     }
@@ -119,6 +121,11 @@ public class ScanMesh : MonoBehaviour
 
     private Texture2D GetCameraTextureForMesh(MeshFilter meshFilter)
     {
+        _meshes.ForEach((renderer) =>
+        {
+            if (renderer != null)
+                renderer.enabled = false;
+        });
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
             // Получаем ограничивающий прямоугольник меша в мировых координатах
@@ -163,10 +170,18 @@ public class ScanMesh : MonoBehaviour
 
             // Освобождаем ресурсы
             image.Dispose();
-
+            _meshes.ForEach((renderer) =>
+            {
+                if (renderer != null)
+                    renderer.enabled = true;
+            });
             return cameraTexture;
         }
-
+        _meshes.ForEach((renderer) =>
+        {
+            if (renderer != null)
+                renderer.enabled = true;
+        });
         return null;
     }
 
