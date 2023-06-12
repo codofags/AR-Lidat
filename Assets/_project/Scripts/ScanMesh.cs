@@ -95,18 +95,24 @@ public class ScanMesh : MonoBehaviour
 
     private void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
-        if (_cameraTexture == null)
+        if (eventArgs.textures.Count > 0)
         {
-            // Создаем текстуру с соответствующими размерами и форматом
-            _cameraTexture = new Texture2D(eventArgs.textures[0].width, eventArgs.textures[0].height, TextureFormat.RGBA32, false);
+            _cameraTexture = eventArgs.textures[0];
+
+            // Создаем новую текстуру с соответствующими размерами и форматом
+            Texture2D pixelColorTexture = new Texture2D(_cameraTexture.width, _cameraTexture.height, TextureFormat.RGBA32, false);
+
+            // Получаем сырые данные изображения
+            byte[] rawData = _cameraTexture.GetRawTextureData();
+
+            // Загружаем сырые данные в текстуру
+            pixelColorTexture.LoadRawTextureData(rawData);
+            pixelColorTexture.Apply();
+
+            // Применяем текстуру к объекту в сцене
+            _quadRenderer.material.mainTexture = pixelColorTexture;
         }
-
-        // Копируем данные пикселей с камеры в текстуру
-        _cameraTexture.SetPixels32(eventArgs.textures[0].GetPixels32());
-        _cameraTexture.Apply();
-
-        // Применяем текстуру к объекту в сцене
-        _quadRenderer.material.mainTexture = _cameraTexture;
+        
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
