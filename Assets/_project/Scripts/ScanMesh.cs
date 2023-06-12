@@ -132,12 +132,13 @@ public class ScanMesh : MonoBehaviour
             Rect meshRect = new Rect(0, 0, normalizedWidth, normalizedHeight);
 
             // Вычисляем размеры области кадра, соответствующей мешу
+            // Определяем размеры области кадра, соответствующей мешу
             int imageWidth = image.width;
             int imageHeight = image.height;
-            int x = Mathf.FloorToInt(meshRect.x * imageWidth);
-            int y = Mathf.FloorToInt(meshRect.y * imageHeight);
-            int width = Mathf.CeilToInt(meshRect.width * imageWidth);
-            int height = Mathf.CeilToInt(meshRect.height * imageHeight);
+            int x = Mathf.FloorToInt(meshRect.x * image.width);
+            int y = Mathf.FloorToInt(meshRect.y * image.height);
+            int width = Mathf.CeilToInt(meshRect.width * image.width);
+            int height = Mathf.CeilToInt(meshRect.height * image.height);
 
             // Проверяем, чтобы размеры преобразованного изображения не превышали размеры оригинального изображения
             if (x + width > imageWidth)
@@ -172,20 +173,8 @@ public class ScanMesh : MonoBehaviour
                 outputFormat = TextureFormat.RGBA32
             }, buffer);
 
-            //// Копируем данные из буфера в текстуру, переворачивая и отражая ее
-            Color32[] colors = new Color32[width * height];
-            //for (int i = 0; i < height; i++)
-            //{
-            //    int flippedIndex = (height - 1 - i) * width;
-            //    int originalIndex = i * width;
-            //    for (int j = 0; j < width; j++)
-            //    {
-            //        colors[flippedIndex + j] = new Color32(
-            //            buffer[originalIndex + j * 4 + 0], buffer[originalIndex + j * 4 + 1],
-            //            buffer[originalIndex + j * 4 + 2], buffer[originalIndex + j * 4 + 3]);
-            //    }
-            //}
-            cameraTexture.SetPixels32(colors);
+            // Копируем данные из буфера в текстуру
+            cameraTexture.LoadRawTextureData(buffer);
             cameraTexture.Apply();
 
             // Освобождаем ресурсы
@@ -193,7 +182,7 @@ public class ScanMesh : MonoBehaviour
             buffer.Dispose();
 
             return cameraTexture;
-        } 
+        }
 
         return null;
     }
