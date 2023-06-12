@@ -198,26 +198,22 @@ public class ScanMesh : MonoBehaviour
     {
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
-            // Получаем данные изображения
-            ConversionParams conversionParams = new ConversionParams
-            {
-                inputRect = new RectInt(0, 0, image.width, image.height),
-                outputDimensions = new Vector2Int(image.width, image.height),
-                outputFormat = TextureFormat.RGBA32,
-                transformation = XRCpuImage.Transformation.MirrorX
-            };
+            // Получаем размеры данных плоскости изображения
+            int planeWidth = image.GetPlane(0).rowStride;
+            int planeHeight = image.height;
 
             // Получаем нативный массив байтов
             NativeArray<byte> nativeArray = image.GetPlane(0).data;
 
             // Конвертируем изображение в массив байтов
-            byte[] buffer = new byte[nativeArray.Length];
-            NativeArray<byte>.Copy(nativeArray, buffer, nativeArray.Length);
+            byte[] buffer = new byte[planeWidth * planeHeight];
+            NativeArray<byte>.Copy(nativeArray, buffer, planeWidth * planeHeight);
 
             // Создаем новую текстуру и загружаем в нее данные пикселей
-            texture = new Texture2D(image.width, image.height, TextureFormat.RGBA32, false);
+            texture = new Texture2D(planeWidth, planeHeight, TextureFormat.RGBA32, false);
             texture.LoadRawTextureData(buffer);
             texture.Apply();
+
         }
         else
         {
