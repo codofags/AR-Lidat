@@ -16,6 +16,7 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private ARCameraManager _arCameraManager;
 
     [SerializeField] private RawImage rawImage;
+    [SerializeField] private RawImage rawImageCut;
     [SerializeField] private Renderer _quadRenderer;
 
     private List<MeshRenderer> _meshes = new List<MeshRenderer>();
@@ -59,37 +60,37 @@ public class ScanMesh : MonoBehaviour
 
     private void CreateMeshObject(MeshFilter meshFilter)
     {
-        // Получение вершин меша
-        Vector3[] vertices = meshFilter.mesh.vertices;
+        //// Получение вершин меша
+        //Vector3[] vertices = meshFilter.mesh.vertices;
 
-        // Получение треугольников меша
-        int[] triangles = meshFilter.mesh.triangles;
+        //// Получение треугольников меша
+        //int[] triangles = meshFilter.mesh.triangles;
 
-        Debug.Log($"vertices: {vertices}. Length: {vertices.Length}");
-        // Создание текстурных координат для меша
-        Vector2[] uvs = GenerateUVs(vertices);
+        //Debug.Log($"vertices: {vertices}. Length: {vertices.Length}");
+        //// Создание текстурных координат для меша
+        //Vector2[] uvs = GenerateUVs(vertices);
 
-        GameObject meshObject = Instantiate(_meshPrefab, Vector3.zero, Quaternion.identity);
+        //GameObject meshObject = Instantiate(_meshPrefab, Vector3.zero, Quaternion.identity);
 
-        // Передача данных меша объекту
-        Mesh meshComponent = new Mesh();
-        meshComponent.vertices = vertices;
-        meshComponent.triangles = triangles;
-        meshComponent.uv = uvs; // Передача текстурных координат
-        meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
+        //// Передача данных меша объекту
+        //Mesh meshComponent = new Mesh();
+        //meshComponent.vertices = vertices;
+        //meshComponent.triangles = triangles;
+        //meshComponent.uv = uvs; // Передача текстурных координат
+        //meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
 
-        Debug.Log($"Coords: {meshComponent.uv}. Length: {meshComponent.uv.Length}");
-        // Расположение объекта в пространстве
-        meshObject.transform.position = meshFilter.transform.position;
-        meshObject.transform.rotation = meshFilter.transform.rotation;
-        meshObject.transform.localScale = Vector3.one;
-        var meshRenderer = meshObject.GetComponent<MeshRenderer>();
-        _meshes.Add(meshObject.GetComponent<MeshRenderer>());
+        //Debug.Log($"Coords: {meshComponent.uv}. Length: {meshComponent.uv.Length}");
+        //// Расположение объекта в пространстве
+        //meshObject.transform.position = meshFilter.transform.position;
+        //meshObject.transform.rotation = meshFilter.transform.rotation;
+        //meshObject.transform.localScale = Vector3.one;
+        //var meshRenderer = meshObject.GetComponent<MeshRenderer>();
+        _meshes.Add(meshFilter.GetComponent<MeshRenderer>());
 
         //CutTexture(meshComponent, meshRenderer);
 
         // Применяем текстуру к мешу
-        ApplyCameraTextureToMesh(meshObject, meshFilter);
+        ApplyCameraTextureToMesh(meshFilter);
     }
 
     private void UpdateMeshObject(MeshFilter meshFilter)
@@ -100,31 +101,31 @@ public class ScanMesh : MonoBehaviour
             return;
         }
 
-        // Получение вершин меша
-        Vector3[] vertices = meshFilter.sharedMesh.vertices;
+        //// Получение вершин меша
+        //Vector3[] vertices = meshFilter.sharedMesh.vertices;
 
-        // Получение треугольников меша
-        int[] triangles = meshFilter.sharedMesh.triangles;
+        //// Получение треугольников меша
+        //int[] triangles = meshFilter.sharedMesh.triangles;
 
-        // Получение текстурных координат меша
-        Vector2[] uvs = meshFilter.sharedMesh.uv;
+        //// Получение текстурных координат меша
+        //Vector2[] uvs = meshFilter.sharedMesh.uv;
 
-        // Обновление существующего меша
-        GameObject meshObject = meshFilter.gameObject;
-        Mesh meshComponent = meshObject.GetComponent<MeshFilter>().mesh;
-        meshComponent.Clear(); // Очищаем меш перед обновлением
-        meshComponent.vertices = vertices;
-        meshComponent.triangles = triangles;
-        meshComponent.uv = uvs; // Передача текстурных координат
-        meshComponent.RecalculateNormals(); // Пересчитываем нормали
+        //// Обновление существующего меша
+        //GameObject meshObject = meshFilter.gameObject;
+        //Mesh meshComponent = meshObject.GetComponent<MeshFilter>().mesh;
+        //meshComponent.Clear(); // Очищаем меш перед обновлением
+        //meshComponent.vertices = vertices;
+        //meshComponent.triangles = triangles;
+        //meshComponent.uv = uvs; // Передача текстурных координат
+        //meshComponent.RecalculateNormals(); // Пересчитываем нормали
 
-        // Расположение объекта в пространстве (если требуется)
-        meshObject.transform.position = meshFilter.transform.position;
-        meshObject.transform.rotation = meshFilter.transform.rotation;
-        meshObject.transform.localScale = Vector3.one;
+        //// Расположение объекта в пространстве (если требуется)
+        //meshObject.transform.position = meshFilter.transform.position;
+        //meshObject.transform.rotation = meshFilter.transform.rotation;
+        //meshObject.transform.localScale = Vector3.one;
 
         // Применяем текстуру к мешу
-        //ApplyCameraTextureToMesh(meshObject, meshFilter);
+        ApplyCameraTextureToMesh(meshFilter);
     }
 
     private void RemoveMeshObject(MeshFilter meshFilter)
@@ -138,8 +139,192 @@ public class ScanMesh : MonoBehaviour
         Destroy(meshFilter.gameObject);
     }
 
+
+    private void CutTexture(MeshRenderer meshRenderer)
+    {
+        var mesh = meshRenderer.GetComponent<Mesh>();
+        var uv = mesh.uv;
+        float minX = float.MaxValue;
+        float minY = float.MaxValue;
+        float maxX = float.MinValue;
+        float maxY = float.MinValue;
+
+        int numVertices = mesh.vertexCount;
+        for (int i = 0; i < numVertices; i++)
+        {
+            Vector2 uvCoordinate = uv[i];
+            minX = Mathf.Min(minX, uvCoordinate.x);
+            minY = Mathf.Min(minY, uvCoordinate.y);
+            maxX = Mathf.Max(maxX, uvCoordinate.x);
+            maxY = Mathf.Max(maxY, uvCoordinate.y);
+        }
+
+        // Преобразуем координаты в пиксельные координаты
+        int textureWidth = _cameraTexture.width;
+        int textureHeight = _cameraTexture.height;
+
+        int pixelMinX = Mathf.FloorToInt(minX * textureWidth);
+        int pixelMinY = Mathf.FloorToInt(minY * textureHeight);
+        int pixelMaxX = Mathf.FloorToInt(maxX * textureWidth);
+        int pixelMaxY = Mathf.FloorToInt(maxY * textureHeight);
+
+        int width = pixelMaxX - pixelMinX + 1;
+        int height = pixelMaxY - pixelMinY + 1;
+
+        Texture2D meshTexture = new Texture2D(width, height);
+
+        Color[] meshPixels = _cameraTexture.GetPixels(pixelMinX, pixelMinY, width, height);
+        meshTexture.SetPixels(meshPixels);
+        meshTexture.Apply();
+
+
+        // Создаем новый материал для меша
+        Material material = new Material(Shader.Find("Standard"));
+
+        // Присваиваем текстуру новому материалу
+        material.mainTexture = meshTexture;
+
+        // Применяем новый материал к мешу
+        meshRenderer.material = material;
+    }
+
+    private void ApplyCameraTextureToMesh(MeshFilter meshFilter)
+    {
+        ToogleMeshes(false);
+
+        if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
+        {
+            var cameraTexture = GetCameraTexture();
+
+            Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
+            Texture2D flippedTexture = FlipTexture(rotatedTexture);
+            var texture = ColorMeshWithCameraTexture(meshFilter, flippedTexture);
+            cpuImage.Dispose();
+
+            _quadRenderer.sharedMaterial.mainTexture = texture;
+            rawImage.texture = flippedTexture;
+            rawImageCut.texture = texture;
+            if (texture != null)
+            {
+                // Создаем новый материал для меша
+                Material material = new Material(Shader.Find("Standard"));
+
+                // Присваиваем текстуру новому материалу
+                material.mainTexture = texture;
+
+                //// Изменяем ориентацию текстуры
+                //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
+
+                // Применяем новый материал к мешу
+                meshFilter.GetComponent<MeshRenderer>().material = material;
+            }
+        }
+        ToogleMeshes(true);
+    }
+
+    private Texture2D GetCameraTexture()
+    {
+        if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
+        {
+            // Вычисляем размеры области кадра, соответствующей мешу
+            // Определяем размеры области кадра, соответствующей мешу
+            int imageWidth = image.width;
+            int imageHeight = image.height;
+
+            // Создаем новую текстуру с размерами меша
+            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGBA32, false);
+
+            // Определяем размер буфера для преобразования
+            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(0, 0, imageWidth, imageHeight),
+                outputDimensions = new Vector2Int(imageWidth, imageHeight),
+                outputFormat = TextureFormat.RGBA32
+            });
+
+            // Создаем буфер для преобразования
+            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
+
+            // Выполняем преобразование
+            image.Convert(new XRCpuImage.ConversionParams
+            {
+                inputRect = new RectInt(0, 0, imageWidth, imageHeight),
+                outputDimensions = new Vector2Int(imageWidth, imageHeight),
+                outputFormat = TextureFormat.RGBA32
+            }, buffer);
+
+            // Копируем данные из буфера в текстуру
+            cameraTexture.LoadRawTextureData(buffer);
+            cameraTexture.Apply();
+
+            // Освобождаем ресурсы
+            image.Dispose();
+            buffer.Dispose();
+            return cameraTexture;
+        }
+
+        return null;
+    }
+
+    private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise)
+    {
+        Debug.Log("Start Rotate Texture");
+        Color32[] original = originalTexture.GetPixels32();
+        Color32[] rotated = new Color32[original.Length];
+        int w = originalTexture.width;
+        int h = originalTexture.height;
+
+        int iRotated, iOriginal;
+
+        for (int j = 0; j < h; ++j)
+        {
+            for (int i = 0; i < w; ++i)
+            {
+                iRotated = (i + 1) * h - j - 1;
+                iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
+                rotated[iRotated] = original[iOriginal];
+            }
+        }
+
+        Texture2D rotatedTexture = new Texture2D(h, w);
+        rotatedTexture.SetPixels32(rotated);
+        rotatedTexture.Apply();
+
+        Debug.Log("End Rotate Texture");
+        return rotatedTexture;
+    }
+
+    private Texture2D FlipTexture(Texture2D originalTexture)
+    {
+        Debug.Log("Start Flip Texture");
+        Color32[] original = originalTexture.GetPixels32();
+        Color32[] flipped = new Color32[original.Length];
+        int w = originalTexture.width;
+        int h = originalTexture.height;
+
+        int iFlipped, iOriginal;
+
+        for (int j = 0; j < h; ++j)
+        {
+            for (int i = 0; i < w; ++i)
+            {
+                iFlipped = j * w + (w - i - 1);
+                iOriginal = j * w + i;
+                flipped[iFlipped] = original[iOriginal];
+            }
+        }
+
+        Texture2D flippedTexture = new Texture2D(w, h);
+        flippedTexture.SetPixels32(flipped);
+        flippedTexture.Apply();
+
+        Debug.Log("End Flip Texture");
+        return flippedTexture;
+    }
+
     private Texture2D ColorMeshWithCameraTexture(MeshFilter meshFilter, Texture2D cameraTexture)
     {
+        Debug.Log("Start Colored Mesh with Texture");
         // Получаем меш и его размеры
         Mesh mesh = meshFilter.sharedMesh;
         Bounds meshBounds = mesh.bounds;
@@ -199,218 +384,9 @@ public class ScanMesh : MonoBehaviour
         // Применяем изменения на текстуре меша
         meshTexture.Apply();
 
+        Debug.Log("End Colored Mesh with Texture");
         // Устанавливаем текстуру меша в материале
         return meshTexture;
-    }
-
-    private void CutTexture(Mesh mesh, MeshRenderer meshRenderer)
-    {
-        var uv = mesh.uv;
-        float minX = float.MaxValue;
-        float minY = float.MaxValue;
-        float maxX = float.MinValue;
-        float maxY = float.MinValue;
-
-        int numVertices = mesh.vertexCount;
-        for (int i = 0; i < numVertices; i++)
-        {
-            Vector2 uvCoordinate = uv[i];
-            minX = Mathf.Min(minX, uvCoordinate.x);
-            minY = Mathf.Min(minY, uvCoordinate.y);
-            maxX = Mathf.Max(maxX, uvCoordinate.x);
-            maxY = Mathf.Max(maxY, uvCoordinate.y);
-        }
-
-        // Преобразуем координаты в пиксельные координаты
-        int textureWidth = _cameraTexture.width;
-        int textureHeight = _cameraTexture.height;
-
-        int pixelMinX = Mathf.FloorToInt(minX * textureWidth);
-        int pixelMinY = Mathf.FloorToInt(minY * textureHeight);
-        int pixelMaxX = Mathf.FloorToInt(maxX * textureWidth);
-        int pixelMaxY = Mathf.FloorToInt(maxY * textureHeight);
-
-        int width = pixelMaxX - pixelMinX + 1;
-        int height = pixelMaxY - pixelMinY + 1;
-
-        Texture2D meshTexture = new Texture2D(width, height);
-
-        Color[] meshPixels = _cameraTexture.GetPixels(pixelMinX, pixelMinY, width, height);
-        meshTexture.SetPixels(meshPixels);
-        meshTexture.Apply();
-
-
-        // Создаем новый материал для меша
-        Material material = new Material(Shader.Find("Standard"));
-
-        // Присваиваем текстуру новому материалу
-        material.mainTexture = meshTexture;
-
-        // Применяем новый материал к мешу
-        meshRenderer.material = material;
-    }
-
-    private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
-    {
-        ToogleMeshes(false);
-        var cameraTexture = GetCameraTexture();
-
-        Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
-        Texture2D flippedTexture = FlipTexture(rotatedTexture);
-        rawImage.texture = flippedTexture;
-        _quadRenderer.sharedMaterial.mainTexture = flippedTexture;
-
-        ToogleMeshes(true);
-        return;
-        if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
-        {
-            var texture = ColorMeshWithCameraTexture(meshObject.GetComponent<MeshFilter>(), _cameraTexture);
-            cpuImage.Dispose();
-
-            rawImage.texture = texture;
-
-            if (texture != null)
-            {
-                // Создаем новый материал для меша
-                Material material = new Material(Shader.Find("Standard"));
-
-                // Присваиваем текстуру новому материалу
-                material.mainTexture = texture;
-
-                //// Изменяем ориентацию текстуры
-                //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
-
-                // Применяем новый материал к мешу
-                meshObject.GetComponent<MeshRenderer>().material = material;
-            }
-        }
-        ToogleMeshes(true);
-    }
-
-    private Texture2D GetCameraTexture()
-    {
-        if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
-        {
-            // Вычисляем размеры области кадра, соответствующей мешу
-            // Определяем размеры области кадра, соответствующей мешу
-            int imageWidth = image.width;
-            int imageHeight = image.height;
-
-            // Создаем новую текстуру с размерами меша
-            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGBA32, false);
-
-            // Определяем размер буфера для преобразования
-            int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
-            {
-                inputRect = new RectInt(0, 0, imageWidth, imageHeight),
-                outputDimensions = new Vector2Int(imageWidth, imageHeight),
-                outputFormat = TextureFormat.RGBA32
-            });
-
-            // Создаем буфер для преобразования
-            NativeArray<byte> buffer = new NativeArray<byte>(bufferSize, Allocator.Temp);
-
-            // Выполняем преобразование
-            image.Convert(new XRCpuImage.ConversionParams
-            {
-                inputRect = new RectInt(0, 0, imageWidth, imageHeight),
-                outputDimensions = new Vector2Int(imageWidth, imageHeight),
-                outputFormat = TextureFormat.RGBA32
-            }, buffer);
-
-            // Копируем данные из буфера в текстуру
-            cameraTexture.LoadRawTextureData(buffer);
-            cameraTexture.Apply();
-
-            // Освобождаем ресурсы
-            image.Dispose();
-            buffer.Dispose();
-            return cameraTexture;
-        }
-
-        return null;
-    }
-
-    //private Texture2D RotateTextureClockwise(Texture2D texture)
-    //{
-    //    int width = texture.width;
-    //    int height = texture.height;
-
-    //    // Создаем новую текстуру с измененными размерами
-    //    Texture2D rotatedTexture = new Texture2D(height, width, TextureFormat.RGBA32, false);
-
-    //    // Получаем пиксели из исходной текстуры
-    //    Color[] pixels = texture.GetPixels();
-
-    //    // Поворачиваем пиксели по часовой стрелке
-    //    for (int x = 0; x < width; x++)
-    //    {
-    //        for (int y = 0; y < height; y++)
-    //        {
-    //            rotatedTexture.SetPixel(y, width - x - 1, pixels[x + y * width]);
-    //        }
-    //    }
-
-    //    // Применяем изменения к повернутой текстуре
-    //    rotatedTexture.Apply();
-
-    //    return rotatedTexture;
-    //}
-
-    private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise)
-    {
-        Debug.Log("Start Rotate Texture");
-        Color32[] original = originalTexture.GetPixels32();
-        Color32[] rotated = new Color32[original.Length];
-        int w = originalTexture.width;
-        int h = originalTexture.height;
-
-        int iRotated, iOriginal;
-
-        for (int j = 0; j < h; ++j)
-        {
-            for (int i = 0; i < w; ++i)
-            {
-                iRotated = (i + 1) * h - j - 1;
-                iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
-                rotated[iRotated] = original[iOriginal];
-            }
-        }
-
-        Texture2D rotatedTexture = new Texture2D(h, w);
-        rotatedTexture.SetPixels32(rotated);
-        rotatedTexture.Apply();
-
-        Debug.Log("End Rotate Texture");
-        return rotatedTexture;
-    }
-
-    private Texture2D FlipTexture(Texture2D originalTexture)
-    {
-        Debug.Log("Start Flip Texture");
-        Color32[] original = originalTexture.GetPixels32();
-        Color32[] flipped = new Color32[original.Length];
-        int w = originalTexture.width;
-        int h = originalTexture.height;
-
-        int iFlipped, iOriginal;
-
-        for (int j = 0; j < h; ++j)
-        {
-            for (int i = 0; i < w; ++i)
-            {
-                iFlipped = j * w + (w - i - 1);
-                iOriginal = j * w + i;
-                flipped[iFlipped] = original[iOriginal];
-            }
-        }
-
-        Texture2D flippedTexture = new Texture2D(w, h);
-        flippedTexture.SetPixels32(flipped);
-        flippedTexture.Apply();
-
-        Debug.Log("End Flip Texture");
-        return flippedTexture;
     }
 
     private void ToogleMeshes(bool activate)
