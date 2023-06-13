@@ -65,6 +65,7 @@ public class ScanMesh : MonoBehaviour
         // Получение треугольников меша
         int[] triangles = meshFilter.mesh.triangles;
 
+        Debug.Log($"vertices: {vertices}. Length: {vertices.Length}");
         // Создание текстурных координат для меша
         Vector2[] uvs = GenerateUVs(vertices);
 
@@ -77,7 +78,7 @@ public class ScanMesh : MonoBehaviour
         meshComponent.uv = uvs; // Передача текстурных координат
         meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
 
-        Debug.Log($"Coords: {meshComponent.uv}");
+        Debug.Log($"Coords: {meshComponent.uv}. Length: {meshComponent.uv.Length}");
         // Расположение объекта в пространстве
         meshObject.transform.position = meshFilter.transform.position;
         meshObject.transform.rotation = meshFilter.transform.rotation;
@@ -252,9 +253,11 @@ public class ScanMesh : MonoBehaviour
     private void ApplyCameraTextureToMesh(GameObject meshObject, MeshFilter meshFilter)
     {
         ToogleMeshes(false);
-        var texture1 = GetCameraTexture();
+        var cameraTexture = GetCameraTexture();
 
-        rawImage.texture = texture1;
+        Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
+        rawImage.texture = rotatedTexture;
+        _quadRenderer.sharedMaterial.mainTexture = rotatedTexture;
 
         ToogleMeshes(true);
         return;
@@ -282,6 +285,7 @@ public class ScanMesh : MonoBehaviour
         }
         ToogleMeshes(true);
     }
+
     private Texture2D GetCameraTexture()
     {
         if (_arCameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
@@ -292,7 +296,7 @@ public class ScanMesh : MonoBehaviour
             int imageHeight = image.height;
 
             // Создаем новую текстуру с размерами меша
-            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGBA32, false);
+            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, image.format.AsTextureFormat(), false);
 
             // Определяем размер буфера для преобразования
             int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams
@@ -324,6 +328,60 @@ public class ScanMesh : MonoBehaviour
         }
 
         return null;
+    }
+
+    //private Texture2D RotateTextureClockwise(Texture2D texture)
+    //{
+    //    int width = texture.width;
+    //    int height = texture.height;
+
+    //    // Создаем новую текстуру с измененными размерами
+    //    Texture2D rotatedTexture = new Texture2D(height, width, TextureFormat.RGBA32, false);
+
+    //    // Получаем пиксели из исходной текстуры
+    //    Color[] pixels = texture.GetPixels();
+
+    //    // Поворачиваем пиксели по часовой стрелке
+    //    for (int x = 0; x < width; x++)
+    //    {
+    //        for (int y = 0; y < height; y++)
+    //        {
+    //            rotatedTexture.SetPixel(y, width - x - 1, pixels[x + y * width]);
+    //        }
+    //    }
+
+    //    // Применяем изменения к повернутой текстуре
+    //    rotatedTexture.Apply();
+
+    //    return rotatedTexture;
+    //}
+
+    private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise)
+    {
+        Debug.Log("Start Rotate Texture");
+        Color32[] original = originalTexture.GetPixels32();
+        Color32[] rotated = new Color32[original.Length];
+        int w = originalTexture.width;
+        int h = originalTexture.height;
+
+        int iRotated, iOriginal;
+
+        for (int j = 0; j < h; ++j)
+        {
+            for (int i = 0; i < w; ++i)
+            {
+                iRotated = (i + 1) * h - j - 1;
+                iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
+                rotated[iRotated] = original[iOriginal];
+            }
+        }
+
+        Texture2D rotatedTexture = new Texture2D(h, w);
+        rotatedTexture.SetPixels32(rotated);
+        rotatedTexture.Apply();
+
+        Debug.Log("End Rotate Texture");
+        return rotatedTexture;
     }
 
     private void ToogleMeshes(bool activate)
