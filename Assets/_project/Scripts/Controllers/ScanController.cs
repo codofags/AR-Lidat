@@ -21,35 +21,33 @@ public class ScanController : Singleton<ScanController>
 
     public void ScanStart()
     {
-        _scanMesh.Click();
-        //if (!_isScanning)
-        //{
-        //    _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
+        if (!_isScanning)
+        {
+            _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
 
-        //    XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
+            XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
 
-        //    if (arMeshSubsystem != null)
-        //    {
-        //        arMeshSubsystem.Start();
-        //        _isScanning = true;
-        //    }
-        //}
+            if (arMeshSubsystem != null)
+            {
+                arMeshSubsystem.Start();
+                _isScanning = true;
+            }
+        }
     }
 
     public void ScanStop()
     {
-        _scanMesh.Click();
-        //if (_isScanning)
-        //{
-        //    _arMeshManager.enabled = false; // Отключаем ARMeshManager
+        if (_isScanning)
+        {
+            _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
-        //    XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+            XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
-        //    if (arMeshSubsystem != null)
-        //    {
-        //        arMeshSubsystem.Stop();
-        //        _isScanning = false;
-        //    }
-        //}
+            if (arMeshSubsystem != null)
+            {
+                arMeshSubsystem.Stop();
+                _isScanning = false;
+            }
+        }
     }
 }
