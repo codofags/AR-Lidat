@@ -182,23 +182,23 @@ public class ScanMesh : MonoBehaviour
             var cameraTexture = GetCameraTexture();
 
             Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
-            Texture2D flippedTexture = FlipTexture(rotatedTexture);
-            var pixelsColors = GetMeshPixelColors(meshFilter, flippedTexture);
-            foreach(var color in pixelsColors)
-            {
-                Debug.Log($"{color}");
-            }
-            float textureWidth = meshFilter.sharedMesh.bounds.size.x;
-            float textureHeight = meshFilter.sharedMesh.bounds.size.y;
+            Texture2D texture = FlipTexture(rotatedTexture);
+            ////var pixelsColors = GetMeshPixelColors(meshFilter, flippedTexture);
+            //foreach(var color in pixelsColors)
+            //{
+            //    Debug.Log($"{color}");
+            //}
+            //float textureWidth = meshFilter.sharedMesh.bounds.size.x;
+            //float textureHeight = meshFilter.sharedMesh.bounds.size.y;
 
-            int roundedTextureWidth = Mathf.RoundToInt(textureWidth);
-            int roundedTextureHeight = Mathf.RoundToInt(textureHeight);
-            var texture = CreateTextureFromColors(pixelsColors, roundedTextureWidth, roundedTextureHeight);
+            //int roundedTextureWidth = Mathf.RoundToInt(textureWidth);
+            //int roundedTextureHeight = Mathf.RoundToInt(textureHeight);
+            //var texture = CreateTextureFromColors(pixelsColors, roundedTextureWidth, roundedTextureHeight);
             //var texture = CutTexture(meshFilter, flippedTexture);
             cpuImage.Dispose();
 
             _quadRenderer.sharedMaterial.mainTexture = texture;
-            rawImage.texture = flippedTexture;
+            rawImage.texture = texture;
             rawImageCut.texture = texture;
             if (texture != null)
             {
@@ -366,80 +366,12 @@ public class ScanMesh : MonoBehaviour
         return texture;
     }
 
-    //private Texture2D ColorMeshWithCameraTexture(MeshFilter meshFilter, Texture2D cameraTexture)
-    //{
-    //    Debug.Log("Start Colored Mesh with Texture");
-    //    // Получаем меш и его размеры
-    //    Mesh mesh = meshFilter.sharedMesh;
-    //    Bounds meshBounds = mesh.bounds;
-    //    Vector3 meshSize = meshBounds.size;
-
-    //    Debug.Log($"Size: {meshSize.x} : {meshSize.y}");
-    //    // Создаем новую текстуру с размерами меша
-    //    Texture2D meshTexture = new Texture2D((int)meshSize.x, (int)meshSize.y, TextureFormat.RGBA32, false);
-
-    //    // Копируем вершины меша в новый массив
-    //    Vector3[] meshVertices = new Vector3[mesh.vertexCount];
-    //    System.Array.Copy(mesh.vertices, meshVertices, mesh.vertexCount);
-
-    //    // Применяем преобразование вершин меша в мировые координаты
-    //    for (int i = 0; i < meshVertices.Length; i++)
-    //    {
-    //        meshVertices[i] = meshFilter.transform.TransformPoint(meshVertices[i]);
-    //    }
-
-    //    // Проходим по треугольникам меша и копируем пиксели из соответствующих областей на кадре в текстуру меша
-    //    int[] meshTriangles = mesh.triangles;
-    //    for (int i = 0; i < meshTriangles.Length; i += 3)
-    //    {
-    //        Vector3 vertex1 = meshVertices[meshTriangles[i]];
-    //        Vector3 vertex2 = meshVertices[meshTriangles[i + 1]];
-    //        Vector3 vertex3 = meshVertices[meshTriangles[i + 2]];
-
-    //        // Преобразуем вершины меша в UV-координаты на текстуре кадра
-    //        Vector2 uv1 = GetUVFromWorldPoint(vertex1, cameraTexture);
-    //        Vector2 uv2 = GetUVFromWorldPoint(vertex2, cameraTexture);
-    //        Vector2 uv3 = GetUVFromWorldPoint(vertex3, cameraTexture);
-
-    //        int minX = Mathf.FloorToInt(Mathf.Min(uv1.x, uv2.x, uv3.x) * cameraTexture.width);
-    //        int minY = Mathf.FloorToInt(Mathf.Min(uv1.y, uv2.y, uv3.y) * cameraTexture.height);
-    //        int maxX = Mathf.CeilToInt(Mathf.Max(uv1.x, uv2.x, uv3.x) * cameraTexture.width);
-    //        int maxY = Mathf.CeilToInt(Mathf.Max(uv1.y, uv2.y, uv3.y) * cameraTexture.height);
-
-    //        // Копируем пиксели из соответствующей области на кадре в текстуру меша
-    //        Color[] pixels = cameraTexture.GetPixels(minX, minY, maxX - minX, maxY - minY);
-
-    //        // Получаем индексы вершин треугольника в массиве треугольников
-    //        int index1 = meshTriangles[i];
-    //        int index2 = meshTriangles[i + 1];
-    //        int index3 = meshTriangles[i + 2];
-
-    //        // Задаем UV-координаты для треугольника
-    //        meshUVs[index1] = new Vector2((uv1.x - minX) / (maxX - minX), (uv1.y - minY) / (maxY - minY));
-    //        meshUVs[index2] = new Vector2((uv2.x - minX) / (maxX - minX), (uv2.y - minY) / (maxY - minY));
-    //        meshUVs[index3] = new Vector2((uv3.x - minX) / (maxX - minX), (uv3.y - minY) / (maxY - minY));
-
-    //        // Задаем цвета вершин треугольника на текстуре меша
-    //        meshTexture.SetPixels((int)meshUVs[index1].x, (int)meshUVs[index1].y, 1, 1, pixels);
-    //        meshTexture.SetPixels((int)meshUVs[index2].x, (int)meshUVs[index2].y, 1, 1, pixels);
-    //        meshTexture.SetPixels((int)meshUVs[index3].x, (int)meshUVs[index3].y, 1, 1, pixels);
-    //    }
-
-    //    // Применяем изменения на текстуре меша
-    //    meshTexture.Apply();
-
-    //    Debug.Log("End Colored Mesh with Texture");
-    //    // Возвращаем текстуру меша
-    //    return meshTexture;
-    //}
-
     private Vector2 GetUVFromWorldPoint(Vector3 worldPoint, Texture2D texture)
     {
         Vector3 viewportPoint = Camera.main.WorldToViewportPoint(worldPoint);
         Vector2 uv = new Vector2(viewportPoint.x * texture.width, viewportPoint.y * texture.height);
         return uv;
     }
-
 
     private void ToogleMeshes(bool activate)
     {
