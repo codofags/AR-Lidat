@@ -184,6 +184,10 @@ public class ScanMesh : MonoBehaviour
             Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
             Texture2D flippedTexture = FlipTexture(rotatedTexture);
             var pixelsColors = GetMeshPixelColors(meshFilter, flippedTexture);
+            foreach(var color in pixelsColors)
+            {
+                Debug.Log($"{color}");
+            }
             float textureWidth = meshFilter.sharedMesh.bounds.size.x;
             float textureHeight = meshFilter.sharedMesh.bounds.size.y;
 
