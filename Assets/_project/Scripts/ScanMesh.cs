@@ -296,7 +296,7 @@ public class ScanMesh : MonoBehaviour
             int imageHeight = image.height;
 
             // Создаем новую текстуру с размерами меша
-            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, image.format.AsTextureFormat(), false);
+            Texture2D cameraTexture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGBA32, false);
 
             // Определяем размер буфера для преобразования
             int bufferSize = image.GetConvertedDataSize(new XRCpuImage.ConversionParams

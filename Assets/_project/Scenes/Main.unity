@@ -2271,7 +2271,7 @@ MonoBehaviour:
   _dontDestroyOnLoad: 0
   _destroyNewEntities: 0
   _planeManager: {fileID: 0}
-  _scanMesh: {fileID: 1420145517}
+  _scanMesh: {fileID: 0}
   _arMeshManager: {fileID: 1420145518}
 --- !u!1 &1420145515
 GameObject:
@@ -2284,7 +2284,6 @@ GameObject:
   - component: {fileID: 1420145516}
   - component: {fileID: 1420145518}
   - component: {fileID: 1420145519}
-  - component: {fileID: 1420145517}
   m_Layer: 0
   m_Name: ARMeshManager
   m_TagString: Untagged
@@ -2307,24 +2306,6 @@ Transform:
   m_Father: {fileID: 23727411}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1420145517
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1420145515}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58102253397533e4b890730006e57b19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _meshPrefab: {fileID: 3233095215223683557, guid: 2563ef786a883104595413d6d19682c3,
-    type: 3}
-  _arMeshManager: {fileID: 1420145518}
-  _arCameraManager: {fileID: 929782452}
-  rawImage: {fileID: 322571085}
-  _quadRenderer: {fileID: 1635726561}
 --- !u!114 &1420145518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2758,6 +2739,56 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 25}
   m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0}
+--- !u!1 &1806633525
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1806633527}
+  - component: {fileID: 1806633526}
+  m_Layer: 0
+  m_Name: ScanMesh
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1806633526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806633525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58102253397533e4b890730006e57b19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshPrefab: {fileID: 3233095215223683557, guid: 2563ef786a883104595413d6d19682c3,
+    type: 3}
+  _arMeshManager: {fileID: 1420145518}
+  _arCameraManager: {fileID: 929782452}
+  rawImage: {fileID: 322571085}
+  _quadRenderer: {fileID: 1635726561}
+--- !u!4 &1806633527
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806633525}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1507.5555, y: 1831.8223, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1872724120
 GameObject:
   m_ObjectHideFlags: 0
