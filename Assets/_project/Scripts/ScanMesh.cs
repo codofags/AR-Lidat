@@ -256,8 +256,9 @@ public class ScanMesh : MonoBehaviour
         var cameraTexture = GetCameraTexture();
 
         Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
-        rawImage.texture = rotatedTexture;
-        _quadRenderer.sharedMaterial.mainTexture = rotatedTexture;
+        Texture2D flippedTexture = FlipTexture(rotatedTexture);
+        rawImage.texture = flippedTexture;
+        _quadRenderer.sharedMaterial.mainTexture = flippedTexture;
 
         ToogleMeshes(true);
         return;
@@ -382,6 +383,34 @@ public class ScanMesh : MonoBehaviour
 
         Debug.Log("End Rotate Texture");
         return rotatedTexture;
+    }
+
+    private Texture2D FlipTexture(Texture2D originalTexture)
+    {
+        Debug.Log("Start Flip Texture");
+        Color32[] original = originalTexture.GetPixels32();
+        Color32[] flipped = new Color32[original.Length];
+        int w = originalTexture.width;
+        int h = originalTexture.height;
+
+        int iFlipped, iOriginal;
+
+        for (int j = 0; j < h; ++j)
+        {
+            for (int i = 0; i < w; ++i)
+            {
+                iFlipped = j * w + (w - i - 1);
+                iOriginal = j * w + i;
+                flipped[iFlipped] = original[iOriginal];
+            }
+        }
+
+        Texture2D flippedTexture = new Texture2D(w, h);
+        flippedTexture.SetPixels32(flipped);
+        flippedTexture.Apply();
+
+        Debug.Log("End Flip Texture");
+        return flippedTexture;
     }
 
     private void ToogleMeshes(bool activate)
