@@ -183,7 +183,14 @@ public class ScanMesh : MonoBehaviour
 
             Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
             Texture2D flippedTexture = FlipTexture(rotatedTexture);
-            var texture = CutTexture(meshFilter, flippedTexture);
+            var pixelsColors = GetMeshPixelColors(meshFilter, flippedTexture);
+            float textureWidth = meshFilter.sharedMesh.bounds.size.x;
+            float textureHeight = meshFilter.sharedMesh.bounds.size.y;
+
+            int roundedTextureWidth = Mathf.RoundToInt(textureWidth);
+            int roundedTextureHeight = Mathf.RoundToInt(textureHeight);
+            var texture = CreateTextureFromColors(pixelsColors, roundedTextureWidth, roundedTextureHeight);
+            //var texture = CutTexture(meshFilter, flippedTexture);
             cpuImage.Dispose();
 
             _quadRenderer.sharedMaterial.mainTexture = texture;
@@ -309,6 +316,7 @@ public class ScanMesh : MonoBehaviour
 
     private Color[] GetMeshPixelColors(MeshFilter meshFilter, Texture2D cameraTexture)
     {
+        Debug.Log("Start Get Color Pixels");
         Mesh mesh = meshFilter.sharedMesh;
         Bounds meshBounds = mesh.bounds;
         Vector3 meshSize = meshBounds.size;
@@ -340,9 +348,19 @@ public class ScanMesh : MonoBehaviour
             pixelColors[i] = cameraTexture.GetPixel((int)textureCoord.x, (int)textureCoord.y);
         }
 
+        Debug.Log("End Get Color Pixels");
         return pixelColors;
     }
 
+    private Texture2D CreateTextureFromColors(Color[] pixelColors, int width, int height)
+    {
+        Debug.Log("Start Create Colored Texture");
+        Texture2D texture = new Texture2D(width, height);
+        texture.SetPixels(pixelColors);
+        texture.Apply();
+        Debug.Log("End Create Colored Texture");
+        return texture;
+    }
 
     //private Texture2D ColorMeshWithCameraTexture(MeshFilter meshFilter, Texture2D cameraTexture)
     //{
