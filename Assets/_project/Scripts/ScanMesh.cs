@@ -134,14 +134,14 @@ public class ScanMesh : MonoBehaviour
 
     private Texture2D CutTexture(MeshFilter meshFilter, Texture2D texture)
     {
-        var mesh = meshFilter.GetComponent<Mesh>();
-        var uv = mesh.uv;
+        Debug.Log("Start Cut");
+        var uv = meshFilter.sharedMesh.uv;
         float minX = float.MaxValue;
         float minY = float.MaxValue;
         float maxX = float.MinValue;
         float maxY = float.MinValue;
 
-        int numVertices = mesh.vertexCount;
+        int numVertices = meshFilter.sharedMesh.vertexCount;
         for (int i = 0; i < numVertices; i++)
         {
             Vector2 uvCoordinate = uv[i];
@@ -168,8 +168,10 @@ public class ScanMesh : MonoBehaviour
         Color[] meshPixels = texture.GetPixels(pixelMinX, pixelMinY, width, height);
         meshTexture.SetPixels(meshPixels);
         meshTexture.Apply();
+        Debug.Log("End Cut");
         return meshTexture;
     }
+
 
     private void ApplyCameraTextureToMesh(MeshFilter meshFilter)
     {
@@ -304,6 +306,43 @@ public class ScanMesh : MonoBehaviour
         Debug.Log("End Flip Texture");
         return flippedTexture;
     }
+
+    private Color[] GetMeshPixelColors(MeshFilter meshFilter, Texture2D cameraTexture)
+    {
+        Mesh mesh = meshFilter.sharedMesh;
+        Bounds meshBounds = mesh.bounds;
+        Vector3 meshSize = meshBounds.size;
+
+        // Получаем вершины меша в локальных координатах
+        Vector3[] meshVertices = mesh.vertices;
+
+        // Создаем массив цветов пикселей
+        Color[] pixelColors = new Color[meshVertices.Length];
+
+        for (int i = 0; i < meshVertices.Length; i++)
+        {
+            // Преобразуем вершину меша в мировые координаты
+            Vector3 worldVertex = meshFilter.transform.TransformPoint(meshVertices[i]);
+
+            // Преобразуем мировые координаты в локальные координаты текстуры меша
+            Vector2 meshUV = new Vector2(
+                (worldVertex.x - meshBounds.min.x) / meshSize.x,
+                (worldVertex.y - meshBounds.min.y) / meshSize.y
+            );
+
+            // Преобразуем локальные координаты текстуры меша в координаты текстуры кадра
+            Vector2 textureCoord = new Vector2(
+                meshUV.x * cameraTexture.width,
+                meshUV.y * cameraTexture.height
+            );
+
+            // Получаем цвет пикселя по координатам текстуры
+            pixelColors[i] = cameraTexture.GetPixel((int)textureCoord.x, (int)textureCoord.y);
+        }
+
+        return pixelColors;
+    }
+
 
     //private Texture2D ColorMeshWithCameraTexture(MeshFilter meshFilter, Texture2D cameraTexture)
     //{
