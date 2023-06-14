@@ -33,6 +33,12 @@ public class ScanMesh : MonoBehaviour
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
         //_arCameraManager.frameReceived -= OnCameraFrameReceived;
+
+    }
+
+    private void Update()
+    {
+        rawImage.texture = Camera.main.activeTexture;
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -195,21 +201,12 @@ public class ScanMesh : MonoBehaviour
             //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
 
             //meshFilter.mesh.colors = colors;
-            Debug.Log($"UVS: {meshFilter.mesh.uv}");
             meshFilter.mesh.uv = uvs;
-            if (meshFilter.mesh.normals.Length > 0)
-            {
-                foreach (var normal in meshFilter.mesh.normals)
-                {
-                    Debug.Log($"{normal}");
-                }
-            }
             meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
             cpuImage.Dispose();
 
             var texture = cameraTexture;
             _quadRenderer.material.mainTexture = texture;
-            rawImage.texture = cameraTexture;
             rawImageCut.texture = texture;
             //if (texture != null)
             //{
@@ -386,9 +383,19 @@ public class ScanMesh : MonoBehaviour
     {
         Vector3[] vertices = mesh.vertices;
         Vector2[] uv = new Vector2[vertices.Length];
+        var normals = mesh.normals;
 
         // Выбираем направление проекции текстуры (например, вдоль оси X)
-        Vector3 textureProjectionDirection = Vector3.right;
+        Vector3 textureProjectionDirection = Vector3.zero;
+
+        // Выбираем наиболее распространенную направленность нормалей
+        for (int i = 0; i < normals.Length; i++)
+        {
+            if (normals[i].sqrMagnitude > textureProjectionDirection.sqrMagnitude)
+            {
+                textureProjectionDirection = normals[i];
+            }
+        }
 
         // Нормализуем направление проекции текстуры
         textureProjectionDirection.Normalize();
