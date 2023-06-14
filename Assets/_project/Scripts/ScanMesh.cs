@@ -59,23 +59,14 @@ public class ScanMesh : MonoBehaviour
         Vector3[] vertices = meshFilter.mesh.vertices;
 
 
-        foreach (var vertice in vertices)
-        {
-            Debug.Log($"Vert_x: {vertice.x} - Vert_y: {vertice.y} - Vert_z: {vertice.z}");
-        }
-
         // Получение треугольников меша
         int[] triangles = meshFilter.mesh.triangles;
 
-        foreach (var triangle in triangles)
-        {
-            Debug.Log($"Triangle: {triangle}");
-        }
         //Debug.Log($"vertices: {vertices}. Length: {vertices.Length}");
         //// Создание текстурных координат для меша
-        Vector2[] uvs = GenerateUVs(vertices);
+        //Vector2[] uvs = GenerateUVs(vertices);
 
-
+        var uvs = meshFilter.mesh.uv;
         foreach (var uv in uvs)
         {
             Debug.Log($"UV_x: {uv.x} - UV_y: {uv.y}");
