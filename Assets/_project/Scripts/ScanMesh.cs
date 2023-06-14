@@ -190,7 +190,7 @@ public class ScanMesh : MonoBehaviour
             cameraTexture = FlipTexture(cameraTexture);
 
             //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
-            GenerateUVCoordinates(meshFilter.mesh);
+            CalculatePlanarUV(meshFilter.mesh);
             var uvs = meshFilter.mesh.uv;
             //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
 
@@ -380,6 +380,31 @@ public class ScanMesh : MonoBehaviour
         Vector2 uv = new Vector2(uNormalized, vNormalized);
 
         return uv;
+    }
+
+    void CalculatePlanarUV(Mesh mesh)
+    {
+        Vector3[] vertices = mesh.vertices;
+        Vector2[] uv = new Vector2[vertices.Length];
+
+        // Выбираем направление проекции текстуры (например, вдоль оси X)
+        Vector3 textureProjectionDirection = Vector3.right;
+
+        // Нормализуем направление проекции текстуры
+        textureProjectionDirection.Normalize();
+
+        // Проходим по всем вершинам и вычисляем текстурные координаты
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            // Проецируем вершину на плоскость, перпендикулярную выбранному направлению
+            Vector2 planarPosition = new Vector2(vertices[i].y, vertices[i].z);
+
+            // Устанавливаем текстурную координату на основе позиции вершины
+            uv[i] = new Vector2(Vector2.Dot(planarPosition, textureProjectionDirection), vertices[i].x);
+        }
+
+        // Присваиваем массив текстурных координат мешу
+        mesh.uv = uv;
     }
 
     void GenerateUVCoordinates(Mesh mesh)
