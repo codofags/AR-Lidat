@@ -189,8 +189,9 @@ public class ScanMesh : MonoBehaviour
             cameraTexture = RotateTexture(cameraTexture, true);
             cameraTexture = FlipTexture(cameraTexture);
 
-            var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
-
+            //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
+            GenerateUVCoordinates(meshFilter.mesh);
+            var uvs = meshFilter.mesh.uv;
             //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
 
             //meshFilter.mesh.colors = colors;
@@ -353,7 +354,7 @@ public class ScanMesh : MonoBehaviour
         return flippedTexture;
     }
 
-    Vector2 GetUVFromWorldPosition(Vector3 worldPosition, Texture2D frameTexture)
+    private Vector2 GetUVFromWorldPosition(Vector3 worldPosition, Texture2D frameTexture)
     {
         // Получаем размеры текстуры кадра
         int textureWidth = frameTexture.width;
@@ -373,10 +374,27 @@ public class ScanMesh : MonoBehaviour
         // Получаем цвет пикселя из текстуры кадра
         Color32 pixelColor = frameTexture.GetPixel(x, y);
 
-        // Получаем текстурные координаты из цвета пикселя
-        Vector2 uv = new Vector2(pixelColor.r, pixelColor.g);
+        // Получаем текстурные координаты из цвета пикселя, нормализуя значения в диапазоне [0, 1]
+        float uNormalized = pixelColor.r / 255.0f;
+        float vNormalized = pixelColor.g / 255.0f;
+        Vector2 uv = new Vector2(uNormalized, vNormalized);
 
         return uv;
+    }
+
+    void GenerateUVCoordinates(Mesh mesh)
+    {
+        Vector3[] vertices = mesh.vertices;
+        Vector2[] uvs = new Vector2[vertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 vertex = vertices[i];
+            Vector2 uv = new Vector2(vertex.x, vertex.y);
+            uvs[i] = uv;
+        }
+
+        mesh.uv = uvs;
     }
 
     Color32 GetPixelColorFromTexture(int x, int y, int textureWidth, int textureHeight, IntPtr textureY, IntPtr textureCbCr)
