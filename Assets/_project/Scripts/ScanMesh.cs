@@ -191,9 +191,10 @@ public class ScanMesh : MonoBehaviour
 
             var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
 
-            var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
+            //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
 
-            meshFilter.mesh.colors = colors;
+            //meshFilter.mesh.colors = colors;
+            meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
             cpuImage.Dispose();
 
             var texture = cameraTexture;
@@ -343,54 +344,6 @@ public class ScanMesh : MonoBehaviour
         return flippedTexture;
     }
 
-    private Color[] GetMeshPixelColors(MeshFilter meshFilter, Texture2D cameraTexture)
-    {
-        Debug.Log("Start Get Color Pixels");
-        Mesh mesh = meshFilter.sharedMesh;
-        Bounds meshBounds = mesh.bounds;
-        Vector3 meshSize = meshBounds.size;
-
-        // Получаем вершины меша в локальных координатах
-        Vector3[] meshVertices = mesh.vertices;
-
-        // Создаем массив цветов пикселей
-        Color[] pixelColors = new Color[meshVertices.Length];
-
-        for (int i = 0; i < meshVertices.Length; i++)
-        {
-            // Преобразуем вершину меша в мировые координаты
-            Vector3 worldVertex = meshFilter.transform.TransformPoint(meshVertices[i]);
-
-            // Преобразуем мировые координаты в локальные координаты текстуры меша
-            Vector2 meshUV = new Vector2(
-                (worldVertex.x - meshBounds.min.x) / meshSize.x,
-                (worldVertex.y - meshBounds.min.y) / meshSize.y
-            );
-
-            // Преобразуем локальные координаты текстуры меша в координаты текстуры кадра
-            Vector2 textureCoord = new Vector2(
-                meshUV.x * cameraTexture.width,
-                meshUV.y * cameraTexture.height
-            );
-
-            // Получаем цвет пикселя по координатам текстуры
-            pixelColors[i] = cameraTexture.GetPixel((int)textureCoord.x, (int)textureCoord.y);
-        }
-
-        Debug.Log("End Get Color Pixels");
-        return pixelColors;
-    }
-
-    private Texture2D CreateTextureFromColors(Color[] pixelColors, int width, int height)
-    {
-        Debug.Log("Start Create Colored Texture");
-        Texture2D texture = new Texture2D(width, height);
-        texture.SetPixels(pixelColors);
-        texture.Apply();
-        Debug.Log("End Create Colored Texture");
-        return texture;
-    }
-
     Vector2 GetUVFromWorldPosition(Vector3 worldPosition, Texture2D frameTexture)
     {
         // Получаем размеры текстуры кадра
@@ -449,13 +402,6 @@ public class ScanMesh : MonoBehaviour
         return new Color32(rByte, gByte, bByte, 255);
     }
 
-    private Vector2 GetUVFromWorldPoint(Vector3 worldPoint, Texture2D texture)
-    {
-        Vector3 viewportPoint = Camera.main.WorldToViewportPoint(worldPoint);
-        Vector2 uv = new Vector2(viewportPoint.x * texture.width, viewportPoint.y * texture.height);
-        return uv;
-    }
-
     private void ToogleMeshes(bool activate)
     {
         rawImage.enabled = activate;
@@ -467,22 +413,5 @@ public class ScanMesh : MonoBehaviour
             if (mesh != null)
                 mesh.enabled = activate;
         });
-    }
-
-    private Vector2[] GenerateUVs(Vector3[] vertices)
-    {
-        // Создаем массив текстурных координат для каждой вершины меша
-        Vector2[] uvs = new Vector2[vertices.Length];
-
-        // Проходим по каждой вершине и создаем текстурную координату,
-        // основанную на позиции вершины в пространстве
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            Vector3 vertex = vertices[i];
-            Vector2 uv = new Vector2(vertex.x, vertex.z);
-            uvs[i] = uv;
-        }
-
-        return uvs;
     }
 }
