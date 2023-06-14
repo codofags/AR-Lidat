@@ -194,7 +194,7 @@ public class ScanMesh : MonoBehaviour
             //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
 
             //meshFilter.mesh.colors = colors;
-            meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
+            //meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
             cpuImage.Dispose();
 
             var texture = cameraTexture;
