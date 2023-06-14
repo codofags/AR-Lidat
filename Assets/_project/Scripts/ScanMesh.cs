@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
@@ -7,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 using static UnityEngine.XR.ARSubsystems.XRCpuImage;
 
 public class ScanMesh : MonoBehaviour
@@ -53,15 +55,33 @@ public class ScanMesh : MonoBehaviour
 
     private void CreateMeshObject(MeshFilter meshFilter)
     {
-        //// Получение вершин меша
-        //Vector3[] vertices = meshFilter.mesh.vertices;
+        // Получение вершин меша
+        Vector3[] vertices = meshFilter.mesh.vertices;
 
-        //// Получение треугольников меша
-        //int[] triangles = meshFilter.mesh.triangles;
 
+        foreach (var vertice in vertices)
+        {
+            Debug.Log($"Vert_x: {vertice.x} - Vert_y: {vertice.y} - Vert_z: {vertice.z}");
+        }
+
+        // Получение треугольников меша
+        int[] triangles = meshFilter.mesh.triangles;
+
+        foreach (var triangle in triangles)
+        {
+            Debug.Log($"Triangle: {triangle}");
+        }
         //Debug.Log($"vertices: {vertices}. Length: {vertices.Length}");
         //// Создание текстурных координат для меша
-        //Vector2[] uvs = GenerateUVs(vertices);
+        Vector2[] uvs = GenerateUVs(vertices);
+
+
+        foreach (var uv in uvs)
+        {
+            Debug.Log($"UV_x: {uv.x} - UV_y: {uv.y}");
+        }
+
+
 
         //GameObject meshObject = Instantiate(_meshPrefab, Vector3.zero, Quaternion.identity);
 
@@ -181,41 +201,72 @@ public class ScanMesh : MonoBehaviour
         {
             var cameraTexture = GetCameraTexture();
 
-            Texture2D rotatedTexture = RotateTexture(cameraTexture, true);
-            Texture2D texture = FlipTexture(rotatedTexture);
-            ////var pixelsColors = GetMeshPixelColors(meshFilter, flippedTexture);
-            //foreach(var color in pixelsColors)
-            //{
-            //    Debug.Log($"{color}");
-            //}
-            //float textureWidth = meshFilter.sharedMesh.bounds.size.x;
-            //float textureHeight = meshFilter.sharedMesh.bounds.size.y;
+            cameraTexture = RotateTexture(cameraTexture, true);
+            cameraTexture = FlipTexture(cameraTexture);
 
-            //int roundedTextureWidth = Mathf.RoundToInt(textureWidth);
-            //int roundedTextureHeight = Mathf.RoundToInt(textureHeight);
-            //var texture = CreateTextureFromColors(pixelsColors, roundedTextureWidth, roundedTextureHeight);
-            //var texture = CutTexture(meshFilter, flippedTexture);
+            var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
+
+            foreach (var uv in uvs)
+            {
+                Debug.Log($"Texture coord_x: {uv.x} - Texture coord_y: {uv.y}");
+            }
+
+            var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
+
+            meshFilter.mesh.colors = colors;
             cpuImage.Dispose();
 
+            var texture = cameraTexture;
             _quadRenderer.sharedMaterial.mainTexture = texture;
-            rawImage.texture = texture;
+            rawImage.texture = cameraTexture;
             rawImageCut.texture = texture;
-            if (texture != null)
-            {
-                // Создаем новый материал для меша
-                Material material = new Material(Shader.Find("Standard"));
+            //if (texture != null)
+            //{
+            //    // Создаем новый материал для меша
+            //    Material material = new Material(Shader.Find("Standard"));
 
-                // Присваиваем текстуру новому материалу
-                material.mainTexture = texture;
+            //    // Присваиваем текстуру новому материалу
+            //    material.mainTexture = texture;
 
-                //// Изменяем ориентацию текстуры
-                //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
+            //    //// Изменяем ориентацию текстуры
+            //    //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
 
-                // Применяем новый материал к мешу
-                meshFilter.GetComponent<MeshRenderer>().material = material;
-            }
+            //    // Применяем новый материал к мешу
+            //    meshFilter.GetComponent<MeshRenderer>().material = material;
+            //}
         }
         ToogleMeshes(true);
+    }
+
+    private Vector2[] GetTextureCoordForVertices(Mesh mesh, Texture2D frameTexture)
+    {
+        var vertices = mesh.vertices;
+
+        // Получаем текстурные координаты для каждой вершины меша
+        Vector2[] uv = new Vector2[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            uv[i] = GetUVFromWorldPosition(vertices[i], frameTexture);
+        }
+
+        return uv;
+    }
+
+    private Color[] CreateArrayPixelColor(Vector3[] vertices, Vector2[] uvs, Texture2D frameTexture)
+    {
+        // Создаем массив цветов пикселей для вершин меша
+        Color[] vertexColors = new Color[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector2 uvCoord = uvs[i];
+
+            // Получаем цвет пикселя из текстуры, используя текстурные координаты
+            Color pixelColor = frameTexture.GetPixelBilinear(uvCoord.x, uvCoord.y);
+
+            // Назначаем цвет пикселя вершине меша
+            vertexColors[i] = pixelColor;
+        }
+        return vertexColors;
     }
 
     private Texture2D GetCameraTexture()
@@ -264,7 +315,6 @@ public class ScanMesh : MonoBehaviour
 
     private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise)
     {
-        Debug.Log("Start Rotate Texture");
         Color32[] original = originalTexture.GetPixels32();
         Color32[] rotated = new Color32[original.Length];
         int w = originalTexture.width;
@@ -285,14 +335,11 @@ public class ScanMesh : MonoBehaviour
         Texture2D rotatedTexture = new Texture2D(h, w);
         rotatedTexture.SetPixels32(rotated);
         rotatedTexture.Apply();
-
-        Debug.Log("End Rotate Texture");
         return rotatedTexture;
     }
 
     private Texture2D FlipTexture(Texture2D originalTexture)
     {
-        Debug.Log("Start Flip Texture");
         Color32[] original = originalTexture.GetPixels32();
         Color32[] flipped = new Color32[original.Length];
         int w = originalTexture.width;
@@ -313,8 +360,6 @@ public class ScanMesh : MonoBehaviour
         Texture2D flippedTexture = new Texture2D(w, h);
         flippedTexture.SetPixels32(flipped);
         flippedTexture.Apply();
-
-        Debug.Log("End Flip Texture");
         return flippedTexture;
     }
 
@@ -364,6 +409,64 @@ public class ScanMesh : MonoBehaviour
         texture.Apply();
         Debug.Log("End Create Colored Texture");
         return texture;
+    }
+
+    Vector2 GetUVFromWorldPosition(Vector3 worldPosition, Texture2D frameTexture)
+    {
+        // Получаем размеры текстуры кадра
+        int textureWidth = frameTexture.width;
+        int textureHeight = frameTexture.height;
+
+        // Конвертируем мировые координаты в экранные координаты
+        Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
+
+        // Преобразуем экранные координаты в текстурные координаты
+        float u = screenPosition.x / Screen.width;
+        float v = screenPosition.y / Screen.height;
+
+        // Преобразуем текстурные координаты в координаты текстуры кадра
+        int x = Mathf.FloorToInt(u * textureWidth);
+        int y = Mathf.FloorToInt(v * textureHeight);
+
+        // Получаем цвет пикселя из текстуры кадра
+        Color32 pixelColor = frameTexture.GetPixel(x, y);
+
+        // Получаем текстурные координаты из цвета пикселя
+        Vector2 uv = new Vector2(pixelColor.r, pixelColor.g);
+
+        return uv;
+    }
+
+    Color32 GetPixelColorFromTexture(int x, int y, int textureWidth, int textureHeight, IntPtr textureY, IntPtr textureCbCr)
+    {
+        // Получаем индекс пикселя в массиве данных текстуры
+        int pixelIndex = y * textureWidth + x;
+
+        // Получаем значения компонент цвета из массивов данных текстуры
+        byte yValue = Marshal.ReadByte(textureY, pixelIndex);
+        byte cbValue = Marshal.ReadByte(textureCbCr, pixelIndex);
+        byte crValue = Marshal.ReadByte(textureCbCr, pixelIndex + 1);
+
+        // Преобразуем компоненты цвета YCbCr в RGB
+        float yf = (float)yValue / 255.0f;
+        float cb = (float)cbValue / 255.0f - 0.5f;
+        float cr = (float)crValue / 255.0f - 0.5f;
+
+        float r = yf + 1.402f * cr;
+        float g = yf - 0.344f * cb - 0.714f * cr;
+        float b = yf + 1.772f * cb;
+
+        // Ограничиваем значения компонентов цвета в диапазоне [0, 1]
+        r = Mathf.Clamp01(r);
+        g = Mathf.Clamp01(g);
+        b = Mathf.Clamp01(b);
+
+        // Преобразуем значения компонентов цвета в диапазон [0, 255]
+        byte rByte = (byte)(r * 255);
+        byte gByte = (byte)(g * 255);
+        byte bByte = (byte)(b * 255);
+
+        return new Color32(rByte, gByte, bByte, 255);
     }
 
     private Vector2 GetUVFromWorldPoint(Vector3 worldPoint, Texture2D texture)
