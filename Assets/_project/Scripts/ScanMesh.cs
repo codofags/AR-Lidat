@@ -198,7 +198,7 @@ public class ScanMesh : MonoBehaviour
             cpuImage.Dispose();
 
             var texture = cameraTexture;
-            _quadRenderer.sharedMaterial.mainTexture = texture;
+            _quadRenderer.material.mainTexture = texture;
             rawImage.texture = cameraTexture;
             rawImageCut.texture = texture;
             //if (texture != null)
