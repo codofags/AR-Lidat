@@ -66,12 +66,6 @@ public class ScanMesh : MonoBehaviour
         //// Создание текстурных координат для меша
         //Vector2[] uvs = GenerateUVs(vertices);
 
-        var uvs = meshFilter.mesh.uv;
-        foreach (var uv in uvs)
-        {
-            Debug.Log($"UV_x: {uv.x} - UV_y: {uv.y}");
-        }
-
 
 
         //GameObject meshObject = Instantiate(_meshPrefab, Vector3.zero, Quaternion.identity);
@@ -196,11 +190,6 @@ public class ScanMesh : MonoBehaviour
             cameraTexture = FlipTexture(cameraTexture);
 
             var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
-
-            foreach (var uv in uvs)
-            {
-                Debug.Log($"Texture coord_x: {uv.x} - Texture coord_y: {uv.y}");
-            }
 
             var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
 
