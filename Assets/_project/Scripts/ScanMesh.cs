@@ -40,7 +40,6 @@ public class ScanMesh : MonoBehaviour
 
     private void Update()
     {
-        rawImage.texture = Camera.main.targetTexture;
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -194,6 +193,14 @@ public class ScanMesh : MonoBehaviour
         {
             var cameraTexture = GetCameraTexture();
 
+            //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
+            CalculatePlanarUV(meshFilter.mesh);
+            var uvs = meshFilter.mesh.uv;
+            //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
+
+            //meshFilter.mesh.colors = colors;
+            meshFilter.mesh.uv = uvs;
+
             if (!_test)
             {
                 meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
@@ -204,13 +211,11 @@ public class ScanMesh : MonoBehaviour
             cameraTexture.RotateTexture(true);
             cameraTexture.FlipTexture();
 
-            //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
-            CalculatePlanarUV(meshFilter.mesh);
-            var uvs = meshFilter.mesh.uv;
-            //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
+            // Обрезаем кадр камеры в соответствии с мешем
+            Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
 
-            //meshFilter.mesh.colors = colors;
-            meshFilter.mesh.uv = uvs;
+
+            rawImage.texture = croppedTexture;
 
 
             cpuImage.Dispose();
@@ -253,7 +258,7 @@ public class ScanMesh : MonoBehaviour
                 textureProjectionDirection = normals[i];
             }
         }
-        textureProjectionDirection = Vector3.up;
+        textureProjectionDirection = Vector3.down;
 
         // Нормализуем направление проекции текстуры
         textureProjectionDirection.Normalize();
@@ -270,6 +275,77 @@ public class ScanMesh : MonoBehaviour
 
         // Присваиваем массив текстурных координат мешу
         mesh.uv = uv;
+    }
+
+    Texture2D CropCameraFrameWithMesh(Texture2D cameraFrame, MeshFilter meshFilter)
+    {
+        // Получаем размеры кадра камеры
+        int width = cameraFrame.width;
+        int height = cameraFrame.height;
+
+        // Получаем вершины, треугольники и нормали меша
+        Mesh mesh = meshFilter.mesh;
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+        Vector3[] normals = mesh.normals;
+
+        // Создаем новую текстуру для обрезанного кадра
+        Texture2D croppedTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+
+        // Проходимся по каждому пикселю кадра и проверяем, находится ли он внутри меша
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                Vector3 pixelPosition = Camera.main.ScreenToWorldPoint(new Vector3(x, y, 1f));
+
+        if (IsPixelInsideMesh(pixelPosition, vertices, triangles, normals))
+        {
+            Color pixelColor = cameraFrame.GetPixel(x, y);
+            croppedTexture.SetPixel(x, y, pixelColor);
+        }
+        else
+        {
+            croppedTexture.SetPixel(x, y, Color.clear);
+        }
+            }
+        }
+
+        // Применяем изменения к обрезанной текстуре
+        croppedTexture.Apply();
+
+        return croppedTexture;
+    }
+
+    bool IsPixelInsideMesh(Vector3 pixelPosition, Vector3[] vertices, int[] triangles, Vector3[] normals)
+    {
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            Vector3 vertex1 = vertices[triangles[i]];
+
+            Vector3 triangleNormal = normals[i / 3]; // Получаем нормаль треугольника
+
+            // Проверяем, находится ли пиксель по ту сторону треугольника, где находится нормаль
+            if (Vector3.Dot(pixelPosition - vertex1, triangleNormal) > 0)
+            {
+                return false; // Пиксель находится за границами меша
+            }
+        }
+
+        return true; // Пиксель находится внутри меша
+    }
+
+
+    Color32 GetPixelColor(byte[] pixelData, int x, int y, int width, int height)
+    {
+        int index = (y * width + x) * 4;
+
+        byte r = pixelData[index];
+        byte g = pixelData[index + 1];
+        byte b = pixelData[index + 2];
+        byte a = pixelData[index + 3];
+
+        return new Color32(r, g, b, a);
     }
 
     private Vector2[] GetTextureCoordForVertices(Mesh mesh, Texture2D frameTexture)
