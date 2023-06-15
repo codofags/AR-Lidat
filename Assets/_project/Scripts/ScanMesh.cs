@@ -396,6 +396,7 @@ public class ScanMesh : MonoBehaviour
                 textureProjectionDirection = normals[i];
             }
         }
+        textureProjectionDirection = Vector3.up;
 
         // Нормализуем направление проекции текстуры
         textureProjectionDirection.Normalize();
