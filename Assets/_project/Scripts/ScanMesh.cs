@@ -6,6 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
@@ -201,6 +202,25 @@ public class ScanMesh : MonoBehaviour
             //meshFilter.mesh.colors = colors;
             meshFilter.mesh.uv = uvs;
 
+
+            cameraTexture.RotateTexture(true);
+            cameraTexture.FlipTexture();
+
+            for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
+            {
+                Vector3 vertex = meshFilter.mesh.vertices[i];
+                Vector3 normal = meshFilter.mesh.normals[i / 3]; // Получаем нормаль треугольника
+
+                // Проецируем вершину на текстуру, используя нормаль треугольника
+                Vector2 projectedUV = ProjectVertexToTexture(vertex, normal, cameraTexture);
+
+                // Применяем полученные текстурные координаты (UV)
+                uvs[i] = projectedUV;
+            }
+
+            meshFilter.mesh.uv = uvs;
+
+
             if (!_test)
             {
                 meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
@@ -208,14 +228,11 @@ public class ScanMesh : MonoBehaviour
             else
                 meshFilter.GetComponent<MeshRenderer>().material.mainTexture = _testTexute;
 
-            cameraTexture.RotateTexture(true);
-            cameraTexture.FlipTexture();
-
             // Обрезаем кадр камеры в соответствии с мешем
-            Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
+            //Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
 
 
-            rawImage.texture = croppedTexture;
+            //rawImage.texture = croppedTexture;
 
 
             cpuImage.Dispose();
@@ -333,6 +350,19 @@ public class ScanMesh : MonoBehaviour
         }
 
         return true; // Пиксель находится внутри меша
+    }
+
+    Vector2 ProjectVertexToTexture(Vector3 vertex, Vector3 normal, Texture2D texture)
+    {
+        // Преобразование 3D-координат вершины в 2D-координаты текстуры
+        Vector3 projectedPoint = Camera.main.WorldToScreenPoint(vertex);
+        Vector2 projectedUV = new Vector2(projectedPoint.x / Screen.width, projectedPoint.y / Screen.height);
+
+        // Применение полученных 2D-координат к размерам текстуры
+        projectedUV.x *= texture.width;
+        projectedUV.y *= texture.height;
+
+        return projectedUV;
     }
 
 
