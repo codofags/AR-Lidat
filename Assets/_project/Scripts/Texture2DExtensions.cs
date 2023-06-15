@@ -18,40 +18,53 @@ public static class Texture2DExtensions
         return croppedTexture;
     }
 
-    public static void RotateImage(this Texture2D tex, float angleDegrees)
+    public static void RotateTexture(this Texture2D texture, bool clockwise)
     {
-        int width = tex.width;
-        int height = tex.height;
-        float halfHeight = height * 0.5f;
-        float halfWidth = width * 0.5f;
+        Color32[] original = texture.GetPixels32();
+        Color32[] rotated = new Color32[original.Length];
+        int w = texture.width;
+        int h = texture.height;
 
-        var texels = tex.GetRawTextureData<Color32>();
-        var copy = System.Buffers.ArrayPool<Color32>.Shared.Rent(texels.Length);
-        NativeArray<Color32>.Copy(texels, copy, texels.Length);
+        int iRotated, iOriginal;
 
-        float phi = Mathf.Deg2Rad * angleDegrees;
-        float cosPhi = Mathf.Cos(phi);
-        float sinPhi = Mathf.Sin(phi);
-
-        int address = 0;
-        for (int newY = 0; newY < height; newY++)
+        for (int j = 0; j < h; ++j)
         {
-            for (int newX = 0; newX < width; newX++)
+            for (int i = 0; i < w; ++i)
             {
-                float cX = newX - halfWidth;
-                float cY = newY - halfHeight;
-                int oldX = Mathf.RoundToInt(cosPhi * cX + sinPhi * cY + halfWidth);
-                int oldY = Mathf.RoundToInt(-sinPhi * cX + cosPhi * cY + halfHeight);
-                bool InsideImageBounds = (oldX > -1) & (oldX < width)
-                                       & (oldY > -1) & (oldY < height);
-
-                texels[address++] = InsideImageBounds ? copy[oldY * width + oldX] : default;
+                iRotated = (i + 1) * h - j - 1;
+                iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
+                rotated[iRotated] = original[iOriginal];
             }
         }
 
-        // No need to reinitialize or SetPixels - data is already in-place.
-        tex.Apply(true);
+        Texture2D rotatedTexture = new Texture2D(h, w);
+        rotatedTexture.SetPixels32(rotated);
+        rotatedTexture.Apply();
+        texture = rotatedTexture;
+    }
 
-        System.Buffers.ArrayPool<Color32>.Shared.Return(copy);
+    public static void FlipTexture(this Texture2D texture)
+    {
+        Color32[] original = texture.GetPixels32();
+        Color32[] flipped = new Color32[original.Length];
+        int w = texture.width;
+        int h = texture.height;
+
+        int iFlipped, iOriginal;
+
+        for (int j = 0; j < h; ++j)
+        {
+            for (int i = 0; i < w; ++i)
+            {
+                iFlipped = j * w + (w - i - 1);
+                iOriginal = j * w + i;
+                flipped[iFlipped] = original[iOriginal];
+            }
+        }
+
+        Texture2D flippedTexture = new Texture2D(w, h);
+        flippedTexture.SetPixels32(flipped);
+        flippedTexture.Apply();
+        texture = flippedTexture;
     }
 }

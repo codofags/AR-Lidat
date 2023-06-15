@@ -19,9 +19,11 @@ public class ScanMesh : MonoBehaviour
 
     [SerializeField] private RawImage rawImage;
     [SerializeField] private RawImage rawImageCut;
-    [SerializeField] private Renderer _quadRenderer;
+    [SerializeField] private Texture2D _testTexute;
 
     private List<MeshRenderer> _meshes = new List<MeshRenderer>();
+
+    private bool _test;
 
     private void OnEnable()
     {
@@ -38,7 +40,7 @@ public class ScanMesh : MonoBehaviour
 
     private void Update()
     {
-        rawImage.texture = Camera.main.activeTexture;
+        rawImage.texture = Camera.main.targetTexture;
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -192,8 +194,8 @@ public class ScanMesh : MonoBehaviour
         {
             var cameraTexture = GetCameraTexture();
 
-            cameraTexture = RotateTexture(cameraTexture, true);
-            cameraTexture = FlipTexture(cameraTexture);
+            cameraTexture.RotateTexture(true);
+            cameraTexture.FlipTexture();
 
             //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
             CalculatePlanarUV(meshFilter.mesh);
@@ -202,11 +204,18 @@ public class ScanMesh : MonoBehaviour
 
             //meshFilter.mesh.colors = colors;
             meshFilter.mesh.uv = uvs;
-            meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
+
+            if (!_test)
+            {
+                cameraTexture.RotateTexture(true);
+                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
+            }
+            else
+                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = _testTexute;
+
             cpuImage.Dispose();
 
             var texture = cameraTexture;
-            _quadRenderer.material.mainTexture = texture;
             rawImageCut.texture = texture;
             //if (texture != null)
             //{
@@ -299,56 +308,6 @@ public class ScanMesh : MonoBehaviour
         }
 
         return null;
-    }
-
-    private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise)
-    {
-        Color32[] original = originalTexture.GetPixels32();
-        Color32[] rotated = new Color32[original.Length];
-        int w = originalTexture.width;
-        int h = originalTexture.height;
-
-        int iRotated, iOriginal;
-
-        for (int j = 0; j < h; ++j)
-        {
-            for (int i = 0; i < w; ++i)
-            {
-                iRotated = (i + 1) * h - j - 1;
-                iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
-                rotated[iRotated] = original[iOriginal];
-            }
-        }
-
-        Texture2D rotatedTexture = new Texture2D(h, w);
-        rotatedTexture.SetPixels32(rotated);
-        rotatedTexture.Apply();
-        return rotatedTexture;
-    }
-
-    private Texture2D FlipTexture(Texture2D originalTexture)
-    {
-        Color32[] original = originalTexture.GetPixels32();
-        Color32[] flipped = new Color32[original.Length];
-        int w = originalTexture.width;
-        int h = originalTexture.height;
-
-        int iFlipped, iOriginal;
-
-        for (int j = 0; j < h; ++j)
-        {
-            for (int i = 0; i < w; ++i)
-            {
-                iFlipped = j * w + (w - i - 1);
-                iOriginal = j * w + i;
-                flipped[iFlipped] = original[iOriginal];
-            }
-        }
-
-        Texture2D flippedTexture = new Texture2D(w, h);
-        flippedTexture.SetPixels32(flipped);
-        flippedTexture.Apply();
-        return flippedTexture;
     }
 
     private Vector2 GetUVFromWorldPosition(Vector3 worldPosition, Texture2D frameTexture)
@@ -473,5 +432,10 @@ public class ScanMesh : MonoBehaviour
             if (mesh != null)
                 mesh.enabled = activate;
         });
+    }
+
+    public void test()
+    {
+        _test = !_test;
     }
 }
