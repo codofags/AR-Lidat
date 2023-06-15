@@ -405,10 +405,10 @@ public class ScanMesh : MonoBehaviour
         for (int i = 0; i < vertices.Length; i++)
         {
             // Проецируем вершину на плоскость, перпендикулярную выбранному направлению
-            Vector2 planarPosition = new Vector2(vertices[i].y, vertices[i].z);
+            Vector2 planarPosition = new Vector2(vertices[i].x, vertices[i].y);
 
             // Устанавливаем текстурную координату на основе позиции вершины
-            uv[i] = new Vector2(Vector2.Dot(planarPosition, textureProjectionDirection), vertices[i].x);
+            uv[i] = new Vector2(Vector2.Dot(planarPosition, textureProjectionDirection), vertices[i].z);
         }
 
         // Присваиваем массив текстурных координат мешу
