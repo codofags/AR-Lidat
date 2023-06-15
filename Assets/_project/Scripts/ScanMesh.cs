@@ -188,11 +188,18 @@ public class ScanMesh : MonoBehaviour
 
     private void ApplyCameraTextureToMesh(MeshFilter meshFilter)
     {
-        ToogleMeshes(false);
+        //ToogleMeshes(false);
 
         if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
         {
             var cameraTexture = GetCameraTexture();
+
+            if (!_test)
+            {
+                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
+            }
+            else
+                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = _testTexute;
 
             cameraTexture.RotateTexture(true);
             cameraTexture.FlipTexture();
@@ -205,13 +212,6 @@ public class ScanMesh : MonoBehaviour
             //meshFilter.mesh.colors = colors;
             meshFilter.mesh.uv = uvs;
 
-            if (!_test)
-            {
-                cameraTexture.RotateTexture(true);
-                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
-            }
-            else
-                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = _testTexute;
 
             cpuImage.Dispose();
 
@@ -232,7 +232,44 @@ public class ScanMesh : MonoBehaviour
             //    meshFilter.GetComponent<MeshRenderer>().material = material;
             //}
         }
-        ToogleMeshes(true);
+        //ToogleMeshes(true);
+    }
+
+
+    void CalculatePlanarUV(Mesh mesh)
+    {
+        Vector3[] vertices = mesh.vertices;
+        Vector2[] uv = new Vector2[vertices.Length];
+        var normals = mesh.normals;
+
+        // Выбираем направление проекции текстуры (например, вдоль оси X)
+        Vector3 textureProjectionDirection = Vector3.zero;
+
+        // Выбираем наиболее распространенную направленность нормалей
+        for (int i = 0; i < normals.Length; i++)
+        {
+            if (normals[i].sqrMagnitude > textureProjectionDirection.sqrMagnitude)
+            {
+                textureProjectionDirection = normals[i];
+            }
+        }
+        textureProjectionDirection = Vector3.up;
+
+        // Нормализуем направление проекции текстуры
+        textureProjectionDirection.Normalize();
+
+        // Проходим по всем вершинам и вычисляем текстурные координаты
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            // Проецируем вершину на плоскость, перпендикулярную выбранному направлению
+            Vector2 planarPosition = new Vector2(vertices[i].x, vertices[i].y);
+
+            // Устанавливаем текстурную координату на основе позиции вершины
+            uv[i] = new Vector2(Vector2.Dot(planarPosition, textureProjectionDirection), vertices[i].z);
+        }
+
+        // Присваиваем массив текстурных координат мешу
+        mesh.uv = uv;
     }
 
     private Vector2[] GetTextureCoordForVertices(Mesh mesh, Texture2D frameTexture)
@@ -338,56 +375,6 @@ public class ScanMesh : MonoBehaviour
         return uv;
     }
 
-    void CalculatePlanarUV(Mesh mesh)
-    {
-        Vector3[] vertices = mesh.vertices;
-        Vector2[] uv = new Vector2[vertices.Length];
-        var normals = mesh.normals;
-
-        // Выбираем направление проекции текстуры (например, вдоль оси X)
-        Vector3 textureProjectionDirection = Vector3.zero;
-
-        // Выбираем наиболее распространенную направленность нормалей
-        for (int i = 0; i < normals.Length; i++)
-        {
-            if (normals[i].sqrMagnitude > textureProjectionDirection.sqrMagnitude)
-            {
-                textureProjectionDirection = normals[i];
-            }
-        }
-        textureProjectionDirection = Vector3.up;
-
-        // Нормализуем направление проекции текстуры
-        textureProjectionDirection.Normalize();
-
-        // Проходим по всем вершинам и вычисляем текстурные координаты
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            // Проецируем вершину на плоскость, перпендикулярную выбранному направлению
-            Vector2 planarPosition = new Vector2(vertices[i].x, vertices[i].y);
-
-            // Устанавливаем текстурную координату на основе позиции вершины
-            uv[i] = new Vector2(Vector2.Dot(planarPosition, textureProjectionDirection), vertices[i].z);
-        }
-
-        // Присваиваем массив текстурных координат мешу
-        mesh.uv = uv;
-    }
-
-    void GenerateUVCoordinates(Mesh mesh)
-    {
-        Vector3[] vertices = mesh.vertices;
-        Vector2[] uvs = new Vector2[vertices.Length];
-
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            Vector3 vertex = vertices[i];
-            Vector2 uv = new Vector2(vertex.x, vertex.y);
-            uvs[i] = uv;
-        }
-
-        mesh.uv = uvs;
-    }
 
     Color32 GetPixelColorFromTexture(int x, int y, int textureWidth, int textureHeight, IntPtr textureY, IntPtr textureCbCr)
     {
