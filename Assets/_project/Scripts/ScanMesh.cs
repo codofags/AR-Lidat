@@ -247,8 +247,18 @@ public class ScanMesh : MonoBehaviour
 
             //meshFilter.mesh.uv = uvs;
 
-            if (!_test)
-            meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
+            if (_test)
+            {
+
+                // Создаем новый материал для меша
+                Material material = new Material(Shader.Find("Standard"));
+
+                // Присваиваем текстуру новому материалу
+                material.mainTexture = cameraTexture;
+
+                // Применяем новый материал к мешу
+                meshFilter.GetComponent<MeshRenderer>().material = material;
+            }
 
             // Обрезаем кадр камеры в соответствии с мешем
             //Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
@@ -263,17 +273,9 @@ public class ScanMesh : MonoBehaviour
             rawImageCut.texture = texture;
             //if (texture != null)
             //{
-            //    // Создаем новый материал для меша
-            //    Material material = new Material(Shader.Find("Standard"));
-
-            //    // Присваиваем текстуру новому материалу
-            //    material.mainTexture = texture;
-
             //    //// Изменяем ориентацию текстуры
             //    //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
 
-            //    // Применяем новый материал к мешу
-            //    meshFilter.GetComponent<MeshRenderer>().material = material;
             //}
         }
         //ToogleMeshes(true);
