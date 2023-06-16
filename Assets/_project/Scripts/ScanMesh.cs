@@ -21,7 +21,21 @@ public class ScanMesh : MonoBehaviour
     [SerializeField] private RawImage rawImage;
     [SerializeField] private RawImage rawImageCut;
     [SerializeField] private Texture2D _testTexute;
+    
 
+    public class ScanMeshInfo
+    {
+        public MeshRenderer MeshRenderer;
+        public Texture2D Texture;
+
+        public ScanMeshInfo(MeshRenderer meshRenderer, Texture2D texture)
+        {
+            MeshRenderer = meshRenderer;
+            Texture = texture;
+        }
+    }
+
+    private List<ScanMeshInfo> _scans = new List<ScanMeshInfo>();
     private List<MeshRenderer> _meshes = new List<MeshRenderer>();
 
     private bool _test;
@@ -95,8 +109,9 @@ public class ScanMesh : MonoBehaviour
 
         //CutTexture(meshComponent, meshRenderer);
 
+        if (_test)
         // Применяем текстуру к мешу
-        ApplyCameraTextureToMesh(meshFilter);
+            ApplyCameraTextureToMesh(meshFilter);
     }
 
     private void UpdateMeshObject(MeshFilter meshFilter)
@@ -130,8 +145,10 @@ public class ScanMesh : MonoBehaviour
         //meshObject.transform.rotation = meshFilter.transform.rotation;
         //meshObject.transform.localScale = Vector3.one;
 
-        // Применяем текстуру к мешу
-        ApplyCameraTextureToMesh(meshFilter);
+
+        if (_test)
+            // Применяем текстуру к мешу
+            ApplyCameraTextureToMesh(meshFilter);
     }
 
     private void RemoveMeshObject(MeshFilter meshFilter)
@@ -185,6 +202,15 @@ public class ScanMesh : MonoBehaviour
         return meshTexture;
     }
 
+    public void GetAndSaveMesh(MeshRenderer meshRenderer)
+    {
+        var cameraTexture = GetCameraTexture();
+
+        cameraTexture.RotateTexture(true);
+        cameraTexture.FlipTexture();
+        ScanMeshInfo mesh = new ScanMeshInfo(meshRenderer, cameraTexture);
+        _scans.Add(mesh);
+    }
 
     private void ApplyCameraTextureToMesh(MeshFilter meshFilter)
     {
@@ -206,27 +232,23 @@ public class ScanMesh : MonoBehaviour
             cameraTexture.RotateTexture(true);
             cameraTexture.FlipTexture();
 
-            for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
-            {
-                Vector3 vertex = meshFilter.mesh.vertices[i];
-                Vector3 normal = meshFilter.mesh.normals[i / 3]; // Получаем нормаль треугольника
+            
+            //for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
+            //{
+            //    Vector3 vertex = meshFilter.mesh.vertices[i];
+            //    Vector3 normal = meshFilter.mesh.normals[i / 3]; // Получаем нормаль треугольника
 
-                // Проецируем вершину на текстуру, используя нормаль треугольника
-                Vector2 projectedUV = ProjectVertexToTexture(vertex, normal, cameraTexture);
+            //    // Проецируем вершину на текстуру, используя нормаль треугольника
+            //    Vector2 projectedUV = ProjectVertexToTexture(vertex, normal, cameraTexture);
 
-                // Применяем полученные текстурные координаты (UV)
-                uvs[i] = projectedUV;
-            }
+            //    // Применяем полученные текстурные координаты (UV)
+            //    uvs[i] = projectedUV;
+            //}
 
-            meshFilter.mesh.uv = uvs;
-
+            //meshFilter.mesh.uv = uvs;
 
             if (!_test)
-            {
-                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
-            }
-            else
-                meshFilter.GetComponent<MeshRenderer>().material.mainTexture = _testTexute;
+            meshFilter.GetComponent<MeshRenderer>().material.mainTexture = cameraTexture;
 
             // Обрезаем кадр камеры в соответствии с мешем
             //Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
@@ -529,6 +551,6 @@ public class ScanMesh : MonoBehaviour
 
     public void test()
     {
-        _test = !_test;
+        _arCameraManager.enabled = false;
     }
 }
