@@ -741,7 +741,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1806633526}
         m_TargetAssemblyTypeName: ScanMesh, Assembly-CSharp
-        m_MethodName: test
+        m_MethodName: test_s
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

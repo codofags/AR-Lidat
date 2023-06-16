@@ -553,4 +553,9 @@ public class ScanMesh : MonoBehaviour
     {
         _arCameraManager.enabled = false;
     }
+
+    public void test_s()
+    {
+        _test = !_test;
+    }
 }
