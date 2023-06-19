@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -220,19 +221,22 @@ public class ScanMesh : MonoBehaviour
         {
             var cameraTexture = GetCameraTexture();
 
-            //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
             CalculatePlanarUV(meshFilter.mesh);
             var uvs = meshFilter.mesh.uv;
-            //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
-
-            //meshFilter.mesh.colors = colors;
             meshFilter.mesh.uv = uvs;
-
 
             cameraTexture.RotateTexture(true);
             cameraTexture.FlipTexture();
 
-            
+            var color = CreateArrayPixelColor(meshFilter.mesh.vertices, meshFilter.mesh.uv, cameraTexture);
+            meshFilter.mesh.colors = color;
+            //ColorsFromPixel(meshFilter.mesh, cameraTexture);
+
+            //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
+            //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
+
+            //meshFilter.mesh.colors = colors;
+
             //for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
             //{
             //    Vector3 vertex = meshFilter.mesh.vertices[i];
@@ -245,40 +249,25 @@ public class ScanMesh : MonoBehaviour
             //    uvs[i] = projectedUV;
             //}
 
-            //meshFilter.mesh.uv = uvs;
+            //if (_test)
+            //{
 
-            if (_test)
-            {
+            //    // Создаем новый материал для меша
+            //    Material material = new Material(Shader.Find("Standard"));
 
-                // Создаем новый материал для меша
-                Material material = new Material(Shader.Find("Standard"));
+            //    // Присваиваем текстуру новому материалу
+            //    material.mainTexture = cameraTexture;
 
-                // Присваиваем текстуру новому материалу
-                material.mainTexture = cameraTexture;
-
-                // Применяем новый материал к мешу
-                meshFilter.GetComponent<MeshRenderer>().material = material;
-            }
+            //    // Применяем новый материал к мешу
+            //    meshFilter.GetComponent<MeshRenderer>().material = material;
+            //}
 
             // Обрезаем кадр камеры в соответствии с мешем
             //Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
-
-
-            //rawImage.texture = croppedTexture;
-
-
             cpuImage.Dispose();
-
             var texture = cameraTexture;
             rawImageCut.texture = texture;
-            //if (texture != null)
-            //{
-            //    //// Изменяем ориентацию текстуры
-            //    //material.mainTextureScale = new Vector2(-1, 1); // Изменяем знаки X-координаты и Y-координаты
-
-            //}
         }
-        //ToogleMeshes(true);
     }
 
 
@@ -536,6 +525,24 @@ public class ScanMesh : MonoBehaviour
         byte bByte = (byte)(b * 255);
 
         return new Color32(rByte, gByte, bByte, 255);
+    }
+
+    void ColorsFromPixel(Mesh mesh, Texture2D texture)
+    {
+        var vertices = mesh.vertices;
+        Color[] colors = new Color[vertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 vertexWorldPos = transform.TransformPoint(vertices[i]);
+            Vector3 viewportPos = _arCameraManager.GetComponent<Camera>().WorldToViewportPoint(vertexWorldPos);
+            Vector2 pixelUV = new Vector2(viewportPos.x * texture.width, viewportPos.y * texture.height);
+            Color pixelColor = texture.GetPixel(Mathf.FloorToInt(pixelUV.x), Mathf.FloorToInt(pixelUV.y));
+
+            colors[i] = pixelColor;
+        }
+
+        mesh.colors = colors;
     }
 
     private void ToogleMeshes(bool activate)
