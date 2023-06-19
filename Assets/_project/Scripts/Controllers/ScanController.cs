@@ -9,6 +9,7 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private ARPlaneManager _planeManager;
     [SerializeField] private ScanMesh _scanMesh;
     [SerializeField] private ARMeshManager _arMeshManager;
+    [SerializeField] private ARCameraManager _arCameraManager;
     [SerializeField] private GameObject _viewPanel;
 
     private bool _isScanning;
@@ -47,6 +48,7 @@ public class ScanController : Singleton<ScanController>
             if (arMeshSubsystem != null)
             {
                 arMeshSubsystem.Stop();
+                _arCameraManager.enabled = false;
                 _isScanning = false;
             }
             _viewPanel.SetActive(true);

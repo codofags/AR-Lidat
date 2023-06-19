@@ -215,61 +215,42 @@ public class ScanMesh : MonoBehaviour
 
     private void ApplyCameraTextureToMesh(MeshFilter meshFilter)
     {
-        //ToogleMeshes(false);
+        var cameraTexture = GetCameraTexture();
 
-        if (_arCameraManager.TryAcquireLatestCpuImage(out var cpuImage))
-        {
-            var cameraTexture = GetCameraTexture();
+        CalculatePlanarUV(meshFilter.mesh);
+        var uvs = meshFilter.mesh.uv;
+        meshFilter.mesh.uv = uvs;
 
-            CalculatePlanarUV(meshFilter.mesh);
-            var uvs = meshFilter.mesh.uv;
-            meshFilter.mesh.uv = uvs;
+        cameraTexture.RotateTexture(true);
+        cameraTexture.FlipTexture();
 
-            cameraTexture.RotateTexture(true);
-            cameraTexture.FlipTexture();
+        //var color = CreateArrayPixelColor(meshFilter.mesh.vertices, meshFilter.mesh.uv, cameraTexture);
+        //meshFilter.mesh.colors = color;
+        ColorsFromPixel(meshFilter.mesh, cameraTexture);
 
-            var color = CreateArrayPixelColor(meshFilter.mesh.vertices, meshFilter.mesh.uv, cameraTexture);
-            meshFilter.mesh.colors = color;
-            //ColorsFromPixel(meshFilter.mesh, cameraTexture);
+        //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
 
-            //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
-            //var colors = CreateArrayPixelColor(meshFilter.mesh.vertices, uvs, cameraTexture);
+        //meshFilter.mesh.colors = colors;
 
-            //meshFilter.mesh.colors = colors;
+        //for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
+        //{
+        //    Vector3 vertex = meshFilter.mesh.vertices[i];
+        //    Vector3 normal = meshFilter.mesh.normals[i / 3]; // Получаем нормаль треугольника
 
-            //for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
-            //{
-            //    Vector3 vertex = meshFilter.mesh.vertices[i];
-            //    Vector3 normal = meshFilter.mesh.normals[i / 3]; // Получаем нормаль треугольника
+        //    // Проецируем вершину на текстуру, используя нормаль треугольника
+        //    Vector2 projectedUV = ProjectVertexToTexture(vertex, normal, cameraTexture);
 
-            //    // Проецируем вершину на текстуру, используя нормаль треугольника
-            //    Vector2 projectedUV = ProjectVertexToTexture(vertex, normal, cameraTexture);
+        //    // Применяем полученные текстурные координаты (UV)
+        //    uvs[i] = projectedUV;
+        //}
 
-            //    // Применяем полученные текстурные координаты (UV)
-            //    uvs[i] = projectedUV;
-            //}
 
-            //if (_test)
-            //{
 
-            //    // Создаем новый материал для меша
-            //    Material material = new Material(Shader.Find("Standard"));
-
-            //    // Присваиваем текстуру новому материалу
-            //    material.mainTexture = cameraTexture;
-
-            //    // Применяем новый материал к мешу
-            //    meshFilter.GetComponent<MeshRenderer>().material = material;
-            //}
-
-            // Обрезаем кадр камеры в соответствии с мешем
-            //Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
-            cpuImage.Dispose();
-            var texture = cameraTexture;
-            rawImageCut.texture = texture;
-        }
+        // Обрезаем кадр камеры в соответствии с мешем
+        Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
+        var texture = cameraTexture;
+        rawImageCut.texture = croppedTexture;
     }
-
 
     void CalculatePlanarUV(Mesh mesh)
     {
