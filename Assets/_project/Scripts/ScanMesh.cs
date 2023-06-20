@@ -360,24 +360,19 @@ public class ScanMesh : MonoBehaviour
         Vector3[] vertices = mesh.vertices;
         Vector2[] uv = new Vector2[vertices.Length];
 
-        int textureWidth = cameraTexture.width;
-        int textureHeight = cameraTexture.height;
-
-        Matrix4x4 worldToLocalMatrix = meshFilter.transform.worldToLocalMatrix;
-
         for (int i = 0; i < vertices.Length; i++)
         {
-            // Применение матрицы преобразования к вершинам меша
-            Vector3 transformedVertex = worldToLocalMatrix.MultiplyPoint3x4(vertices[i]);
+            Vector3 vertex = vertices[i];
 
-            // Получение нормализованных UV-координат на основе преобразованных координат вершины и размеров текстуры
-            uv[i] = new Vector2(transformedVertex.x / textureWidth, transformedVertex.y / textureHeight);
+            // Преобразование вершины меша в координаты камеры
+            Vector3 cameraSpaceVertex = Camera.main.WorldToScreenPoint(meshFilter.transform.TransformPoint(vertex));
+
+            // Получение нормализованных UV-координат на основе координат камеры и размеров текстуры
+            uv[i] = new Vector2(cameraSpaceVertex.x / cameraTexture.width, cameraSpaceVertex.y / cameraTexture.height);
         }
 
         mesh.uv = uv;
     }
-
-
 
     Color32 GetPixelColor(byte[] pixelData, int x, int y, int width, int height)
     {

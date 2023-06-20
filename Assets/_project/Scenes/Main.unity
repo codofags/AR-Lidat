@@ -2648,6 +2648,7 @@ MonoBehaviour:
   _planeManager: {fileID: 0}
   _scanMesh: {fileID: 1806633526}
   _arMeshManager: {fileID: 1420145518}
+  _arCameraManager: {fileID: 929782452}
   _viewPanel: {fileID: 811921108}
 --- !u!1 &1420145515
 GameObject:
