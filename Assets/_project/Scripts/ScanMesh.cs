@@ -364,11 +364,11 @@ public class ScanMesh : MonoBehaviour
         {
             Vector3 vertex = vertices[i];
 
-            // Преобразование вершины меша в нормализованные координаты в диапазоне от 0 до 1
-            Vector3 viewportPoint = Camera.main.WorldToViewportPoint(meshFilter.transform.TransformPoint(vertex));
+            // Преобразование вершины меша в координаты камеры
+            Vector3 cameraSpaceVertex = Camera.main.WorldToScreenPoint(meshFilter.transform.TransformPoint(vertex));
 
-            // Получение UV-координат на основе нормализованных координат и размеров текстуры
-            uv[i] = new Vector2(viewportPoint.x * cameraTexture.width, viewportPoint.y * cameraTexture.height);
+            // Получение нормализованных UV-координат на основе координат камеры и размеров текстуры
+            uv[i] = new Vector2(cameraSpaceVertex.x / cameraTexture.width, cameraSpaceVertex.y / cameraTexture.height);
         }
 
         mesh.uv = uv;
