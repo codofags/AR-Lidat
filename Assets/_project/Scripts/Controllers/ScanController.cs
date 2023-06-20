@@ -41,6 +41,7 @@ public class ScanController : Singleton<ScanController>
     {
         if (_isScanning)
         {
+            Camera.main.enabled = false;
             _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
