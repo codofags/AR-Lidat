@@ -6,6 +6,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using UnityEngine.XR.ARFoundation;
@@ -217,16 +218,17 @@ public class ScanMesh : MonoBehaviour
     {
         var cameraTexture = GetCameraTexture();
 
-        CalculatePlanarUV(meshFilter.mesh);
+        //CalculatePlanarUV(meshFilter.mesh);
         var uvs = meshFilter.mesh.uv;
         meshFilter.mesh.uv = uvs;
 
         cameraTexture.RotateTexture(true);
         cameraTexture.FlipTexture();
-
+        GenerateMeshUV(meshFilter, cameraTexture);
+        meshFilter.GetComponent<MeshRenderer>().sharedMaterial.mainTexture = cameraTexture;
         //var color = CreateArrayPixelColor(meshFilter.mesh.vertices, meshFilter.mesh.uv, cameraTexture);
         //meshFilter.mesh.colors = color;
-        ColorsFromPixel(meshFilter.mesh, cameraTexture);
+        //ColorsFromPixel(meshFilter.mesh, cameraTexture);
 
         //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
 
@@ -346,18 +348,35 @@ public class ScanMesh : MonoBehaviour
         return true; // Пиксель находится внутри меша
     }
 
-    Vector2 ProjectVertexToTexture(Vector3 vertex, Vector3 normal, Texture2D texture)
+    private void GenerateMeshUV(MeshFilter meshFilter, Texture2D cameraTexture)
     {
-        // Преобразование 3D-координат вершины в 2D-координаты текстуры
-        Vector3 projectedPoint = Camera.main.WorldToScreenPoint(vertex);
-        Vector2 projectedUV = new Vector2(projectedPoint.x / Screen.width, projectedPoint.y / Screen.height);
+        if (meshFilter == null || cameraTexture == null)
+        {
+            Debug.LogError("MeshFilter or cameraTexture is not assigned.");
+            return;
+        }
 
-        // Применение полученных 2D-координат к размерам текстуры
-        projectedUV.x *= texture.width;
-        projectedUV.y *= texture.height;
+        Mesh mesh = meshFilter.mesh;
+        Vector3[] vertices = mesh.vertices;
+        Vector2[] uv = new Vector2[vertices.Length];
 
-        return projectedUV;
+        int textureWidth = cameraTexture.width;
+        int textureHeight = cameraTexture.height;
+
+        Matrix4x4 worldToLocalMatrix = meshFilter.transform.worldToLocalMatrix;
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            // Применение матрицы преобразования к вершинам меша
+            Vector3 transformedVertex = worldToLocalMatrix.MultiplyPoint3x4(vertices[i]);
+
+            // Получение нормализованных UV-координат на основе преобразованных координат вершины и размеров текстуры
+            uv[i] = new Vector2(transformedVertex.x / textureWidth, transformedVertex.y / textureHeight);
+        }
+
+        mesh.uv = uv;
     }
+
 
 
     Color32 GetPixelColor(byte[] pixelData, int x, int y, int width, int height)
