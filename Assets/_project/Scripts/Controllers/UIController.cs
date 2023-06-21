@@ -6,6 +6,8 @@ using UnityEngine;
 public class UIController : Singleton<UIController>
 {
     [SerializeField] private MainPanel _mainPanel;
+    [SerializeField] private ViewerPanel _viewerPanel;
+    [SerializeField] private ExportPanel _exportPanel;
 
     public void ShowUI()
     {
@@ -15,5 +17,16 @@ public class UIController : Singleton<UIController>
     public void HideUI()
     {
         _mainPanel.gameObject.SetActive(false);
+    }
+
+    public void ShowViewerPanel()
+    {
+        _mainPanel.gameObject.SetActive(false );
+        _viewerPanel.gameObject.SetActive(true);
+    }
+
+    public void ShowExportPanel()
+    {
+
     }
 }

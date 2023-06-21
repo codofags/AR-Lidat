@@ -12,6 +12,7 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
     [SerializeField] private GameObject _viewPanel;
+    [SerializeField] private Transform _modelViewParent;
 
     private bool _isScanning;
 
@@ -47,12 +48,6 @@ public class ScanController : Singleton<ScanController>
 
         _isScanning = false;
         ScanStop();
-        
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.GetComponent<MeshRenderer>().enabled = false;
-        }
-        yield return new WaitForSeconds(2f);
         //var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
         //yield return new WaitForSeconds(2f);
         //foreach (var meshFilter in _arMeshManager.meshes)
@@ -61,7 +56,6 @@ public class ScanController : Singleton<ScanController>
         //    meshFilter.TextureMesh(sccreenShot);
         //}
         Debug.Log("Done");
-
     }
 
     public void ScanStop()
@@ -79,8 +73,17 @@ public class ScanController : Singleton<ScanController>
                 //_arCameraManager.enabled = false;
                 _isScanning = false;
             }
-            //_viewPanel.SetActive(true);
-         
+            _arCameraManager.enabled = false;
+            UIController.Instance.ShowViewerPanel();
+            foreach(var meshFilter in _arMeshManager.meshes)
+            {
+                meshFilter.transform.SetParent(_modelViewParent, false);
+            }
         }
+    }
+
+    public void ConvertToModel()
+    {
+        _scanMesh.SetTextures();
     }
 }
