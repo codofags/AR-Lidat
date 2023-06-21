@@ -42,19 +42,24 @@ public class ScanController : Singleton<ScanController>
     IEnumerator Scaning()
     {
         yield return new WaitForSeconds(_scanningTime);
+        if (!_isScanning)
+            yield break;
+
+        _isScanning = false;
         ScanStop();
+        
         foreach (var meshFilter in _arMeshManager.meshes)
         {
             meshFilter.GetComponent<MeshRenderer>().enabled = false;
         }
         yield return new WaitForSeconds(2f);
-        var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
-        yield return new WaitForSeconds(2f);
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.GetComponent<MeshRenderer>().enabled = true;
-            meshFilter.TextureMesh(sccreenShot);
-        }
+        //var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
+        //yield return new WaitForSeconds(2f);
+        //foreach (var meshFilter in _arMeshManager.meshes)
+        //{
+        //    meshFilter.GetComponent<MeshRenderer>().enabled = true;
+        //    meshFilter.TextureMesh(sccreenShot);
+        //}
         Debug.Log("Done");
 
     }

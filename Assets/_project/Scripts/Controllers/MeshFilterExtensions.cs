@@ -18,9 +18,10 @@ public static class MeshFilterExtensions
         Vector2[] textureCoordinates = CalcTextureCoordinates(mesh, meshFilter.transform.localToWorldMatrix);
         mesh.uv = textureCoordinates;
 
-
+        Material material = new Material(Shader.Find("Mobile/VertexLit"));
+        material.mainTexture = texture;
         meshFilter.mesh = mesh;
-        meshFilter.GetComponent<MeshRenderer>().material.mainTexture = texture;
+        meshFilter.GetComponent<MeshRenderer>().material = material;
     }
 
     private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix)

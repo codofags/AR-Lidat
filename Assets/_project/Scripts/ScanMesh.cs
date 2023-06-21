@@ -111,7 +111,7 @@ public class ScanMesh : MonoBehaviour
 
         //CutTexture(meshComponent, meshRenderer);
 
-        if (_test)
+        
         // Применяем текстуру к мешу
             ApplyCameraTextureToMesh(meshFilter);
     }
@@ -146,9 +146,7 @@ public class ScanMesh : MonoBehaviour
         //meshObject.transform.position = meshFilter.transform.position;
         //meshObject.transform.rotation = meshFilter.transform.rotation;
         //meshObject.transform.localScale = Vector3.one;
-
-
-        if (_test)
+        
             // Применяем текстуру к мешу
             ApplyCameraTextureToMesh(meshFilter);
     }
@@ -216,42 +214,14 @@ public class ScanMesh : MonoBehaviour
 
     private void ApplyCameraTextureToMesh(MeshFilter meshFilter)
     {
-        var cameraTexture = GetCameraTexture();
+        ToogleMeshes(false);
+        UIController.Instance.HideUI();
+        var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
 
-        //CalculatePlanarUV(meshFilter.mesh);
-        var uvs = meshFilter.mesh.uv;
-        meshFilter.mesh.uv = uvs;
-
-        cameraTexture.RotateTexture(true);
-        cameraTexture.FlipTexture();
-        GenerateMeshUV(meshFilter, cameraTexture);
-        meshFilter.GetComponent<MeshRenderer>().sharedMaterial.mainTexture = cameraTexture;
-        //var color = CreateArrayPixelColor(meshFilter.mesh.vertices, meshFilter.mesh.uv, cameraTexture);
-        //meshFilter.mesh.colors = color;
-        //ColorsFromPixel(meshFilter.mesh, cameraTexture);
-
-        //var uvs = GetTextureCoordForVertices(meshFilter.mesh, cameraTexture);
-
-        //meshFilter.mesh.colors = colors;
-
-        //for (int i = 0; i < meshFilter.mesh.vertices.Length; i++)
-        //{
-        //    Vector3 vertex = meshFilter.mesh.vertices[i];
-        //    Vector3 normal = meshFilter.mesh.normals[i / 3]; // Получаем нормаль треугольника
-
-        //    // Проецируем вершину на текстуру, используя нормаль треугольника
-        //    Vector2 projectedUV = ProjectVertexToTexture(vertex, normal, cameraTexture);
-
-        //    // Применяем полученные текстурные координаты (UV)
-        //    uvs[i] = projectedUV;
-        //}
-
-
-
-        // Обрезаем кадр камеры в соответствии с мешем
-        Texture2D croppedTexture = CropCameraFrameWithMesh(cameraTexture, meshFilter);
-        var texture = cameraTexture;
-        rawImageCut.texture = croppedTexture;
+        // Создаем новый материал с шейдером "Mobile/VertexLit"
+        meshFilter.TextureMesh(sccreenShot);
+        UIController.Instance.ShowUI();
+        ToogleMeshes(true);
     }
 
     void CalculatePlanarUV(Mesh mesh)
@@ -542,14 +512,12 @@ public class ScanMesh : MonoBehaviour
 
     private void ToogleMeshes(bool activate)
     {
-        rawImage.enabled = activate;
         if (_meshes == null || _meshes.Count <= 0)
             return;
 
         _meshes.ForEach(mesh =>
         {
-            if (mesh != null)
-                mesh.enabled = activate;
+            mesh.GetComponent<MeshRenderer>().enabled = activate;
         });
     }
 
