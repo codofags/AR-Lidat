@@ -12,6 +12,7 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
     [SerializeField] private GameObject _viewPanel;
+    [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
 
     private bool _isScanning;
@@ -79,6 +80,7 @@ public class ScanController : Singleton<ScanController>
             {
                 meshFilter.transform.SetParent(_modelViewParent, false);
             }
+            _modelViewer.SetActive(true);
         }
     }
 
