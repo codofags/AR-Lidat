@@ -6,6 +6,7 @@ using UnityEngine.XR.ARFoundation;
 
 public class ScanController : Singleton<ScanController>
 {
+    [SerializeField] private float _scanningTime = 5f;
     [SerializeField] private ARPlaneManager _planeManager;
     [SerializeField] private ScanMesh _scanMesh;
     [SerializeField] private ARMeshManager _arMeshManager;
@@ -25,6 +26,7 @@ public class ScanController : Singleton<ScanController>
     {
         if (!_isScanning)
         {
+            StartCoroutine(Scaning());
             _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
@@ -35,6 +37,26 @@ public class ScanController : Singleton<ScanController>
                 _isScanning = true;
             }
         }
+    }
+
+    IEnumerator Scaning()
+    {
+        yield return new WaitForSeconds(_scanningTime);
+        ScanStop();
+        foreach (var meshFilter in _arMeshManager.meshes)
+        {
+            meshFilter.GetComponent<MeshRenderer>().enabled = false;
+        }
+        yield return new WaitForSeconds(2f);
+        var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
+        yield return new WaitForSeconds(2f);
+        foreach (var meshFilter in _arMeshManager.meshes)
+        {
+            meshFilter.GetComponent<MeshRenderer>().enabled = true;
+            meshFilter.TextureMesh(sccreenShot);
+        }
+        Debug.Log("Done");
+
     }
 
     public void ScanStop()
@@ -49,10 +71,11 @@ public class ScanController : Singleton<ScanController>
             if (arMeshSubsystem != null)
             {
                 arMeshSubsystem.Stop();
-                _arCameraManager.enabled = false;
+                //_arCameraManager.enabled = false;
                 _isScanning = false;
             }
-            _viewPanel.SetActive(true);
+            //_viewPanel.SetActive(true);
+         
         }
     }
 }
