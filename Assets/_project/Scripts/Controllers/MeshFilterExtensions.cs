@@ -38,7 +38,7 @@ public static class MeshFilterExtensions
             Vector3 worldVector3 = new Vector3(worldVertex4.x, worldVertex4.y, worldVertex4.z);
             Vector3 screenPoint = camera.WorldToScreenPoint(worldVector3);
             float u = screenPoint.x / screenSize.x;
-            float v = 1f - (screenPoint.y / screenSize.y);
+            float v = (screenPoint.y / screenSize.y);
             textureCoordinates[i] = new Vector2(u, v);
         }
 
