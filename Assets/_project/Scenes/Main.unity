@@ -551,8 +551,8 @@ MonoBehaviour:
   _dontDestroyOnLoad: 0
   _destroyNewEntities: 0
   _mainPanel: {fileID: 733721996}
-  _viewerPanel: {fileID: 0}
-  _exportPanel: {fileID: 0}
+  _viewerPanel: {fileID: 811921110}
+  _exportPanel: {fileID: 1469391811}
 --- !u!1 &206812925
 GameObject:
   m_ObjectHideFlags: 0
@@ -2254,7 +2254,7 @@ MonoBehaviour:
   _arMeshManager: {fileID: 1420145518}
   _arCameraManager: {fileID: 929782452}
   _viewPanel: {fileID: 811921108}
-  _modelViewer: {fileID: 0}
+  _modelViewer: {fileID: 824577345}
   _modelViewParent: {fileID: 1882996370}
 --- !u!1 &1420145515
 GameObject:
