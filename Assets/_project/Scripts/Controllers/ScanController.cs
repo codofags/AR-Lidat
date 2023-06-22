@@ -169,7 +169,9 @@ public class ScanController : Singleton<ScanController>
         }
         else
         {
-            data = new MeshData(meshFilter, ScreenCapture.CaptureScreenshotAsTexture());
+            var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
+
+            data = new MeshData(meshFilter, screenShoot);
         }
 
 

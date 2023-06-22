@@ -1,9 +1,16 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-internal class MeshData
+[Serializable]
+public class MeshData
 {
     public MeshFilter MeshFilter;
     public Texture2D Texture;
+
+    public MeshData()
+    {
+
+    }
 
     public MeshData(MeshFilter meshFilter, Texture2D texture)
     {
