@@ -1229,7 +1229,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &824577346
 Transform:
   m_ObjectHideFlags: 0
@@ -2171,7 +2171,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MeshPrefab: {fileID: 8025601476478240029, guid: 450da035b145c3c489906ffafb9fdf26,
     type: 3}
-  m_Density: 0.156
+  m_Density: 1
   m_Normals: 1
   m_Tangents: 0
   m_TextureCoordinates: 1
@@ -2729,7 +2729,7 @@ PrefabInstance:
     - target: {fileID: 3233095215223683557, guid: 2563ef786a883104595413d6d19682c3,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3233095215223683557, guid: 2563ef786a883104595413d6d19682c3,
         type: 3}
@@ -2845,7 +2845,6 @@ GameObject:
   - component: {fileID: 2143161557}
   - component: {fileID: 2143161556}
   - component: {fileID: 2143161555}
-  - component: {fileID: 2143161561}
   - component: {fileID: 2143161560}
   m_Layer: 0
   m_Name: XR Origin
@@ -2940,17 +2939,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_RaycastPrefab: {fileID: 0}
---- !u!114 &2143161561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2143161554}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_PlanePrefab: {fileID: 0}
-  m_DetectionMode: -1
