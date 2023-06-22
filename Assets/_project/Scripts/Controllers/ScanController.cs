@@ -17,6 +17,7 @@ public class ScanController : Singleton<ScanController>
     private List<MeshData> _datas = new List<MeshData>();
     private float _getScreenTime = 1f;
     private float _getScreenTimeTemp = 0;
+    private Coroutine _scanning;
 
     protected override void Awake()
     {
@@ -60,6 +61,7 @@ public class ScanController : Singleton<ScanController>
     IEnumerator Scaning()
     {
         yield return new WaitForSeconds(_scanningTime);
+
         if (!_isScanning)
             yield break;
 
