@@ -10,7 +10,6 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private float _scanningTime = 5f;
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
-    [SerializeField] private GameObject _viewPanel;
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
 

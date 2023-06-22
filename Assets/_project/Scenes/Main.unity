@@ -2119,10 +2119,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _dontDestroyOnLoad: 0
   _destroyNewEntities: 0
-  _scanningTime: 5
+  _scanningTime: 300
   _arMeshManager: {fileID: 1420145518}
   _arCameraManager: {fileID: 929782452}
-  _viewPanel: {fileID: 811921108}
   _modelViewer: {fileID: 824577345}
   _modelViewParent: {fileID: 1882996370}
 --- !u!1 &1420145515
@@ -2172,7 +2171,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MeshPrefab: {fileID: 8025601476478240029, guid: 450da035b145c3c489906ffafb9fdf26,
     type: 3}
-  m_Density: 0
+  m_Density: 1
   m_Normals: 0
   m_Tangents: 0
   m_TextureCoordinates: 1
