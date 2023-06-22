@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
@@ -7,8 +8,6 @@ using UnityEngine.XR.ARFoundation;
 public class ScanController : Singleton<ScanController>
 {
     [SerializeField] private float _scanningTime = 5f;
-    [SerializeField] private ARPlaneManager _planeManager;
-    [SerializeField] private ScanMesh _scanMesh;
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
     [SerializeField] private GameObject _viewPanel;
@@ -16,12 +15,22 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private Transform _modelViewParent;
 
     private bool _isScanning;
+    private List<MeshData> _datas = new List<MeshData>();
 
     protected override void Awake()
     {
         base.Awake();
         _arMeshManager.enabled = false;
-        //_planeManager. enabled = false;
+    }
+
+    private void OnEnable()
+    {
+        _arMeshManager.meshesChanged += OnMeshesChanged;
+    }
+
+    private void OnDisable()
+    {
+        _arMeshManager.meshesChanged -= OnMeshesChanged;
     }
 
     public void ScanStart()
@@ -76,16 +85,106 @@ public class ScanController : Singleton<ScanController>
             }
             _arCameraManager.enabled = false;
             UIController.Instance.ShowViewerPanel();
+
             foreach(var meshFilter in _arMeshManager.meshes)
             {
                 meshFilter.transform.SetParent(_modelViewParent, false);
             }
+
             _modelViewer.SetActive(true);
         }
     }
 
+    private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
+    {
+        foreach (var meshFilter in eventArgs.added)
+        {
+            CreateMeshObject(meshFilter);
+        }
+
+        foreach (var meshFilter in eventArgs.updated)
+        {
+            UpdateMeshObject(meshFilter);
+        }
+
+        foreach (var meshFilter in eventArgs.removed)
+        {
+            RemoveMeshObject(meshFilter);
+        }
+    }
+
+    private void CreateMeshObject(MeshFilter meshFilter)
+    {
+        SaveCameraTextureToMesh(meshFilter);
+    }
+
+    private void UpdateMeshObject(MeshFilter meshFilter)
+    {
+        if (meshFilter == null)
+        {
+            Debug.LogError("Missing MeshFilter component.");
+            return;
+        }
+
+        SaveCameraTextureToMesh(meshFilter);
+    }
+
+    private void RemoveMeshObject(MeshFilter meshFilter)
+    {
+        if (meshFilter == null)
+        {
+            Debug.LogError("Missing MeshFilter component.");
+            return;
+        }
+
+        var data = _datas.FirstOrDefault(data => data.MeshFilter == meshFilter);
+        if (data != null)
+            _datas.Remove(data);
+
+        Destroy(meshFilter.gameObject);
+    }
+
+    private void SaveCameraTextureToMesh(MeshFilter meshFilter)
+    {
+        ToogleMeshes(false);
+        UIController.Instance.HideUI();
+        var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
+
+        if (data != null)
+        {
+            data.Texture = ScreenCapture.CaptureScreenshotAsTexture();
+        }
+        else
+        {
+            data = new MeshData(meshFilter, ScreenCapture.CaptureScreenshotAsTexture());
+        }
+
+
+        UIController.Instance.ShowUI();
+        ToogleMeshes(true);
+    }
+
     public void ConvertToModel()
     {
-        _scanMesh.SetTextures();
+        SetTextures();
+    }
+
+    public void SetTextures()
+    {
+        foreach (var data in _datas)
+        {
+            data.MeshFilter.TextureMesh(data.Texture);
+        }
+    }
+
+    private void ToogleMeshes(bool activate)
+    {
+        if (_arMeshManager.meshes == null || _arMeshManager.meshes.Count <= 0)
+            return;
+
+        foreach (var mesh in _arMeshManager.meshes)
+        {
+            mesh.GetComponent<MeshRenderer>().enabled = activate;
+        }
     }
 }

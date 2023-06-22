@@ -27,6 +27,7 @@ public class UIController : Singleton<UIController>
 
     public void ShowExportPanel()
     {
-
+        _viewerPanel.gameObject.SetActive(false);
+        _exportPanel.gameObject.SetActive(true);
     }
 }
