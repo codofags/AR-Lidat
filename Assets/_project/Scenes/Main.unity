@@ -2169,14 +2169,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 968053edfd89749c48f4ea5d444abf64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_MeshPrefab: {fileID: 8025601476478240029, guid: 450da035b145c3c489906ffafb9fdf26,
+  m_MeshPrefab: {fileID: 8846185125041524174, guid: a55604bb30afe054eb562caa4b05d562,
     type: 3}
   m_Density: 1
   m_Normals: 1
-  m_Tangents: 1
+  m_Tangents: 0
   m_TextureCoordinates: 1
   m_Colors: 1
-  m_ConcurrentQueueSize: 1
+  m_ConcurrentQueueSize: 2
 --- !u!114 &1420145519
 MonoBehaviour:
   m_ObjectHideFlags: 0
