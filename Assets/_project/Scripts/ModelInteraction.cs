@@ -6,7 +6,7 @@ public class ModelInteraction : MonoBehaviour
     private float rotationSpeed = 1f;
 
     private bool isScaling;
-    private float scaleSpeed = 0.5f;
+    private float scaleSpeed = 0.1f;
 
     private bool isMoving;
     private float moveSpeed = 0.1f;
