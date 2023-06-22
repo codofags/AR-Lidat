@@ -31,3 +31,4 @@ public class UIController : Singleton<UIController>
         _exportPanel.gameObject.SetActive(true);
     }
 }
+
