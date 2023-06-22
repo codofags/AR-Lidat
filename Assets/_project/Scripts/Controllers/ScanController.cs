@@ -14,8 +14,10 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
 
-    private bool _isScanning;
+    private bool _isScanning = false;
     private List<MeshData> _datas = new List<MeshData>();
+    private float _getScreenTime = 1f;
+    private float _getScreenTimeTemp = 0;
 
     protected override void Awake()
     {
@@ -33,11 +35,15 @@ public class ScanController : Singleton<ScanController>
         _arMeshManager.meshesChanged -= OnMeshesChanged;
     }
 
+    private void Update()
+    {
+        _getScreenTimeTemp += Time.deltaTime;
+    }
+
     public void ScanStart()
     {
         if (!_isScanning)
         {
-            StartCoroutine(Scaning());
             _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
@@ -46,6 +52,8 @@ public class ScanController : Singleton<ScanController>
             {
                 arMeshSubsystem.Start();
                 _isScanning = true;
+                StartCoroutine(Scaning());
+                Debug.Log("Scan START");
             }
         }
     }
@@ -56,7 +64,6 @@ public class ScanController : Singleton<ScanController>
         if (!_isScanning)
             yield break;
 
-        _isScanning = false;
         ScanStop();
         //var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
         //yield return new WaitForSeconds(2f);
@@ -77,12 +84,6 @@ public class ScanController : Singleton<ScanController>
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
-            if (arMeshSubsystem != null)
-            {
-                arMeshSubsystem.Stop();
-                //_arCameraManager.enabled = false;
-                _isScanning = false;
-            }
             _arCameraManager.enabled = false;
             UIController.Instance.ShowViewerPanel();
 
@@ -92,6 +93,14 @@ public class ScanController : Singleton<ScanController>
             }
 
             _modelViewer.SetActive(true);
+
+            if (arMeshSubsystem != null)
+            {
+                arMeshSubsystem.Stop();
+                //_arCameraManager.enabled = false;
+                _isScanning = false;
+                Debug.Log("Scan STOP");
+            }
         }
     }
 
@@ -146,6 +155,10 @@ public class ScanController : Singleton<ScanController>
 
     private void SaveCameraTextureToMesh(MeshFilter meshFilter)
     {
+        if (_getScreenTimeTemp > _getScreenTime)
+            return;
+
+        _getScreenTimeTemp = 0f;
         ToogleMeshes(false);
         UIController.Instance.HideUI();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);

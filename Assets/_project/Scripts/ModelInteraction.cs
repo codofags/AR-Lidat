@@ -2,17 +2,17 @@
 
 public class ModelInteraction : MonoBehaviour
 {
-    private bool isRotating;                  // Флаг вращения
-    private float rotationSpeed = 1f;         // Скорость вращения
+    private bool isRotating;
+    private float rotationSpeed = 1f;
 
-    private bool isScaling;                   // Флаг масштабирования
-    private float scaleSpeed = 0.5f;          // Скорость масштабирования
+    private bool isScaling;
+    private float scaleSpeed = 0.5f;
 
-    private bool isMoving;                    // Флаг перемещения
-    private float moveSpeed = 0.1f;           // Скорость перемещения
+    private bool isMoving;
+    private float moveSpeed = 0.1f;
 
-    private Vector2 lastTouchPosition;        // Последняя позиция касания
-    private Vector3 initialObjectPosition;    // Исходная позиция объекта
+    private Vector2 lastTouchPosition;
+    private Vector3 initialObjectPosition;
 
     void Start()
     {
@@ -28,7 +28,6 @@ public class ModelInteraction : MonoBehaviour
     {
         if (Input.touchCount == 1)
         {
-            // Одно касание - вращение
             Touch touch = Input.GetTouch(0);
             if (touch.phase == TouchPhase.Began)
             {
@@ -48,7 +47,6 @@ public class ModelInteraction : MonoBehaviour
         }
         else if (Input.touchCount == 2)
         {
-            // Два касания - масштабирование и перемещение
             Touch touch1 = Input.GetTouch(0);
             Touch touch2 = Input.GetTouch(1);
 
@@ -58,18 +56,25 @@ public class ModelInteraction : MonoBehaviour
             }
             else if (touch1.phase == TouchPhase.Moved && touch2.phase == TouchPhase.Moved)
             {
-                // Масштабирование
-                Vector2 delta1 = touch1.deltaPosition;
-                Vector2 delta2 = touch2.deltaPosition;
-                float touchDeltaMag = (delta1 - delta2).magnitude;
-                float scaleAmount = touchDeltaMag * scaleSpeed;
+                // Определение расстояния между пальцами на предыдущем кадре
+                Vector2 prevTouch1Pos = touch1.position - touch1.deltaPosition;
+                Vector2 prevTouch2Pos = touch2.position - touch2.deltaPosition;
+                float prevDistance = Vector2.Distance(prevTouch1Pos, prevTouch2Pos);
 
+                // Определение расстояния между пальцами на текущем кадре
+                float touchDeltaMag = (touch1.position - touch2.position).magnitude;
+
+                // Определение изменения расстояния между пальцами
+                float deltaDistance = touchDeltaMag - prevDistance;
+
+                // Изменение масштаба на основе изменения расстояния
+                float scaleAmount = deltaDistance * scaleSpeed;
                 transform.localScale += new Vector3(scaleAmount, scaleAmount, scaleAmount);
 
                 // Перемещение
                 isMoving = true;
                 Vector2 centerPosition = (touch1.position + touch2.position) / 2;
-                Vector2 lastCenterPosition = (touch1.position - touch1.deltaPosition + touch2.position - touch2.deltaPosition) / 2;
+                Vector2 lastCenterPosition = (prevTouch1Pos + prevTouch2Pos) / 2;
 
                 Vector3 moveDelta = (centerPosition - lastCenterPosition) * moveSpeed;
                 transform.position += new Vector3(moveDelta.x, 0, moveDelta.y);
