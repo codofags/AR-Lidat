@@ -23,6 +23,7 @@ public class ScanController : Singleton<ScanController>
     {
         base.Awake();
         _arMeshManager.enabled = false;
+        _arMeshManager.density = 1f;
     }
 
     private void OnEnable()
@@ -125,9 +126,37 @@ public class ScanController : Singleton<ScanController>
 
     private void CreateMeshObject(MeshFilter meshFilter)
     {
+
         Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
         SaveCameraTextureToMesh(meshFilter);
     }
+
+    //private MeshFilter CreateMesh(MeshFilter meshFilter)
+    //{
+    //    var mesh = meshFilter.mesh;
+    //    // Получение вершин меша
+    //    Vector3[] vertices = new Vector3[mesh.vertices.Length];
+    //    mesh.vertices.CopyTo(vertices, 0);
+
+    //    // Получение треугольников меша
+    //    int[] triangles = new int[mesh.triangles.Length];
+    //    mesh.triangles.CopyTo(triangles, 0);
+
+    //    GameObject meshObject = Instantiate(meshPrefab, Vector3.zero, Quaternion.identity);
+
+    //    // Передача данных меша объекту
+    //    Mesh meshComponent = new Mesh();
+    //    meshComponent.vertices = vertices;
+    //    meshComponent.triangles = triangles;
+    //    meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
+    //    meshObject.GetComponent<MeshRenderer>().material = meshPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+
+    //    // Расположение объекта в пространстве
+    //    meshObject.transform.position = meshFilter.transform.position;
+    //    meshObject.transform.rotation = meshFilter.transform.rotation;
+    //    meshObject.transform.localScale = Vector3.one;
+    //    return 
+    //}
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
@@ -160,9 +189,9 @@ public class ScanController : Singleton<ScanController>
         //if (_getScreenTimeTemp > _getScreenTime)
         //    return;
 
-        //_getScreenTimeTemp = 0f;
-        ToogleMeshes(false);
-        UIController.Instance.HideUI();
+        ////_getScreenTimeTemp = 0f;
+        //ToogleMeshes(false);
+        //UIController.Instance.HideUI();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
 
         if (data != null)
@@ -175,11 +204,12 @@ public class ScanController : Singleton<ScanController>
             var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
 
             data = new MeshData(meshFilter, screenShoot);
+            _datas  .Add(data);
         }
 
 
-        UIController.Instance.ShowUI();
-        ToogleMeshes(true);
+        //UIController.Instance.ShowUI();
+        //ToogleMeshes(true);
     }
 
     public void ConvertToModel()
