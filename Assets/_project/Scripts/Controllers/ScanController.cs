@@ -133,8 +133,6 @@ public class ScanController : Singleton<ScanController>
             Debug.LogError("Missing MeshFilter component.");
             return;
         }
-
-        SaveCameraTextureToMesh(meshFilter);
     }
 
     private void RemoveMeshObject(MeshFilter meshFilter)
@@ -154,10 +152,10 @@ public class ScanController : Singleton<ScanController>
 
     private void SaveCameraTextureToMesh(MeshFilter meshFilter)
     {
-        if (_getScreenTimeTemp > _getScreenTime)
-            return;
+        //if (_getScreenTimeTemp > _getScreenTime)
+        //    return;
 
-        _getScreenTimeTemp = 0f;
+        //_getScreenTimeTemp = 0f;
         ToogleMeshes(false);
         UIController.Instance.HideUI();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
