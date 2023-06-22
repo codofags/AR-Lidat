@@ -46,7 +46,6 @@ public class ScanController : Singleton<ScanController>
         if (!_isScanning)
         {
             _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
-
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
 
             if (arMeshSubsystem != null)
