@@ -2172,7 +2172,7 @@ MonoBehaviour:
   m_MeshPrefab: {fileID: 8025601476478240029, guid: 450da035b145c3c489906ffafb9fdf26,
     type: 3}
   m_Density: 1
-  m_Normals: 0
+  m_Normals: 1
   m_Tangents: 0
   m_TextureCoordinates: 1
   m_Colors: 1
