@@ -37,7 +37,7 @@ public class ScanController : Singleton<ScanController>
 
     private void Update()
     {
-        _getScreenTimeTemp += Time.deltaTime;
+        //_getScreenTimeTemp += Time.deltaTime;
     }
 
     public void ScanStart()
@@ -125,11 +125,14 @@ public class ScanController : Singleton<ScanController>
 
     private void CreateMeshObject(MeshFilter meshFilter)
     {
+        Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
         SaveCameraTextureToMesh(meshFilter);
     }
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
+        Debug.Log($"Mesh update. {_arMeshManager.meshes.Count}");
+       
         if (meshFilter == null)
         {
             Debug.LogError("Missing MeshFilter component.");
