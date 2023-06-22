@@ -185,6 +185,12 @@ public class ScanController : Singleton<ScanController>
 
     public void SetTextures()
     {
+        if (_datas == null || _datas.Count == 0)
+        {
+            Debug.Log("No DATAS");
+            return;
+        }
+
         foreach (var data in _datas)
         {
             data.MeshFilter.TextureMesh(data.Texture);
