@@ -166,6 +166,7 @@ public class ScanController : Singleton<ScanController>
         if (data != null)
         {
             data.Texture = ScreenCapture.CaptureScreenshotAsTexture();
+            Debug.Log("Save Screen");
         }
         else
         {
