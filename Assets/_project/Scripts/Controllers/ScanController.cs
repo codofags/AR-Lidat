@@ -159,7 +159,6 @@ public class ScanController : Singleton<ScanController>
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
-        Debug.Log($"Mesh update. {_arMeshManager.meshes.Count}");
        
         if (meshFilter == null)
         {
@@ -229,7 +228,8 @@ public class ScanController : Singleton<ScanController>
             Debug.Log("No DATAS");
             return;
         }
-        Debug.Log($"Convert Meshes: {_arMeshManager.meshes.Count}");
+
+        Debug.Log($"Convert Meshes: {_arMeshManager.meshes.Count}. Datas: {_datas.Count}");
         foreach (var data in _datas)
         {
             data.MeshFilter.TexturedMesh(data.Texture);
