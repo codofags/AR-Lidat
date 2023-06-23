@@ -67,10 +67,18 @@ public class ModelInteraction : MonoBehaviour
                 // Определение изменения расстояния между пальцами
                 float deltaDistance = touchDeltaMag - prevDistance;
 
-                // Изменение масштаба на основе изменения расстояния
-                float scaleAmount = deltaDistance * scaleSpeed;
-                transform.localScale += new Vector3(scaleAmount, scaleAmount, scaleAmount);
+                if (Mathf.Abs(deltaDistance) >= 0.1f)
+                {
+                    // Изменение масштаба на основе изменения расстояния
+                    float scaleAmount = deltaDistance * scaleSpeed;
 
+                    var newScale = new Vector3(scaleAmount, scaleAmount, scaleAmount);
+
+                    if (transform.localScale.x <= 0f && newScale.x <= 0f)
+                        transform.localScale = Vector3.one * 0.01f;
+                    else
+                        transform.localScale += newScale;
+                }
                 // Перемещение
                 isMoving = true;
                 Vector2 centerPosition = (touch1.position + touch2.position) / 2;
