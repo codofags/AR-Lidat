@@ -191,6 +191,7 @@ public class ScanController : Singleton<ScanController>
         ////_getScreenTimeTemp = 0f;
         //ToogleMeshes(false);
         //UIController.Instance.HideUI();
+        meshFilter.GenerateUV();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
 
         if (data != null)
@@ -226,7 +227,7 @@ public class ScanController : Singleton<ScanController>
         Debug.Log($"Convert Meshes: {_arMeshManager.meshes.Count}");
         foreach (var data in _datas)
         {
-            data.MeshFilter.TextureMesh(data.Texture);
+            data.MeshFilter.TexturedMesh(data.Texture);
         }
     }
 

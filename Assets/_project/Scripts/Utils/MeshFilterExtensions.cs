@@ -2,8 +2,9 @@
 
 public static class MeshFilterExtensions
 {
-    public static void TextureMesh(this MeshFilter meshFilter, Texture texture)
+    public static void GenerateUV(this MeshFilter meshFilter)
     {
+        Debug.Log("Generate UV");
         Mesh mesh = new Mesh();
 
         Vector3[] vertices = meshFilter.mesh.vertices;
@@ -17,11 +18,21 @@ public static class MeshFilterExtensions
 
         Vector2[] textureCoordinates = CalcTextureCoordinates(mesh, meshFilter.transform.localToWorldMatrix);
         mesh.uv = textureCoordinates;
-
-        Material material = new Material(Shader.Find("Mobile/VertexLit"));
-        material.mainTexture = texture;
         meshFilter.mesh = mesh;
+    }
+
+    public static void TexturedMesh(this MeshFilter meshFilter, Texture texture)
+    {
+        Material material = new Material(Shader.Find("Standart"));
+        material.mainTexture = texture;
+        Debug.Log($"Material {material != null}");
         meshFilter.GetComponent<MeshRenderer>().material = material;
+    }
+
+    public static void TextureMesh(this MeshFilter meshFilter, Texture texture)
+    {
+        meshFilter.GenerateUV();
+        meshFilter.TexturedMesh(texture);
     }
 
     private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix)
