@@ -1023,8 +1023,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 197351731}
   - {fileID: 1331067568}
+  - {fileID: 197351731}
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1400,8 +1400,8 @@ Camera:
   m_GameObject: {fileID: 824577345}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -2331,7 +2331,7 @@ MonoBehaviour:
   _modelViewer: {fileID: 824577345}
   _modelViewParent: {fileID: 1882996370}
   _console: {fileID: 1148937919}
-  _getScreenTime: 0.5
+  _getScreenTime: 1
 --- !u!1 &1429286404
 GameObject:
   m_ObjectHideFlags: 0
