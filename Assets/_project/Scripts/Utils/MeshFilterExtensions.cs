@@ -23,10 +23,20 @@ public static class MeshFilterExtensions
 
     public static void TexturedMesh(this MeshFilter meshFilter, Texture texture)
     {
-        Material material = new Material(Shader.Find("Standard"));
+        var renderer = meshFilter.GetComponent<MeshRenderer>();
+        var material = new Material(renderer.material);
+        Shader shader = Shader.Find("Standard");
+        if (shader != null)
+        {
+            material = new Material(shader);
+        }
+        else
+        {
+            Debug.Log("Shader 'Standard' not found.");
+        }
+
         material.mainTexture = texture;
-        Debug.Log($"Material {material != null}");
-        meshFilter.GetComponent<MeshRenderer>().material = material;
+        renderer.material = material;
     }
 
     public static void TextureMesh(this MeshFilter meshFilter, Texture texture)
