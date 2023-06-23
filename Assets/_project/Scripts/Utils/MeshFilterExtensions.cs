@@ -25,7 +25,7 @@ public static class MeshFilterExtensions
     {
         Debug.Log("Start Textured.");
         var renderer = meshFilter.GetComponent<MeshRenderer>();
-        var material = new Material(renderer.sharedMaterial);
+        var material = new Material(renderer.material);
 
         material.mainTexture = texture;
         renderer.material = material;

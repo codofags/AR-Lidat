@@ -95,7 +95,7 @@ public class ScanController : Singleton<ScanController>
 
             _modelViewer.SetActive(true);
 
-            _arCameraManager.enabled = false;
+            //_arCameraManager.enabled = false;
             if (arMeshSubsystem != null)
             {
                 arMeshSubsystem.Stop();
@@ -196,10 +196,10 @@ public class ScanController : Singleton<ScanController>
         ////_getScreenTimeTemp = 0f;
         ToogleMeshes(false);
         //UIController.Instance.HideUI();
-        meshFilter.GenerateUV();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
 
         var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
+        meshFilter.GenerateUV();
         if (data != null)
         {
             data.Texture = screenShoot;
@@ -208,7 +208,7 @@ public class ScanController : Singleton<ScanController>
         else
         {
             data = new MeshData(meshFilter, screenShoot);
-            _datas  .Add(data);
+            _datas.Add(data);
         }
 
 
