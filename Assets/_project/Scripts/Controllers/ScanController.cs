@@ -38,7 +38,7 @@ public class ScanController : Singleton<ScanController>
 
     private void Update()
     {
-        //_getScreenTimeTemp += Time.deltaTime;
+        _getScreenTimeTemp += Time.deltaTime;
     }
 
     public void ScanStart()
@@ -165,6 +165,11 @@ public class ScanController : Singleton<ScanController>
         {
             Debug.LogError("Missing MeshFilter component.");
             return;
+        }
+        if (_getScreenTimeTemp >= _getScreenTime)
+        {
+            _getScreenTimeTemp = 0f;
+            SaveCameraTextureToMesh(meshFilter);
         }
     }
 
