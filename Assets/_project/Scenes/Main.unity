@@ -1242,7 +1242,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1882996370}
   m_Father: {fileID: 976764148}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 35, y: 0, z: 0}
@@ -1461,7 +1462,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1429286405}
-  - {fileID: 1882996370}
   m_Father: {fileID: 23727411}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2192,7 +2192,7 @@ MonoBehaviour:
   _scanningTime: 300
   _arMeshManager: {fileID: 1420145518}
   _arCameraManager: {fileID: 929782452}
-  _modelViewer: {fileID: 1882996369}
+  _modelViewer: {fileID: 824577345}
   _modelViewParent: {fileID: 1882996370}
 --- !u!1 &1429286404
 GameObject:
@@ -2629,7 +2629,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1882996370
 Transform:
   m_ObjectHideFlags: 0
@@ -2637,13 +2637,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1882996369}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 15}
+  m_LocalRotation: {x: -0.30070576, y: -0, z: -0, w: 0.953717}
+  m_LocalPosition: {x: 0, y: 4.507886, z: 15.155163}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 263382328}
-  m_Father: {fileID: 929782449}
+  m_Father: {fileID: 824577346}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1882996371
