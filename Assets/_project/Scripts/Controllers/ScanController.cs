@@ -22,7 +22,7 @@ public class ScanController : Singleton<ScanController>
     protected override void Awake()
     {
         base.Awake();
-        //_arMeshManager.enabled = false;
+        _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
     }
 

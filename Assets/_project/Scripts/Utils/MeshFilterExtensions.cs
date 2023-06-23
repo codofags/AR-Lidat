@@ -26,15 +26,6 @@ public static class MeshFilterExtensions
         Debug.Log("Start Textured.");
         var renderer = meshFilter.GetComponent<MeshRenderer>();
         var material = new Material(renderer.sharedMaterial);
-        Shader shader = Shader.Find("Standard");
-        if (shader != null)
-        {
-            material = new Material(shader);
-        }
-        else
-        {
-            Debug.Log("Shader 'Standard' not found.");
-        }
 
         material.mainTexture = texture;
         renderer.material = material;
