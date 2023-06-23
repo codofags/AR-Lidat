@@ -2195,6 +2195,7 @@ MonoBehaviour:
   _modelViewer: {fileID: 824577345}
   _modelViewParent: {fileID: 1882996370}
   _console: {fileID: 1148937919}
+  _getScreenTime: 0.5
 --- !u!1 &1429286404
 GameObject:
   m_ObjectHideFlags: 0
