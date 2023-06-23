@@ -16,7 +16,7 @@ public class ScanController : Singleton<ScanController>
     private bool _isScanning = false;
     private List<MeshData> _datas = new List<MeshData>();
     private float _getScreenTime = 1f;
-    private float _getScreenTimeTemp = 0;
+    private float _getScreenTimeTemp = 1f;
     private Coroutine _scanning;
 
     protected override void Awake()
@@ -53,7 +53,6 @@ public class ScanController : Singleton<ScanController>
                 arMeshSubsystem.Start();
                 _isScanning = true;
                 StartCoroutine(Scaning());
-                _getScreenTimeTemp = 1f;
                 Debug.Log("Scan START");
             }
         }
@@ -175,8 +174,8 @@ public class ScanController : Singleton<ScanController>
         }
         if (_getScreenTimeTemp >= _getScreenTime)
         {
-            _getScreenTimeTemp = 0f;
             SaveCameraTextureToMesh(meshFilter);
+            _getScreenTimeTemp = 0f;
         }
     }
 
