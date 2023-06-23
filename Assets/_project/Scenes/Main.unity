@@ -2293,7 +2293,7 @@ MonoBehaviour:
   m_Tangents: 0
   m_TextureCoordinates: 1
   m_Colors: 1
-  m_ConcurrentQueueSize: 2
+  m_ConcurrentQueueSize: 1
 --- !u!114 &1420145519
 MonoBehaviour:
   m_ObjectHideFlags: 0
