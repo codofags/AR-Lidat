@@ -223,7 +223,7 @@ public class ScanController : Singleton<ScanController>
             Debug.Log("No DATAS");
             return;
         }
-
+        Debug.Log($"Convert Meshes: {_arMeshManager.meshes.Count}");
         foreach (var data in _datas)
         {
             data.MeshFilter.TextureMesh(data.Texture);
