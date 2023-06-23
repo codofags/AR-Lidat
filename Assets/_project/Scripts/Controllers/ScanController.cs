@@ -150,7 +150,7 @@ public class ScanController : Singleton<ScanController>
         }
 
         yield return new WaitForSeconds(1f);
-
+        _arCameraManager.enabled = false;
         UIController.Instance.ShowViewerPanel();
     }
 
@@ -208,15 +208,17 @@ public class ScanController : Singleton<ScanController>
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
-        if (meshFilter == null)
-        {
-            Debug.LogError("Missing MeshFilter component.");
-            return;
-        }
+        _getScreenTimeTemp += Time.deltaTime;
         if (_getScreenTimeTemp >= _getScreenTime)
         {
             SaveCameraTextureToMesh(meshFilter);
             _getScreenTimeTemp = 0f;
+        }
+
+        if (meshFilter == null)
+        {
+            Debug.LogError("Missing MeshFilter component.");
+            return;
         }
     }
 
@@ -235,19 +237,14 @@ public class ScanController : Singleton<ScanController>
         Destroy(meshFilter.gameObject);
     }
 
-    private void SaveCameraTextureToMesh(MeshFilter meshFilter)
+    IEnumerator SaveScreen(MeshFilter meshFilter)
     {
-        Debug.Log("Save Screen");
         ToogleMeshes(false);
         UIController.Instance.HideUI();
-        var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
-
-        Debug.Log("Save Screen 2");
+        yield return new WaitForEndOfFrame();
         var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
-        UIController.Instance.ShowUI();
-        ToogleMeshes(true);
 
-        meshFilter.GenerateUV();
+        var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
         if (data != null)
         {
             data.Texture = screenShoot;
@@ -259,6 +256,16 @@ public class ScanController : Singleton<ScanController>
             Debug.Log("Create Screen");
             _datas.Add(data);
         }
+        yield return new WaitForEndOfFrame();
+
+        UIController.Instance.ShowUI();
+        ToogleMeshes(true);
+    }
+
+    private void SaveCameraTextureToMesh(MeshFilter meshFilter)
+    {
+        Debug.Log("Save Screen");
+        StartCoroutine(SaveScreen(meshFilter));
     }
 
     public void ConvertToModel()
