@@ -300,7 +300,6 @@ public class ScanController : Singleton<ScanController>
 
         foreach (var mesh in _arMeshManager.meshes)
         {
-            Debug.Log($"Meshe: {activate}");
             mesh.GetComponent<MeshRenderer>().enabled = activate;
         }
     }
