@@ -86,7 +86,14 @@ public class ScanController : Singleton<ScanController>
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
+            
             UIController.Instance.ShowViewerPanel();
+
+            var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
+            foreach (var data in _datas)
+            {
+                data.Texture = screenShot;
+            }
 
             foreach(var meshFilter in _arMeshManager.meshes)
             {
@@ -94,8 +101,6 @@ public class ScanController : Singleton<ScanController>
             }
 
             _modelViewer.SetActive(true);
-
-            //_arCameraManager.enabled = false;
             if (arMeshSubsystem != null)
             {
                 arMeshSubsystem.Stop();
@@ -195,7 +200,7 @@ public class ScanController : Singleton<ScanController>
 
         ////_getScreenTimeTemp = 0f;
         ToogleMeshes(false);
-        //UIController.Instance.HideUI();
+        UIController.Instance.HideUI();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
 
         var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
@@ -203,16 +208,17 @@ public class ScanController : Singleton<ScanController>
         if (data != null)
         {
             data.Texture = screenShoot;
-            Debug.Log("Save Screen");
+            Debug.Log("Update Screen");
         }
         else
         {
             data = new MeshData(meshFilter, screenShoot);
+            Debug.Log("Create Screen");
             _datas.Add(data);
         }
 
 
-        //UIController.Instance.ShowUI();
+        UIController.Instance.ShowUI();
         ToogleMeshes(true);
     }
 
