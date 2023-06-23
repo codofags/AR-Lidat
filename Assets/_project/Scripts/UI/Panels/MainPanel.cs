@@ -18,11 +18,13 @@ namespace ScanAR.UI
             _recordBtn.onClick.AddListener(OnRecordBtnClick);
             _stopBtn.onClick.AddListener(OnStopBtnClick);
         }
+
         private void OnDestroy()
         {
             _recordBtn.onClick.RemoveAllListeners();
             _stopBtn.onClick.RemoveAllListeners();
         }
+
         private void OnRecordBtnClick()
         {
             //todo Начать скан местности

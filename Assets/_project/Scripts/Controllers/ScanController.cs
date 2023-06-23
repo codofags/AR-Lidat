@@ -119,37 +119,38 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Stopping()
     {
-        UIController.Instance.HideUI();
+        yield return new WaitForEndOfFrame();
+        //UIController.Instance.HideUI();
         _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
-        XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+        //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
-        if (arMeshSubsystem != null)
-        {
-            arMeshSubsystem.Stop();
-            _isScanning = false;
-        }
+        //if (arMeshSubsystem != null)
+        //{
+        //    arMeshSubsystem.Stop();
+        //    _isScanning = false;
+        //}
 
-            foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.GetComponent<MeshRenderer>().enabled = false;
-        }
-        yield return new WaitForSeconds(2f);
+        //foreach (var meshFilter in _arMeshManager.meshes)
+        //{
+        //    meshFilter.GetComponent<MeshRenderer>().enabled = false;
+        //}
+        //yield return new WaitForSeconds(1f);
 
-        var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
-        yield return new WaitForSeconds(2f);
-        foreach (var filter in _arMeshManager.meshes)
-        {
-            filter.GetComponent<MeshRenderer>().enabled = true;
-            filter.TextureMesh(screenShot);
-        }
+        //var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
+        //yield return new WaitForSeconds(1f);
+        //foreach (var filter in _arMeshManager.meshes)
+        //{
+        //    filter.GetComponent<MeshRenderer>().enabled = true;
+        //    filter.TextureMesh(screenShot);
+        //}
 
         foreach (var meshFilter in _arMeshManager.meshes)
         {
             meshFilter.transform.SetParent(_modelViewParent, false);
         }
 
-        yield return new WaitForSeconds(1f);
+        //yield return new WaitForSeconds(1f);
         _arCameraManager.enabled = false;
         UIController.Instance.ShowViewerPanel();
     }
@@ -174,7 +175,6 @@ public class ScanController : Singleton<ScanController>
 
     private void CreateMeshObject(MeshFilter meshFilter)
     {
-
         Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
         SaveCameraTextureToMesh(meshFilter);
     }
@@ -241,7 +241,7 @@ public class ScanController : Singleton<ScanController>
     {
         ToogleMeshes(false);
         UIController.Instance.HideUI();
-        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(0.5f);
         var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
 
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
@@ -256,7 +256,8 @@ public class ScanController : Singleton<ScanController>
             Debug.Log("Create Screen");
             _datas.Add(data);
         }
-        yield return new WaitForEndOfFrame();
+
+        yield return new WaitForSeconds(0.5f);
 
         UIController.Instance.ShowUI();
         ToogleMeshes(true);
