@@ -23,7 +23,7 @@ public static class MeshFilterExtensions
 
     public static void TexturedMesh(this MeshFilter meshFilter, Texture texture)
     {
-        Material material = new Material(Shader.Find("Standart"));
+        Material material = new Material(Shader.Find("Standard"));
         material.mainTexture = texture;
         Debug.Log($"Material {material != null}");
         meshFilter.GetComponent<MeshRenderer>().material = material;
