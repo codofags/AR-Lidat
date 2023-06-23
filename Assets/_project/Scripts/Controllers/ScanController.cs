@@ -21,6 +21,7 @@ public class ScanController : Singleton<ScanController>
     private float _getScreenTimeTemp = 1f;
     private Coroutine _scanning;
 
+
     protected override void Awake()
     {
         base.Awake();
@@ -261,12 +262,14 @@ public class ScanController : Singleton<ScanController>
 
         UIController.Instance.ShowUI();
         ToogleMeshes(true);
+        _scanning = null;
     }
 
     private void SaveCameraTextureToMesh(MeshFilter meshFilter)
     {
         Debug.Log("Save Screen");
-        StartCoroutine(SaveScreen(meshFilter));
+        if (_scanning == null)
+            _scanning = StartCoroutine(SaveScreen(meshFilter));
     }
 
     public void ConvertToModel()
