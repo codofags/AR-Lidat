@@ -194,7 +194,7 @@ public class ScanController : Singleton<ScanController>
         //    return;
 
         ////_getScreenTimeTemp = 0f;
-        //ToogleMeshes(false);
+        ToogleMeshes(false);
         //UIController.Instance.HideUI();
         meshFilter.GenerateUV();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
@@ -214,7 +214,7 @@ public class ScanController : Singleton<ScanController>
 
 
         //UIController.Instance.ShowUI();
-        //ToogleMeshes(true);
+        ToogleMeshes(true);
     }
 
     public void ConvertToModel()
