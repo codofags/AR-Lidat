@@ -153,6 +153,7 @@ public class ScanController : Singleton<ScanController>
 
         //yield return new WaitForSeconds(1f);
         _arCameraManager.enabled = false;
+        _modelViewer.gameObject.SetActive(true);
         UIController.Instance.ShowViewerPanel();
     }
 
