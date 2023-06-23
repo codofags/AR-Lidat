@@ -53,6 +53,7 @@ public class ScanController : Singleton<ScanController>
                 arMeshSubsystem.Start();
                 _isScanning = true;
                 StartCoroutine(Scaning());
+                _getScreenTimeTemp = 1f;
                 Debug.Log("Scan START");
             }
         }
@@ -198,15 +199,14 @@ public class ScanController : Singleton<ScanController>
         meshFilter.GenerateUV();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
 
+        var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
         if (data != null)
         {
-            data.Texture = ScreenCapture.CaptureScreenshotAsTexture();
+            data.Texture = screenShoot;
             Debug.Log("Save Screen");
         }
         else
         {
-            var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
-
             data = new MeshData(meshFilter, screenShoot);
             _datas  .Add(data);
         }
