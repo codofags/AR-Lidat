@@ -87,19 +87,19 @@ public class ScanController : Singleton<ScanController>
             _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
-            //ToogleMeshes(false);
-            //UIController.Instance.HideUI();
-            ////var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
-            ////foreach (var data in _datas)
-            ////{
-            ////    data.Texture = screenShot;
-            ////}
-            //ToogleMeshes(true);
-            //UIController.Instance.ShowUI();
-            //UIController.Instance.ShowViewerPanel();
+            ToogleMeshes(false);
+            UIController.Instance.HideUI();
+            var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
+            foreach (var data in _datas)
+            {
+                data.Texture = screenShot;
+            }
+            ToogleMeshes(true);
+            UIController.Instance.ShowUI();
+            UIController.Instance.ShowViewerPanel();
 
 
-            foreach(var meshFilter in _arMeshManager.meshes)
+            foreach (var meshFilter in _arMeshManager.meshes)
             {
                 meshFilter.transform.SetParent(_modelViewParent, false);
             }
