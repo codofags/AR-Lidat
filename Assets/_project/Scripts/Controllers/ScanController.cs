@@ -242,9 +242,10 @@ public class ScanController : Singleton<ScanController>
     {
         ToogleMeshes(false);
         UIController.Instance.HideUI();
-        yield return new WaitForEndOfFrame();
         var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
 
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
         if (data != null)
         {
@@ -258,7 +259,6 @@ public class ScanController : Singleton<ScanController>
             _datas.Add(data);
         }
 
-        yield return new WaitForEndOfFrame();
 
         UIController.Instance.ShowUI();
         ToogleMeshes(true);
