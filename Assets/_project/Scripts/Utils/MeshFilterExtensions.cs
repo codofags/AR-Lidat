@@ -23,8 +23,9 @@ public static class MeshFilterExtensions
 
     public static void TexturedMesh(this MeshFilter meshFilter, Texture texture)
     {
+        Debug.Log("Start Textured.");
         var renderer = meshFilter.GetComponent<MeshRenderer>();
-        var material = new Material(renderer.material);
+        var material = new Material(renderer.sharedMaterial);
         Shader shader = Shader.Find("Standard");
         if (shader != null)
         {
