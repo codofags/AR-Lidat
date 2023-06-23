@@ -206,6 +206,7 @@ public class ScanController : Singleton<ScanController>
         UIController.Instance.HideUI();
         var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
 
+        Debug.Log("Save Screen");
         var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
         meshFilter.GenerateUV();
         if (data != null)
