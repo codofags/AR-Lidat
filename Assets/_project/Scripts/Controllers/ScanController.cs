@@ -14,16 +14,17 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
     [SerializeField] private SimpleDebugConsole _console;
+    [SerializeField] private float _getScreenTime = .5f;
 
     private bool _isScanning = false;
     private List<MeshData> _datas = new List<MeshData>();
-    private float _getScreenTime = 1f;
     private float _getScreenTimeTemp = 1f;
     private Coroutine _scanning;
 
     protected override void Awake()
     {
         base.Awake();
+        _getScreenTimeTemp = _getScreenTime;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
     }
@@ -86,16 +87,16 @@ public class ScanController : Singleton<ScanController>
             _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
-            ToogleMeshes(false);
-            UIController.Instance.HideUI();
-            var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
-            foreach (var data in _datas)
-            {
-                data.Texture = screenShot;
-            }
-            ToogleMeshes(true);
-            UIController.Instance.ShowUI();
-            UIController.Instance.ShowViewerPanel();
+            //ToogleMeshes(false);
+            //UIController.Instance.HideUI();
+            ////var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
+            ////foreach (var data in _datas)
+            ////{
+            ////    data.Texture = screenShot;
+            ////}
+            //ToogleMeshes(true);
+            //UIController.Instance.ShowUI();
+            //UIController.Instance.ShowViewerPanel();
 
 
             foreach(var meshFilter in _arMeshManager.meshes)
@@ -168,7 +169,6 @@ public class ScanController : Singleton<ScanController>
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
-       
         if (meshFilter == null)
         {
             Debug.LogError("Missing MeshFilter component.");
