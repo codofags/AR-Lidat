@@ -1,3 +1,4 @@
+using CoolishUI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private ARCameraManager _arCameraManager;
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
+    [SerializeField] private SimpleDebugConsole _console;
 
     private bool _isScanning = false;
     private List<MeshData> _datas = new List<MeshData>();
@@ -245,6 +247,7 @@ public class ScanController : Singleton<ScanController>
 
     private void ToogleMeshes(bool activate)
     {
+        _console.enabled = activate;
         if (_arMeshManager.meshes == null || _arMeshManager.meshes.Count <= 0)
             return;
 
