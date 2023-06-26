@@ -1,72 +1,147 @@
 ﻿using UnityEngine;
+using EzySlice;
+using System.Collections.Generic;
 
 public class MeshSlicer : MonoBehaviour
 {
-    public GameObject cubePrefab; // Префаб куба
+    [SerializeField] private float _cubeSize = 10f;
+    [SerializeField] private GameObject _cubePrefab;
+    [SerializeField] private Material _crossSectionMaterial;
+    [SerializeField] private MeshFilter _test;
 
-    void Start()
+    public List<MeshRenderer> SliceMeshIntoCubes(MeshFilter meshFilter)
     {
-        // Получение меша объекта
-        MeshFilter meshFilter = GetComponent<MeshFilter>();
         if (meshFilter == null)
         {
             Debug.LogError("MeshFilter not found!");
-            return;
+            return null;
         }
 
+        List<MeshRenderer> slicedMeshes = new List<MeshRenderer>();
         Mesh mesh = meshFilter.mesh;
 
-        // Получение границ объекта
+        // Определяем границы объекта
         Bounds bounds = mesh.bounds;
 
         // Размеры куба
-        float cubeSize = 0.1f; // 10 см (0.1 м)
+        float cubeSize = _cubeSize * 0.01f;
 
-        // Количество кубов вдоль каждой оси
-        int numCubesX = Mathf.CeilToInt(bounds.size.x / cubeSize);
-        int numCubesY = Mathf.CeilToInt(bounds.size.y / cubeSize);
-        int numCubesZ = Mathf.CeilToInt(bounds.size.z / cubeSize);
-
-        // Создание кубов
-        for (int x = 0; x < numCubesX; x++)
+        // Цикл по разделению объекта на кубы
+        for (float x = bounds.min.x; x < bounds.max.x; x += cubeSize)
         {
-            for (int y = 0; y < numCubesY; y++)
+            for (float y = bounds.min.y; y < bounds.max.y; y += cubeSize)
             {
-                for (int z = 0; z < numCubesZ; z++)
+                for (float z = bounds.min.z; z < bounds.max.z; z += cubeSize)
                 {
-                    // Рассчитываем позицию каждого куба
-                    Vector3 cubePosition = bounds.min + new Vector3(x * cubeSize, y * cubeSize, z * cubeSize) + new Vector3(cubeSize / 2f, cubeSize / 2f, cubeSize / 2f);
+                    // Создаем новый куб из префаба
+                    GameObject cube = Instantiate(_cubePrefab, new Vector3(x, y, z), Quaternion.identity);
 
-                    // Создание куба
-                    GameObject cube = Instantiate(cubePrefab, cubePosition, Quaternion.identity);
+                    // Определяем плоскость разреза
+                    Vector3 slicePosition = transform.position;
+                    Vector3 sliceDirection = Vector3.up;
+                    TextureRegion cuttingRegion = new TextureRegion(0.0f, 0.0f, 1.0f, 1.0f);
 
-                    // Установка размера куба
-                    cube.transform.localScale = new Vector3(cubeSize, cubeSize, cubeSize);
+                    // Разделяем меш объекта с помощью EzySlice
+                    GameObject[] slicedObjects = cube.SliceInstantiate(slicePosition, sliceDirection, cuttingRegion, _crossSectionMaterial);
 
-                    // Разделение меша с использованием куба
-                    SlicedHull slicedHull = MeshCut.Slice(mesh, cube.transform.position, cube.transform.up);
+                    // Удаляем исходный куб
+                    Destroy(cube);
 
-                    // Проверка успешного разделения меша
-                    if (slicedHull != null)
+                    if (slicedObjects != null)
                     {
-                        // Создание новых игровых объектов с разрезанными мешами
-                        CreateSlicedObject(slicedHull.GetUpperHull(), cube.transform.position);
-                        CreateSlicedObject(slicedHull.GetLowerHull(), cube.transform.position);
+                        // Перебираем разделенные объекты и присваиваем им нужные компоненты и материалы
+                        foreach (GameObject slicedObject in slicedObjects)
+                        {
+                            // Добавляем компонент MeshCollider
+                            slicedObject.AddComponent<MeshCollider>();
+
+                            // Присваиваем им материал объекта
+                            slicedObject.GetComponent<Renderer>().material = GetComponent<Renderer>().material;
+                            slicedMeshes.Add(slicedObject.GetComponent<MeshRenderer>());
+                        }
                     }
                 }
             }
         }
 
-        // Удаление исходного объекта
-        Destroy(gameObject);
+        return slicedMeshes;
+    }
+    public List<MeshRenderer> SliceMeshesIntoCubes(List<MeshFilter> meshFilters)
+    {
+        if (meshFilters == null || meshFilters.Count == 0)
+        {
+            Debug.LogError("MeshFilters list is null or empty!");
+            return null;
+        }
+
+        List<MeshRenderer> slicedMeshes = new List<MeshRenderer>();
+
+        // Цикл по всем MeshFilter'ам в списке
+        foreach (MeshFilter meshFilter in meshFilters)
+        {
+            if (meshFilter == null)
+            {
+                Debug.LogError("MeshFilter is null!");
+                continue;
+            }
+
+            float cubeSize = _cubeSize * 0.01f;
+            Mesh mesh = meshFilter.mesh;
+            GameObject originalMeshGO = meshFilter.gameObject;
+            Material originalMaterial = meshFilter.GetComponent<MeshRenderer>().material;
+
+            // Определяем границы меша
+            Bounds bounds = mesh.bounds;
+
+            // Цикл по разделению меша на кубы
+            for (float x = bounds.min.x; x < bounds.max.x; x += cubeSize)
+            {
+                for (float y = bounds.min.y; y < bounds.max.y; y += cubeSize)
+                {
+                    for (float z = bounds.min.z; z < bounds.max.z; z += cubeSize)
+                    {
+                        // Создаем новый куб из префаба
+                        GameObject cube = Instantiate(_cubePrefab, new Vector3(x, y, z), Quaternion.identity);
+
+                        // Определяем плоскость разреза
+                        Vector3 slicePosition = cube.transform.position;
+                        Vector3 sliceDirection = Vector3.up;
+                        TextureRegion cuttingRegion = new TextureRegion(0.0f, 0.0f, 1.0f, 1.0f);
+
+                        // Разделяем меш объекта с помощью EzySlice
+                        GameObject[] slicedObjects = originalMeshGO.SliceInstantiate(slicePosition, sliceDirection, cuttingRegion, originalMaterial);
+
+                        // Удаляем исходный куб
+                        Destroy(cube);
+
+                        if (slicedObjects != null)
+                        {
+                            // Перебираем разделенные объекты и присваиваем им нужные компоненты и материалы
+                            foreach (GameObject slicedObject in slicedObjects)
+                            {
+                                // Добавляем компонент MeshCollider
+                                slicedObject.AddComponent<MeshCollider>();
+
+                                var renderer = slicedObject.GetComponent<MeshRenderer>();
+                                
+                                // Присваиваем им материал объекта
+                                renderer.material = meshFilter.GetComponent<Renderer>().material;
+                                slicedMeshes.Add(renderer);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return slicedMeshes;
     }
 
-    void CreateSlicedObject(Mesh slicedMesh, Vector3 position)
+    private List<MeshRenderer> meshRenderers = new List<MeshRenderer>();
+    public void Test()
     {
-        // Создание нового игрового объекта и присвоение разрезанного меша
-        GameObject slicedObject = new GameObject("Sliced Object");
-        slicedObject.AddComponent<MeshFilter>().mesh = slicedMesh;
-        slicedObject.AddComponent<MeshRenderer>();
-        slicedObject.transform.position = position;
+        var fts = new List<MeshFilter>();
+        fts.Add(_test);
+        meshRenderers.AddRange(SliceMeshesIntoCubes(fts));
     }
 }

@@ -14,6 +14,7 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private float _rotationThreshold = 30f;
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
+    [SerializeField] private MeshSlicer _slicer;
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
     [SerializeField] private SimpleDebugConsole _console;
@@ -26,6 +27,8 @@ public class ScanController : Singleton<ScanController>
     private List<ScanData> _scans = new List<ScanData>();
     public Action OnStart;
     public Action OnStop;
+
+    private List<MeshRenderer> _meshParts;
 
     protected override void Awake()
     {
@@ -197,6 +200,15 @@ public class ScanController : Singleton<ScanController>
     public void ConvertToModel()
     {
         SetTextures();
+    }
+
+    public void MeshesSlice()
+    {
+        _meshParts = new List<MeshRenderer>();
+        foreach (var meshFilter in _arMeshManager.meshes)
+        {
+            _meshParts.AddRange(_slicer.SliceMeshIntoCubes(meshFilter));
+        }
     }
 
     public void SetTextures()
