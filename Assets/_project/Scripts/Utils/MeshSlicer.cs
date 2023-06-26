@@ -66,6 +66,7 @@ public class MeshSlicer : MonoBehaviour
 
         return slicedMeshes;
     }
+
     public List<MeshRenderer> SliceMeshesIntoCubes(List<MeshFilter> meshFilters)
     {
         if (meshFilters == null || meshFilters.Count == 0)
@@ -138,6 +139,7 @@ public class MeshSlicer : MonoBehaviour
     }
 
     private List<MeshRenderer> meshRenderers = new List<MeshRenderer>();
+
     public void Test()
     {
         var fts = new List<MeshFilter>();
