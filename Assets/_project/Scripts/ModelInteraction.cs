@@ -2,26 +2,38 @@
 
 public class ModelInteraction : MonoBehaviour
 {
-    private bool isRotating;
-    private float rotationSpeed = 1f;
+    [SerializeField] private Camera _arCamera;
+    [SerializeField] private float _zoomSpeed = 1f;
+    [SerializeField] private float _minFOV = 10f;
+    [SerializeField] private float _maxFOV = 90f;
 
-    private bool isScaling;
-    private float scaleSpeed = 0.1f;
+    private bool _isRotating;
+    private float _rotationSpeed = 1f;
 
-    private bool isMoving;
-    private float moveSpeed = 0.1f;
+    private bool _isMoving;
+    private float _moveSpeed = 0.1f;
 
-    private Vector2 lastTouchPosition;
-    private Vector3 initialObjectPosition;
+    private Vector2 _lastTouchPosition;
+    private Vector3 _initialObjectPosition;
+
+
+    private float initialFOV;
 
     void Start()
     {
-        initialObjectPosition = transform.position;
+        _initialObjectPosition = transform.position;
+        initialFOV = _arCamera.fieldOfView;
     }
 
     void Update()
     {
         HandleTouchInput();
+    }
+
+    public void SetDefault()
+    {
+        transform.position = _initialObjectPosition;
+        _arCamera.fieldOfView = initialFOV;
     }
 
     void HandleTouchInput()
@@ -31,18 +43,18 @@ public class ModelInteraction : MonoBehaviour
             Touch touch = Input.GetTouch(0);
             if (touch.phase == TouchPhase.Began)
             {
-                isRotating = true;
-                lastTouchPosition = touch.position;
+                _isRotating = true;
+                _lastTouchPosition = touch.position;
             }
-            else if (touch.phase == TouchPhase.Moved && isRotating)
+            else if (touch.phase == TouchPhase.Moved && _isRotating)
             {
-                Vector2 delta = touch.position - lastTouchPosition;
-                transform.Rotate(Vector3.up, -delta.x * rotationSpeed, Space.World);
-                lastTouchPosition = touch.position;
+                Vector2 delta = touch.position - _lastTouchPosition;
+                transform.Rotate(Vector3.up, -delta.x * _rotationSpeed, Space.World);
+                _lastTouchPosition = touch.position;
             }
             else if (touch.phase == TouchPhase.Ended)
             {
-                isRotating = false;
+                _isRotating = false;
             }
         }
         else if (Input.touchCount == 2)
@@ -52,7 +64,7 @@ public class ModelInteraction : MonoBehaviour
 
             if (touch2.phase == TouchPhase.Began)
             {
-                isScaling = true;
+                _isMoving = true;
             }
             else if (touch1.phase == TouchPhase.Moved && touch2.phase == TouchPhase.Moved)
             {
@@ -69,28 +81,22 @@ public class ModelInteraction : MonoBehaviour
 
                 if (Mathf.Abs(deltaDistance) >= 0.1f)
                 {
-                    // Изменение масштаба на основе изменения расстояния
-                    float scaleAmount = deltaDistance * scaleSpeed;
-
-                    var newScale = new Vector3(scaleAmount, scaleAmount, scaleAmount);
-
-                    if (transform.localScale.x <= 0f && newScale.x <= 0f)
-                        transform.localScale = Vector3.one * 0.01f;
-                    else
-                        transform.localScale += newScale;
+                    // Изменение поля зрения камеры (FOV) на основе изменения расстояния
+                    float zoomAmount = deltaDistance * _zoomSpeed;
+                    float newFOV = _arCamera.fieldOfView - zoomAmount;
+                    _arCamera.fieldOfView = Mathf.Clamp(newFOV, _minFOV, _maxFOV);
                 }
+
                 // Перемещение
-                isMoving = true;
                 Vector2 centerPosition = (touch1.position + touch2.position) / 2;
                 Vector2 lastCenterPosition = (prevTouch1Pos + prevTouch2Pos) / 2;
 
-                Vector3 moveDelta = (centerPosition - lastCenterPosition) * moveSpeed;
+                Vector3 moveDelta = (centerPosition - lastCenterPosition) * _moveSpeed;
                 transform.position += new Vector3(moveDelta.x, 0, moveDelta.y);
             }
             else if (touch1.phase == TouchPhase.Ended || touch2.phase == TouchPhase.Ended)
             {
-                isScaling = false;
-                isMoving = false;
+                _isMoving = false;
             }
         }
     }

@@ -1,7 +1,9 @@
 using CoolishUI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
@@ -9,25 +11,27 @@ using UnityEngine.XR.ARFoundation;
 public class ScanController : Singleton<ScanController>
 {
     [SerializeField] private float _scanningTime = 5f;
+    [SerializeField] private float _rotationThreshold = 30f;
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
     [SerializeField] private SimpleDebugConsole _console;
-    [SerializeField] private float _getScreenTime = .5f;
 
     private bool _isScanning = false;
     private List<MeshData> _datas = new List<MeshData>();
-    private float _getScreenTimeTemp = 1f;
     private Coroutine _scanning;
+    private Quaternion initialRotation;
 
+    private List<ScanData> _scans = new List<ScanData>();
+    public Action OnStart;
+    public Action OnStop;
 
     protected override void Awake()
     {
         base.Awake();
-        _getScreenTimeTemp = _getScreenTime;
         _arMeshManager.enabled = false;
-        _arMeshManager.density = 1f;
+        initialRotation = _arCameraManager.GetCameraPose().rotation;
     }
 
     private void OnEnable()
@@ -42,7 +46,22 @@ public class ScanController : Singleton<ScanController>
 
     private void Update()
     {
-        _getScreenTimeTemp += Time.deltaTime;
+        if (!_isScanning)
+            return;
+
+        var pose = _arCameraManager.GetCameraPose();
+        Quaternion rotationDelta = Quaternion.Inverse(initialRotation) * pose.rotation;
+
+        // Получаем угол поворота вокруг оси Y
+        float rotationAngleY = Mathf.Abs(rotationDelta.eulerAngles.y);
+        // Проверяем, превышает ли угол поворота пороговое значение
+        if (rotationAngleY > _rotationThreshold)
+        {
+            var data = new ScanData(pose,_arCameraManager.GetCameraTexture());
+            _scans.Add(data);
+            // Сбрасываем начальный поворот камеры
+            initialRotation = pose.rotation;
+        }
     }
 
     public void ScanStart()
@@ -56,6 +75,7 @@ public class ScanController : Singleton<ScanController>
             {
                 arMeshSubsystem.Start();
                 _isScanning = true;
+                OnStart?.Invoke();
                 StartCoroutine(Scaning());
                 Debug.Log("Scan START");
             }
@@ -69,92 +89,25 @@ public class ScanController : Singleton<ScanController>
         if (!_isScanning)
             yield break;
 
+        Debug.Log("Time! Scan Stopping!");
         ScanStop();
-        //var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
-        //yield return new WaitForSeconds(2f);
-        //foreach (var meshFilter in _arMeshManager.meshes)
-        //{
-        //    meshFilter.GetComponent<MeshRenderer>().enabled = true;
-        //    meshFilter.TextureMesh(sccreenShot);
-        //}
-        Debug.Log("Done");
     }
 
     public void ScanStop()
     {
         if (_isScanning)
         {
-            StartCoroutine(Stopping());
-            //Camera.main.enabled = false;
-            //_arMeshManager.enabled = false; // Отключаем ARMeshManager
+            _arMeshManager.enabled = false; // Отключаем ARMeshManager
+            Debug.Log("Scan STOP!");
 
-            //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
-
-            //ToogleMeshes(false);
-            //UIController.Instance.HideUI();
-            //var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
-            //foreach (var data in _datas)
-            //{
-            //    data.Texture = screenShot;
-            ////}
-            //ToogleMeshes(true);
-            //UIController.Instance.ShowUI();
-
-            //UIController.Instance.ShowViewerPanel();
-
-            //foreach (var meshFilter in _arMeshManager.meshes)
-            //{
-            //    meshFilter.transform.SetParent(_modelViewParent, false);
-            //}
-
-            //_modelViewer.SetActive(true);
-            //if (arMeshSubsystem != null)
-            //{
-            //    arMeshSubsystem.Stop();
-            //    _arCameraManager.enabled = false;
-            //    _isScanning = false;
-            //    Debug.Log($"Scan STOP. Meshes: {_arMeshManager.meshes.Count} Datas: {_datas.Count}");
-            //}
+            foreach (var meshFilter in _arMeshManager.meshes)
+            {
+                meshFilter.transform.SetParent(_modelViewParent, false);
+            }
+            OnStop?.Invoke();
+            _modelViewer.gameObject.SetActive(true);
+            UIController.Instance.ShowViewerPanel();
         }
-    }
-
-    IEnumerator Stopping()
-    {
-        yield return new WaitForEndOfFrame();
-        //UIController.Instance.HideUI();
-        _arMeshManager.enabled = false; // Отключаем ARMeshManager
-
-        //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
-
-        //if (arMeshSubsystem != null)
-        //{
-        //    arMeshSubsystem.Stop();
-        //    _isScanning = false;
-        //}
-
-        //foreach (var meshFilter in _arMeshManager.meshes)
-        //{
-        //    meshFilter.GetComponent<MeshRenderer>().enabled = false;
-        //}
-        //yield return new WaitForSeconds(1f);
-
-        //var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
-        //yield return new WaitForSeconds(1f);
-        //foreach (var filter in _arMeshManager.meshes)
-        //{
-        //    filter.GetComponent<MeshRenderer>().enabled = true;
-        //    filter.TextureMesh(screenShot);
-        //}
-
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.transform.SetParent(_modelViewParent, false);
-        }
-
-        //yield return new WaitForSeconds(1f);
-        _arCameraManager.enabled = false;
-        _modelViewer.gameObject.SetActive(true);
-        UIController.Instance.ShowViewerPanel();
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -178,45 +131,13 @@ public class ScanController : Singleton<ScanController>
     private void CreateMeshObject(MeshFilter meshFilter)
     {
         Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
-        SaveCameraTextureToMesh(meshFilter);
+        meshFilter.GetComponent<MeshRenderer>().material.color = Extensions.GetRandomColor();
+        //SaveCameraTextureToMesh(meshFilter);
     }
-
-    //private MeshFilter CreateMesh(MeshFilter meshFilter)
-    //{
-    //    var mesh = meshFilter.mesh;
-    //    // Получение вершин меша
-    //    Vector3[] vertices = new Vector3[mesh.vertices.Length];
-    //    mesh.vertices.CopyTo(vertices, 0);
-
-    //    // Получение треугольников меша
-    //    int[] triangles = new int[mesh.triangles.Length];
-    //    mesh.triangles.CopyTo(triangles, 0);
-
-    //    GameObject meshObject = Instantiate(meshPrefab, Vector3.zero, Quaternion.identity);
-
-    //    // Передача данных меша объекту
-    //    Mesh meshComponent = new Mesh();
-    //    meshComponent.vertices = vertices;
-    //    meshComponent.triangles = triangles;
-    //    meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
-    //    meshObject.GetComponent<MeshRenderer>().material = meshPrefab.GetComponent<MeshRenderer>().sharedMaterial;
-
-    //    // Расположение объекта в пространстве
-    //    meshObject.transform.position = meshFilter.transform.position;
-    //    meshObject.transform.rotation = meshFilter.transform.rotation;
-    //    meshObject.transform.localScale = Vector3.one;
-    //    return 
-    //}
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
-        _getScreenTimeTemp += Time.deltaTime;
-        if (_getScreenTimeTemp >= _getScreenTime)
-        {
-            SaveCameraTextureToMesh(meshFilter);
-            _getScreenTimeTemp = 0f;
-        }
-
+        //SaveCameraTextureToMesh(meshFilter);
         if (meshFilter == null)
         {
             Debug.LogError("Missing MeshFilter component.");
