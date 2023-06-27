@@ -204,11 +204,11 @@ public class ScanController : Singleton<ScanController>
 
     public void MeshesSlice()
     {
-        _meshParts = new List<MeshRenderer>();
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            _meshParts.AddRange(_slicer.SliceMeshIntoCubes(meshFilter));
-        }
+        //_meshParts = new List<MeshRenderer>();
+        //foreach (var meshFilter in _arMeshManager.meshes)
+        //{
+        //    _meshParts.AddRange(_slicer.SliceMeshIntoCubes(meshFilter));
+        //}
     }
 
     public void SetTextures()
