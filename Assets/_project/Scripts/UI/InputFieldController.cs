@@ -1,21 +1,21 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class InputFieldController : MonoBehaviour
 {
-    [SerializeField] private InputField inputField;
+    [SerializeField] private TMP_InputField inputField;
     [SerializeField] private int i = 0;
 
     private void Start()
     {
-        inputField = GetComponent<InputField>();
+        inputField = GetComponent<TMP_InputField>();
         // Добавляем обработчик события изменения значения в InputField
         inputField.onValueChanged.AddListener(OnInputFieldValueChanged);
         
     }
     private void OnEnable()
     {
-
         var model = FindObjectOfType<ModelInteraction>();
         if (model != null)
         {
@@ -37,9 +37,13 @@ public class InputFieldController : MonoBehaviour
 
     private void OnInputFieldValueChanged(string newText)
     {
+        var model = FindObjectOfType<ModelInteraction>();
+        if (model == null)
+            return;
+
         if (float.TryParse(newText, out float floatValue))
         {
-            var model = FindObjectOfType<ModelInteraction>();
+            model = FindObjectOfType<ModelInteraction>();
             if (i == 0)
             {
                 model.RotationSpeed = floatValue;
