@@ -72,7 +72,7 @@ namespace CoolishUI
             }
             else
             {
-                if (Input.GetKeyDown(toggleKey))
+                if (Input.touchCount == 4 && Input.GetTouch(3).phase == TouchPhase.Began)
                 {
                     isVisible = !isVisible;
                 }

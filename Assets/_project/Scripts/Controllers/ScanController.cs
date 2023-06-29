@@ -1,40 +1,41 @@
 using CoolishUI;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 
 public class ScanController : Singleton<ScanController>
 {
+    [SerializeField] private Camera _checkMeshCamera;
+    [SerializeField] private MeshSlicer _slicer;
     [SerializeField] private float _scanningTime = 5f;
-    [SerializeField] private float _rotationThreshold = 30f;
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
-    [SerializeField] private MeshSlicer _slicer;
     [SerializeField] private GameObject _modelViewer;
     [SerializeField] private Transform _modelViewParent;
-    [SerializeField] private SimpleDebugConsole _console;
+    [SerializeField] private float _getScreenTime = .5f;
+
+    [SerializeField] private Transform _cameraViewPrefab;
+    [SerializeField] private Material _nonWireframeMaterial;
 
     private bool _isScanning = false;
     private List<MeshData> _datas = new List<MeshData>();
+    private float _getScreenTimeTemp = 1f;
     private Coroutine _scanning;
-    private Quaternion initialRotation;
 
-    private List<ScanData> _scans = new List<ScanData>();
-    public Action OnStart;
-    public Action OnStop;
+    [SerializeField] private MeshFilter[] TestMeshes;
 
-    private List<MeshRenderer> _meshParts;
+    private List<GameObject> _slicedMeshes = new List<GameObject>();
 
     protected override void Awake()
     {
         base.Awake();
+        _getScreenTimeTemp = _getScreenTime;
         _arMeshManager.enabled = false;
-        initialRotation = _arCameraManager.GetCameraPose().rotation;
+        _arMeshManager.density = 1f;
     }
 
     private void OnEnable()
@@ -49,22 +50,7 @@ public class ScanController : Singleton<ScanController>
 
     private void Update()
     {
-        if (!_isScanning)
-            return;
-
-        var pose = _arCameraManager.GetCameraPose();
-        Quaternion rotationDelta = Quaternion.Inverse(initialRotation) * pose.rotation;
-
-        // Получаем угол поворота вокруг оси Y
-        float rotationAngleY = Mathf.Abs(rotationDelta.eulerAngles.y);
-        // Проверяем, превышает ли угол поворота пороговое значение
-        if (rotationAngleY > _rotationThreshold)
-        {
-            var data = new ScanData(pose,_arCameraManager.GetCameraTexture());
-            _scans.Add(data);
-            // Сбрасываем начальный поворот камеры
-            initialRotation = pose.rotation;
-        }
+        _getScreenTimeTemp += Time.deltaTime;
     }
 
     public void ScanStart()
@@ -78,8 +64,8 @@ public class ScanController : Singleton<ScanController>
             {
                 arMeshSubsystem.Start();
                 _isScanning = true;
-                OnStart?.Invoke();
-                StartCoroutine(Scaning());
+                //StartCoroutine(Scaning());
+                CameraPositionSaver.Instance.StartSaving();
                 Debug.Log("Scan START");
             }
         }
@@ -92,55 +78,284 @@ public class ScanController : Singleton<ScanController>
         if (!_isScanning)
             yield break;
 
-        Debug.Log("Time! Scan Stopping!");
         ScanStop();
+        //var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
+        //yield return new WaitForSeconds(2f);
+        //foreach (var meshFilter in _arMeshManager.meshes)
+        //{
+        //    meshFilter.GetComponent<MeshRenderer>().enabled = true;
+        //    meshFilter.TextureMesh(sccreenShot);
+        //}
+        Debug.Log("Done");
     }
 
     public void ScanStop()
     {
         if (_isScanning)
         {
-            _arMeshManager.enabled = false; // Отключаем ARMeshManager
-            Debug.Log("Scan STOP!");
+            CameraPositionSaver.Instance.StopSaving();
 
-            foreach (var meshFilter in _arMeshManager.meshes)
-            {
-                meshFilter.transform.SetParent(_modelViewParent, false);
-            }
-            OnStop?.Invoke();
-            _modelViewer.gameObject.SetActive(true);
-            UIController.Instance.ShowViewerPanel();
+            StartCoroutine(Stopping());
+            //Camera.main.enabled = false;
+            //_arMeshManager.enabled = false; // Отключаем ARMeshManager
+
+            //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+
+            //ToogleMeshes(false);
+            //UIController.Instance.HideUI();
+            //var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
+            //foreach (var data in _datas)
+            //{
+            //    data.Texture = screenShot;
+            ////}
+            //ToogleMeshes(true);
+            //UIController.Instance.ShowUI();
+
+            //UIController.Instance.ShowViewerPanel();
+
+            //foreach (var meshFilter in _arMeshManager.meshes)
+            //{
+            //    meshFilter.transform.SetParent(_modelViewParent, false);
+            //}
+
+            //_modelViewer.SetActive(true);
+            //if (arMeshSubsystem != null)
+            //{
+            //    arMeshSubsystem.Stop();
+            //    _arCameraManager.enabled = false;
+            //    _isScanning = false;
+            //    Debug.Log($"Scan STOP. Meshes: {_arMeshManager.meshes.Count} Datas: {_datas.Count}");
+            //}
         }
     }
+
+    IEnumerator Stopping()
+    {
+        yield return new WaitForSeconds(1);
+        Reporter.Instance.doShow();
+
+        Debug.Log(_arMeshManager == null);
+        //UIController.Instance.HideUI();
+        if (_arMeshManager != null)
+            _arMeshManager.enabled = false; // Отключаем ARMeshManager
+
+        //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+
+        //if (arMeshSubsystem != null)
+        //{
+        //    arMeshSubsystem.Stop();
+        //    _isScanning = false;
+        //}
+
+
+        Debug.Log("step 1");
+
+        foreach (var meshFilter in _arMeshManager.meshes)
+        {
+            meshFilter.transform.SetParent(_modelViewParent, false);
+
+            var renderer = meshFilter.GetComponent<MeshRenderer>();
+            renderer.material = _nonWireframeMaterial;
+            renderer.material.color = Random.ColorHSV();
+        }
+
+        Debug.Log("step 2");
+
+        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
+        _checkMeshCamera.transform.parent = _modelViewParent;
+
+        Debug.Log("step 3");
+
+        foreach (var camPos in cameraDatas)
+        {
+            if (camPos.Texture == null)
+                continue;
+
+            var newCameraView = Instantiate(_cameraViewPrefab, _modelViewParent);
+            newCameraView.localPosition = camPos.Position;
+            newCameraView.localRotation = camPos.Rotation;
+            newCameraView.localScale = Vector3.one * 0.1f;
+        }
+
+        Debug.Log("step 4");
+
+        yield return new WaitForSeconds(1f);
+        _arCameraManager.enabled = false;
+        _modelViewer.gameObject.SetActive(true);
+        UIController.Instance.ShowViewerPanel();
+
+
+        Debug.Log("WAIT 5 sec");
+        yield return new WaitForSeconds(5f);
+
+        Debug.Log("step 5");
+
+        var combinedObject = CombineMeshes(_arMeshManager.meshes);
+        foreach (var meshFilter in _arMeshManager.meshes)
+        {
+            meshFilter.gameObject.SetActive(false);
+        }
+
+        Debug.Log("WAIT 5 sec");
+        yield return new WaitForSeconds(5f);
+
+        Debug.Log("step 6");
+
+        _slicedMeshes = _slicer.SliceMesh(combinedObject, _nonWireframeMaterial);
+        Debug.Log($"Mesh count: {_slicedMeshes.Count}");
+
+        foreach (var sMesh in _slicedMeshes)
+        {
+            sMesh.transform.SetParent(_modelViewParent, false);
+        }
+
+        //Debug.Log("WAIT 10 sec");
+        //yield return new WaitForSeconds(10f);
+
+        //var handledMeshes = new List<GameObject>();
+
+        //foreach (var camData in cameraDatas)
+        //{
+        //    if (slicedMeshes.Count == 0)
+        //        break;
+
+        //    int handledCount = 0;
+        //    for (int i = 0; i < slicedMeshes.Count; ++i)
+        //    {
+        //        if (slicedMeshes[i].name.StartsWith("Handled"))
+        //            continue;
+
+        //        var mf = slicedMeshes[i].GetComponent<MeshFilter>();
+        //        if (IsMeshInCamera(mf, camData.Position, camData.Rotation))
+        //        {
+        //            mf.GenerateUV(_checkMeshCamera);
+        //            var render = mf.GetComponent<MeshRenderer>();
+        //            render.material = _nonWireframeMaterial;
+        //            render.material.color = Color.white;
+        //            render.material.SetTexture("_BaseMap", camData.Texture);
+
+        //            mf.name = $"Handled_{mf.name}";
+        //            ++handledCount;
+        //        }
+        //    }
+
+        //    Debug.Log($"CamData {camData.Id}: {handledCount} handled");
+        //}
+    }
+
+    private bool IsMeshInCamera(MeshFilter mFilter, Vector3 camPosition, Quaternion camRotation)
+    {
+        _checkMeshCamera.transform.localPosition = camPosition;
+        _checkMeshCamera.transform.localRotation = camRotation;
+
+        var camPlanes = GeometryUtility.CalculateFrustumPlanes(_checkMeshCamera);
+
+        var bounds = mFilter.GetComponent<MeshRenderer>().localBounds;
+        Vector3[] points = new Vector3[8];
+        points[0] = bounds.center + new Vector3(-bounds.size.x / 2, -bounds.size.y / 2, -bounds.size.z / 2);
+        points[1] = bounds.center + new Vector3(-bounds.size.x / 2, bounds.size.y / 2, -bounds.size.z / 2);
+        points[2] = bounds.center + new Vector3(bounds.size.x / 2, bounds.size.y / 2, -bounds.size.z / 2);
+        points[3] = bounds.center + new Vector3(bounds.size.x / 2, -bounds.size.y / 2, -bounds.size.z / 2);
+        points[4] = bounds.center + new Vector3(-bounds.size.x / 2, -bounds.size.y / 2, bounds.size.z / 2);
+        points[5] = bounds.center + new Vector3(-bounds.size.x / 2, bounds.size.y / 2, bounds.size.z / 2);
+        points[6] = bounds.center + new Vector3(bounds.size.x / 2, bounds.size.y / 2, bounds.size.z / 2);
+        points[7] = bounds.center + new Vector3(bounds.size.x / 2, -bounds.size.y / 2, bounds.size.z / 2);
+
+        var listcolliders = new List<SphereCollider>();
+        foreach (var point in points)
+        {
+            var go = new GameObject("point");
+
+            var tr = go.transform;
+
+            tr.parent = mFilter.transform;
+            tr.localPosition = point;
+            var col = go.AddComponent<SphereCollider>();
+            listcolliders.Add(col);
+
+            col.radius = 0.01f;
+        }
+
+        int countCollidersInFrustrum = 0;
+        foreach (var col in listcolliders)
+        {
+            if (GeometryUtility.TestPlanesAABB(camPlanes, col.bounds))
+                countCollidersInFrustrum++;
+
+            Destroy(col.gameObject);
+        }
+
+        if (countCollidersInFrustrum == 8)
+            return true;
+        else
+            return false;
+    }
+
+
+  
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
     {
         foreach (var meshFilter in eventArgs.added)
         {
-            CreateMeshObject(meshFilter);
+            //CreateMeshObject(meshFilter);
+            //meshFilter.GetComponent<MeshRenderer>().material.color = Color.green;
         }
 
         foreach (var meshFilter in eventArgs.updated)
         {
-            UpdateMeshObject(meshFilter);
+            //UpdateMeshObject(meshFilter);
+            //meshFilter.GetComponent<MeshRenderer>().material.color = Random.ColorHSV();
         }
 
         foreach (var meshFilter in eventArgs.removed)
         {
-            RemoveMeshObject(meshFilter);
+            //RemoveMeshObject(meshFilter);
         }
     }
 
     private void CreateMeshObject(MeshFilter meshFilter)
     {
         Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
-        meshFilter.GetComponent<MeshRenderer>().material.color = Extensions.GetRandomColor();
-        //SaveCameraTextureToMesh(meshFilter);
+        SaveCameraTextureToMesh(meshFilter);
     }
+
+    //private MeshFilter CreateMesh(MeshFilter meshFilter)
+    //{
+    //    var mesh = meshFilter.mesh;
+    //    // Получение вершин меша
+    //    Vector3[] vertices = new Vector3[mesh.vertices.Length];
+    //    mesh.vertices.CopyTo(vertices, 0);
+
+    //    // Получение треугольников меша
+    //    int[] triangles = new int[mesh.triangles.Length];
+    //    mesh.triangles.CopyTo(triangles, 0);
+
+    //    GameObject meshObject = Instantiate(meshPrefab, Vector3.zero, Quaternion.identity);
+
+    //    // Передача данных меша объекту
+    //    Mesh meshComponent = new Mesh();
+    //    meshComponent.vertices = vertices;
+    //    meshComponent.triangles = triangles;
+    //    meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
+    //    meshObject.GetComponent<MeshRenderer>().material = meshPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+
+    //    // Расположение объекта в пространстве
+    //    meshObject.transform.position = meshFilter.transform.position;
+    //    meshObject.transform.rotation = meshFilter.transform.rotation;
+    //    meshObject.transform.localScale = Vector3.one;
+    //    return 
+    //}
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
-        //SaveCameraTextureToMesh(meshFilter);
+        _getScreenTimeTemp += Time.deltaTime;
+        if (_getScreenTimeTemp >= _getScreenTime)
+        {
+            SaveCameraTextureToMesh(meshFilter);
+            _getScreenTimeTemp = 0f;
+        }
+
         if (meshFilter == null)
         {
             Debug.LogError("Missing MeshFilter component.");
@@ -199,16 +414,45 @@ public class ScanController : Singleton<ScanController>
 
     public void ConvertToModel()
     {
-        SetTextures();
+        //SetTextures();
+        StartCoroutine(Converting());
     }
 
-    public void MeshesSlice()
+    IEnumerator Converting()
     {
-        //_meshParts = new List<MeshRenderer>();
-        //foreach (var meshFilter in _arMeshManager.meshes)
-        //{
-        //    _meshParts.AddRange(_slicer.SliceMeshIntoCubes(meshFilter));
-        //}
+        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
+        Debug.Log("WAIT 10 sec");
+        yield return new WaitForSeconds(10f);
+
+        var handledMeshes = new List<GameObject>();
+
+        foreach (var camData in cameraDatas)
+        {
+            if (_slicedMeshes.Count == 0)
+                break;
+
+            int handledCount = 0;
+            for (int i = 0; i < _slicedMeshes.Count; ++i)
+            {
+                if (_slicedMeshes[i].name.StartsWith("Handled"))
+                    continue;
+
+                var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
+                if (IsMeshInCamera(mf, camData.Position, camData.Rotation))
+                {
+                    mf.GenerateUV(_checkMeshCamera);
+                    var render = mf.GetComponent<MeshRenderer>();
+                    render.material = _nonWireframeMaterial;
+                    render.material.color = Color.white;
+                    render.material.SetTexture("_BaseMap", camData.Texture);
+
+                    mf.name = $"Handled_{mf.name}";
+                    ++handledCount;
+                }
+            }
+
+            Debug.Log($"CamData {camData.Id}: {handledCount} handled");
+        }
     }
 
     public void SetTextures()
@@ -228,7 +472,7 @@ public class ScanController : Singleton<ScanController>
 
     private void ToogleMeshes(bool activate)
     {
-        _console.enabled = activate;
+        //_console.enabled = activate;
         if (_arMeshManager.meshes == null || _arMeshManager.meshes.Count <= 0)
             return;
 
@@ -236,5 +480,40 @@ public class ScanController : Singleton<ScanController>
         {
             mesh.GetComponent<MeshRenderer>().enabled = activate;
         }
+    }
+
+
+
+    private MeshFilter CombineMeshes(IList<MeshFilter> meshFilters)
+    {
+        CombineInstance[] combine = new CombineInstance[meshFilters.Count];
+
+        int i = 0;
+        while (i < meshFilters.Count)
+        {
+            combine[i].mesh = meshFilters[i].sharedMesh;
+            combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
+            meshFilters[i].gameObject.SetActive(false);
+
+            i++;
+        }
+
+        Mesh mesh = new Mesh();
+        mesh.CombineMeshes(combine);
+
+        mesh.RecalculateNormals();
+        var go = new GameObject("Combined");
+        go.transform.parent = _modelViewParent;
+        go.transform.localPosition = Vector3.zero;
+        go.transform.localScale = Vector3.one;
+        go.transform.localRotation = Quaternion.identity;
+
+        var resultFilter = go.AddComponent<MeshFilter>();
+        resultFilter.sharedMesh = mesh;
+
+        var renderer = go.AddComponent<MeshRenderer>();
+        renderer.material = _nonWireframeMaterial;
+
+        return resultFilter;
     }
 }

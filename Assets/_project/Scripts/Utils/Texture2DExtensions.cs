@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class Texture2DExtensions
 {
-    public static void RotateTexture(this Texture2D texture, bool clockwise)
+    public static Texture2D RotateTexture(this Texture2D texture, bool clockwise)
     {
         Color32[] original = texture.GetPixels32();
         Color32[] rotated = new Color32[original.Length];
@@ -25,7 +25,8 @@ public static class Texture2DExtensions
         Texture2D rotatedTexture = new Texture2D(h, w);
         rotatedTexture.SetPixels32(rotated);
         rotatedTexture.Apply();
-        texture = rotatedTexture;
+
+        return rotatedTexture;
     }
 
     public static void FlipTexture(this Texture2D texture)

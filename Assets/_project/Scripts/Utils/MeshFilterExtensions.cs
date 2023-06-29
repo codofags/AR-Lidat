@@ -2,7 +2,7 @@
 
 public static class MeshFilterExtensions
 {
-    public static void GenerateUV(this MeshFilter meshFilter)
+    public static void GenerateUV(this MeshFilter meshFilter, Camera camera)
     {
         Debug.Log("Generate UV");
         Mesh mesh = new Mesh();
@@ -16,7 +16,7 @@ public static class MeshFilterExtensions
         mesh.triangles = faces;
 
 
-        Vector2[] textureCoordinates = CalcTextureCoordinates(mesh, meshFilter.transform.localToWorldMatrix);
+        Vector2[] textureCoordinates = CalcTextureCoordinates(mesh, meshFilter.transform.localToWorldMatrix, camera);
         mesh.uv = textureCoordinates;
         meshFilter.mesh = mesh;
     }
@@ -31,15 +31,14 @@ public static class MeshFilterExtensions
         renderer.material = material;
     }
 
-    public static void TextureMesh(this MeshFilter meshFilter, Texture texture)
-    {
-        meshFilter.GenerateUV();
-        meshFilter.TexturedMesh(texture);
-    }
+    //public static void TextureMesh(this MeshFilter meshFilter, Texture texture)
+    //{
+    //    meshFilter.GenerateUV();
+    //    meshFilter.TexturedMesh(texture);
+    //}
 
-    private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix)
+    private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix, Camera camera)
     {
-        var camera = Camera.main;
 
         Vector2[] textureCoordinates = new Vector2[geometry.vertices.Length];
         Vector2 screenSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
