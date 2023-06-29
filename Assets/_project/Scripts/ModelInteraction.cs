@@ -7,11 +7,45 @@ public class ModelInteraction : MonoBehaviour
     private bool isRotating;
     private float rotationSpeed = 1f;
 
+    public float RotationSpeed
+    {
+        get { return rotationSpeed; }
+        set { rotationSpeed = value; }
+    }
+
     private bool isScaling;
     private float scaleSpeed = 0.1f;
 
+    public float ScaleSpeed
+    {
+        get { return scaleSpeed; }
+        set { scaleSpeed = value; }
+    }
+
     private bool isMoving;
     private float moveSpeed = 0.1f;
+
+    public float MoveSpeed
+    {
+        get { return moveSpeed; }
+        set { moveSpeed = value; }
+    }
+
+    private float minFov = 10f;
+    
+    public float MinFov
+    {
+        get { return minFov; }
+        set { minFov = value; }
+    }
+
+    private float maxFov = 110f;
+
+    public float MaxFov
+    {
+        get { return maxFov; }
+        set { maxFov = value; }
+    }
 
     private Vector2 lastTouchPosition;
     private Vector3 initialObjectPosition;
@@ -89,7 +123,7 @@ public class ModelInteraction : MonoBehaviour
                     //    transform.localScale += newScale;
 
                     var newFov = _camera.fieldOfView - scaleAmount;
-                    newFov = Mathf.Clamp(newFov, 10f, 120f);
+                    newFov = Mathf.Clamp(newFov, minFov, maxFov);
                     _camera.fieldOfView = newFov;
 
                 }

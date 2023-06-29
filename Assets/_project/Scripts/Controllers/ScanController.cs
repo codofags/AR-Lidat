@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 
@@ -486,5 +487,10 @@ public class ScanController : Singleton<ScanController>
         renderer.material = _nonWireframeMaterial;
 
         return resultFilter;
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
