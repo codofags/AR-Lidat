@@ -440,7 +440,7 @@ public class ScanController : Singleton<ScanController>
                 //IsMeshInCamera(mf, camData.Position, camData.Rotation))
                 if (mf.IsMeshFullyInCamera(_checkMeshCamera, camData.Position, camData.Rotation))
                 {
-                    mf.GenerateUV(_checkMeshCamera);
+                    mf.GenerateUV(_checkMeshCamera, camData.Texture);
                     var render = mf.GetComponent<MeshRenderer>();
                     render.material = _nonWireframeMaterial;
                     render.material.color = Color.white;

@@ -78,25 +78,41 @@ public class MeshSlicer : MonoBehaviour
             //posObj.transform.localScale = Vector3.one * 0.1f;
 
             var sh = nextObjectForSlice.Slice(position, transform.right * -1);
+            Debug.Log($"SH {sh != null}");
             var neededPart = sh.CreateLowerHull();
-
-            neededPart.GetComponent<MeshRenderer>().material.color = Random.ColorHSV();
-            neededPart.name = $"X_{panelIndex - 1}";
-            xSlicedMeshes.Add(neededPart);
-
             Destroy(nextObjectForSlice);
 
-            if (panelIndex + 1 == xAxisPlaneCounts)
-            {
+            Debug.Log($"neededPart {neededPart != null}");
 
+            if (neededPart != null)
+            {
+                neededPart.GetComponent<MeshRenderer>().material.color = Random.ColorHSV();
+                neededPart.name = $"X_{panelIndex - 1}";
+                xSlicedMeshes.Add(neededPart);
+
+
+                if (panelIndex + 1 == xAxisPlaneCounts)
+                {
+
+                    neededPart = sh.CreateUpperHull();
+                    neededPart.GetComponent<MeshRenderer>().material.color = Random.ColorHSV();
+                    neededPart.name = $"X_{panelIndex}";
+                    xSlicedMeshes.Add(neededPart);
+                }
+                else
+                {
+                    nextObjectForSlice = sh.CreateUpperHull();
+                }
+            }
+            else
+            {
                 neededPart = sh.CreateUpperHull();
                 neededPart.GetComponent<MeshRenderer>().material.color = Random.ColorHSV();
                 neededPart.name = $"X_{panelIndex}";
                 xSlicedMeshes.Add(neededPart);
-            }
-            else
-            {
-                nextObjectForSlice = sh.CreateUpperHull();
+
+                if (panelIndex + 1 != xAxisPlaneCounts)
+                    nextObjectForSlice = neededPart;
             }
 
         }
