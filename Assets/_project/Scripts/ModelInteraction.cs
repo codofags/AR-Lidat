@@ -16,6 +16,8 @@ public class ModelInteraction : MonoBehaviour
     private Vector2 lastTouchPosition;
     private Vector3 initialObjectPosition;
 
+    [HideInInspector] public bool CanRotate = true;
+    
     void Start()
     {
         initialObjectPosition = transform.position;
@@ -23,6 +25,9 @@ public class ModelInteraction : MonoBehaviour
 
     void Update()
     {
+        if (!CanRotate)
+            return;
+
         HandleTouchInput();
     }
 

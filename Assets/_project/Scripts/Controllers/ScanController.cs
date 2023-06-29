@@ -243,56 +243,6 @@ public class ScanController : Singleton<ScanController>
         //}
     }
 
-    private bool IsMeshInCamera(MeshFilter mFilter, Vector3 camPosition, Quaternion camRotation)
-    {
-        _checkMeshCamera.transform.localPosition = camPosition;
-        _checkMeshCamera.transform.localRotation = camRotation;
-
-        var camPlanes = GeometryUtility.CalculateFrustumPlanes(_checkMeshCamera);
-
-        var bounds = mFilter.GetComponent<MeshRenderer>().localBounds;
-        Vector3[] points = new Vector3[8];
-        points[0] = bounds.center + new Vector3(-bounds.size.x / 2, -bounds.size.y / 2, -bounds.size.z / 2);
-        points[1] = bounds.center + new Vector3(-bounds.size.x / 2, bounds.size.y / 2, -bounds.size.z / 2);
-        points[2] = bounds.center + new Vector3(bounds.size.x / 2, bounds.size.y / 2, -bounds.size.z / 2);
-        points[3] = bounds.center + new Vector3(bounds.size.x / 2, -bounds.size.y / 2, -bounds.size.z / 2);
-        points[4] = bounds.center + new Vector3(-bounds.size.x / 2, -bounds.size.y / 2, bounds.size.z / 2);
-        points[5] = bounds.center + new Vector3(-bounds.size.x / 2, bounds.size.y / 2, bounds.size.z / 2);
-        points[6] = bounds.center + new Vector3(bounds.size.x / 2, bounds.size.y / 2, bounds.size.z / 2);
-        points[7] = bounds.center + new Vector3(bounds.size.x / 2, -bounds.size.y / 2, bounds.size.z / 2);
-
-        var listcolliders = new List<SphereCollider>();
-        foreach (var point in points)
-        {
-            var go = new GameObject("point");
-
-            var tr = go.transform;
-
-            tr.parent = mFilter.transform;
-            tr.localPosition = point;
-            var col = go.AddComponent<SphereCollider>();
-            listcolliders.Add(col);
-
-            col.radius = 0.01f;
-        }
-
-        int countCollidersInFrustrum = 0;
-        foreach (var col in listcolliders)
-        {
-            if (GeometryUtility.TestPlanesAABB(camPlanes, col.bounds))
-                countCollidersInFrustrum++;
-
-            Destroy(col.gameObject);
-        }
-
-        if (countCollidersInFrustrum == 8)
-            return true;
-        else
-            return false;
-    }
-
-
-
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
     {
         foreach (var meshFilter in eventArgs.added)
@@ -419,6 +369,9 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Converting()
     {
+        var model = FindObjectOfType<ModelInteraction>();
+        model.CanRotate = false;
+        Reporter.Instance.doShow();
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         Debug.Log("WAIT 10 sec");
         yield return new WaitForSeconds(10f);
@@ -437,8 +390,10 @@ public class ScanController : Singleton<ScanController>
                     continue;
 
                 var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
+                _checkMeshCamera.transform.localPosition = camData.Position;
+                _checkMeshCamera.transform.localRotation = camData.Rotation;
                 //IsMeshInCamera(mf, camData.Position, camData.Rotation))
-                if (mf.IsMeshFullyInCamera(_checkMeshCamera, camData.Position, camData.Rotation))
+                if (_checkMeshCamera.IsMeshFullyIn(mf))
                 {
                     mf.GenerateUV(_checkMeshCamera, camData.Texture);
                     var render = mf.GetComponent<MeshRenderer>();
@@ -466,6 +421,7 @@ public class ScanController : Singleton<ScanController>
             }
         }
 
+        model.CanRotate = true;
 
     }
 
