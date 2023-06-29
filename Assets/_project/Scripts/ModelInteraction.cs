@@ -40,6 +40,8 @@ public class ModelInteraction : MonoBehaviour
             {
                 Vector2 delta = touch.position - lastTouchPosition;
                 transform.Rotate(Vector3.up, -delta.x * rotationSpeed, Space.World);
+                transform.Rotate(Vector3.right, delta.y * rotationSpeed, Space.World);
+
                 lastTouchPosition = touch.position;
             }
             else if (touch.phase == TouchPhase.Ended)
@@ -81,7 +83,7 @@ public class ModelInteraction : MonoBehaviour
                     //else
                     //    transform.localScale += newScale;
 
-                    var newFov = _camera.fieldOfView + scaleAmount;
+                    var newFov = _camera.fieldOfView - scaleAmount;
                     newFov = Mathf.Clamp(newFov, 10f, 120f);
                     _camera.fieldOfView = newFov;
 

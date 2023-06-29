@@ -292,7 +292,6 @@ public class ScanController : Singleton<ScanController>
     }
 
 
-  
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
     {
@@ -438,7 +437,8 @@ public class ScanController : Singleton<ScanController>
                     continue;
 
                 var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
-                if (IsMeshInCamera(mf, camData.Position, camData.Rotation))
+                //IsMeshInCamera(mf, camData.Position, camData.Rotation))
+                if (mf.IsMeshFullyInCamera(_checkMeshCamera, camData.Position, camData.Rotation))
                 {
                     mf.GenerateUV(_checkMeshCamera);
                     var render = mf.GetComponent<MeshRenderer>();
@@ -448,11 +448,25 @@ public class ScanController : Singleton<ScanController>
 
                     mf.name = $"Handled_{mf.name}";
                     ++handledCount;
+                    handledMeshes.Add(mf.gameObject);
                 }
             }
 
             Debug.Log($"CamData {camData.Id}: {handledCount} handled");
         }
+
+        var another = _slicedMeshes.Where(mesh => !mesh.name.StartsWith("Handled"));
+
+        if (another != null && another.Count() > 0)
+        {
+            foreach( var mesh in another)
+            {
+                Debug.Log($"NOT CAM FOR MESH {mesh.name}");
+                mesh.GetComponent<MeshRenderer>().material.color = Color.magenta;
+            }
+        }
+
+
     }
 
     public void SetTextures()
