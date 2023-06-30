@@ -9,7 +9,6 @@ public class InputFieldController : MonoBehaviour
 
     private void Start()
     {
-        inputField = GetComponent<TMP_InputField>();
         // Добавляем обработчик события изменения значения в InputField
         inputField.onValueChanged.AddListener(OnInputFieldValueChanged);
         
