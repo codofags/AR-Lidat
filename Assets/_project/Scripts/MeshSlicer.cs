@@ -247,7 +247,7 @@ public class MeshSlicer : MonoBehaviour
         #endregion
 
 
-        Debug.Log("DONE");
+        Debug.Log("DONE-1");
 
         foreach (var m in ySlicedMeshes)
         {
@@ -257,6 +257,8 @@ public class MeshSlicer : MonoBehaviour
 
             mf.mesh = mesh;
         }
+
+        Debug.Log("DONE-2");
 
         return ySlicedMeshes;
     }

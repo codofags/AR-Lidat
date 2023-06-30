@@ -210,6 +210,11 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
+
+        var model = FindObjectOfType<ModelInteraction>();
+        if (model != null)
+            model.CanRotate = true;
+
         //Debug.Log("WAIT 10 sec");
         //yield return new WaitForSeconds(10f);
 
@@ -424,7 +429,7 @@ public class ScanController : Singleton<ScanController>
         }
 
         model.CanRotate = true;
-
+        Debug.Log("DONE Converting");
     }
 
     public void SetTextures()
