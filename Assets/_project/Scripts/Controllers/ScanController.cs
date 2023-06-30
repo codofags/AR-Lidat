@@ -215,6 +215,7 @@ public class ScanController : Singleton<ScanController>
         if (model != null)
             model.CanRotate = true;
 
+        Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
         //Debug.Log("WAIT 10 sec");
         //yield return new WaitForSeconds(10f);
 
@@ -424,7 +425,9 @@ public class ScanController : Singleton<ScanController>
             foreach( var mesh in another)
             {
                 Debug.Log($"NOT CAM FOR MESH {mesh.name}");
-                mesh.GetComponent<MeshRenderer>().material.color = Color.magenta;
+                var renderer = mesh.GetComponent<MeshRenderer>();
+                renderer.material.color = Color.magenta;
+                renderer.enabled = false;
             }
         }
 
