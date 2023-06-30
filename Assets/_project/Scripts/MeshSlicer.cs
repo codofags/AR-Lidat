@@ -249,6 +249,14 @@ public class MeshSlicer : MonoBehaviour
 
         Debug.Log("DONE");
 
+        foreach (var m in ySlicedMeshes)
+        {
+            var mf = m.GetComponent<MeshFilter>();
+            var o_mesh = mf.mesh;
+            var mesh = o_mesh.Extract(0);
+
+            mf.mesh = mesh;
+        }
 
         return ySlicedMeshes;
     }

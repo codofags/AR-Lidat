@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class MeshFilterExtensions
 {
@@ -129,5 +130,36 @@ public static class MeshFilterExtensions
         }
 
         return true;
+    }
+    public static Mesh Extract(this Mesh m, int meshIndex)
+    {
+        var vertices = m.vertices;
+        var normals = m.normals;
+
+        var newVerts = new List<Vector3>();
+        var newNorms = new List<Vector3>();
+        var newTris = new List<int>();
+        var triangles = m.GetTriangles(meshIndex);
+        for (var i = 0; i < triangles.Length; i += 3)
+        {
+            var A = triangles[i + 0];
+            var B = triangles[i + 1];
+            var C = triangles[i + 2];
+            newVerts.Add(vertices[A]);
+            newVerts.Add(vertices[B]);
+            newVerts.Add(vertices[C]);
+            newNorms.Add(normals[A]);
+            newNorms.Add(normals[B]);
+            newNorms.Add(normals[C]);
+            newTris.Add(newTris.Count);
+            newTris.Add(newTris.Count);
+            newTris.Add(newTris.Count);
+        }
+        var mesh = new Mesh();
+        mesh.indexFormat = newVerts.Count > 65536 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
+        mesh.SetVertices(newVerts);
+        mesh.SetNormals(newNorms);
+        mesh.SetTriangles(newTris, 0, true);
+        return mesh;
     }
 }
