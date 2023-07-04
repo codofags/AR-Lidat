@@ -17,6 +17,11 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         TextureGetter.Instance.Initialize(OnTextureGetted);
     }
 
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+    }
+
     public void StartSaving()
     {
         Debug.Log("StartSaving");

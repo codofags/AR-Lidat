@@ -30,6 +30,8 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private MeshFilter[] TestMeshes;
 
     private List<GameObject> _slicedMeshes = new List<GameObject>();
+    private Vector3 _initPos;
+    private Quaternion _initRot;
 
     protected override void Awake()
     {
@@ -210,6 +212,10 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
+        var meshesGOs = _slicedMeshes.Select(mesh => mesh.GetComponent<MeshFilter>()).ToList();
+        var mesh = CombineMeshes(meshesGOs);
+        _initPos = mesh.transform.position;
+        _initRot = mesh.transform.rotation;
 
         var model = FindObjectOfType<ModelInteraction>();
         if (model != null)
