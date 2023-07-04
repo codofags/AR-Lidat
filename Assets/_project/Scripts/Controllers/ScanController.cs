@@ -138,7 +138,6 @@ public class ScanController : Singleton<ScanController>
     IEnumerator Stopping()
     {
         yield return new WaitForSeconds(1);
-        Reporter.Instance.doShow();
 
         Debug.Log(_arMeshManager == null);
         //UIController.Instance.HideUI();
@@ -330,8 +329,6 @@ public class ScanController : Singleton<ScanController>
 
         yield return StartCoroutine(ConvertMeshes());
         yield return null;
-
-        Reporter.Instance.doShow();
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         Debug.Log("WAIT 10 sec");
         yield return new WaitForSeconds(10f);
@@ -453,5 +450,10 @@ public class ScanController : Singleton<ScanController>
     public void Restart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void OpenConsole()
+    {
+        Reporter.Instance.doShow();
     }
 }
