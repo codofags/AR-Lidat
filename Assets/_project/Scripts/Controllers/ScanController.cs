@@ -188,6 +188,11 @@ public class ScanController : Singleton<ScanController>
         }
 
         Debug.Log("step 4");
+        var combinedObject = CombineMeshes(_arMeshManager.meshes);
+        foreach (var meshFilter in _arMeshManager.meshes)
+        {
+            meshFilter.gameObject.SetActive(false);
+        }
 
         _arCameraManager.enabled = false;
         _modelViewer.gameObject.SetActive(true);
@@ -229,7 +234,6 @@ public class ScanController : Singleton<ScanController>
 
         Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
 
-        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_TEXT);
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -393,7 +397,7 @@ public class ScanController : Singleton<ScanController>
         if (model != null)
             model.IsInteractable = true;
 
-
+        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_TEXT);
         UIController.Instance.ShowExportPanel();
         Debug.Log("DONE Converting");
     }
