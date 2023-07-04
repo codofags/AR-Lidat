@@ -32,6 +32,11 @@ public class UIController : Singleton<UIController>
         _viewerPanel.gameObject.SetActive(true);
     }
 
+    public void HideViewer()
+    {
+        _viewerPanel.gameObject.SetActive(false);
+    }
+
     public void ShowExportPanel()
     {
         _viewerPanel.gameObject.SetActive(false);

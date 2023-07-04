@@ -326,6 +326,8 @@ public class ScanController : Singleton<ScanController>
     public void ConvertToModel()
     {
         //SetTextures();
+
+        UIController.Instance.HideViewer();
         StartCoroutine(Converting());
     }
 
@@ -390,6 +392,9 @@ public class ScanController : Singleton<ScanController>
         }
         if (model != null)
             model.IsInteractable = true;
+
+
+        UIController.Instance.ShowExportPanel();
         Debug.Log("DONE Converting");
     }
 
