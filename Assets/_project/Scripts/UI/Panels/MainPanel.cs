@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.ARFoundation;
 
 namespace ScanAR.UI
 {
@@ -10,11 +11,21 @@ namespace ScanAR.UI
         [SerializeField] private Slider _sliderFOV;
 
 
+        private ARCameraManager arCameraManager;
+
         private void Awake()
         {
             _recordBtn.onClick.AddListener(OnRecordBtnClick);
             _stopBtn.onClick.AddListener(OnStopBtnClick);
             _sliderFOV.onValueChanged.AddListener(SetFOV);
+        }
+
+        private void Start()
+        {
+            if (arCameraManager == null)
+            {
+                arCameraManager = FindObjectOfType<ARCameraManager>();
+            }
         }
 
         private void OnDestroy()
@@ -46,7 +57,7 @@ namespace ScanAR.UI
 
         private void SetFOV(float value)
         {
-            Camera.main.fieldOfView = value;
+            arCameraManager.GetComponent<Camera>().fieldOfView
         }
     }
 }
