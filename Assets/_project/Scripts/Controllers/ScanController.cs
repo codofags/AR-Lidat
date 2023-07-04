@@ -36,6 +36,7 @@ public class ScanController : Singleton<ScanController>
     protected override void Awake()
     {
         base.Awake();
+        _isScanning = false;
         _getScreenTimeTemp = _getScreenTime;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
@@ -49,6 +50,7 @@ public class ScanController : Singleton<ScanController>
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
+        _arMeshManager.meshes.Clear();
     }
 
     private void Update()
@@ -142,14 +144,13 @@ public class ScanController : Singleton<ScanController>
         if (_arMeshManager != null)
             _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
-        //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+        XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
-        //if (arMeshSubsystem != null)
-        //{
-        //    arMeshSubsystem.Stop();
-        //    _isScanning = false;
-        //}
-
+        if (arMeshSubsystem != null)
+        {
+            arMeshSubsystem.Stop();
+            _isScanning = false;
+        }
 
         Debug.Log("step 1");
 
@@ -182,15 +183,17 @@ public class ScanController : Singleton<ScanController>
 
         Debug.Log("step 4");
 
-        yield return new WaitForSeconds(1f);
         _arCameraManager.enabled = false;
         _modelViewer.gameObject.SetActive(true);
         UIController.Instance.ShowViewerPanel();
 
+        var model = FindObjectOfType<ThirdPersonCamera>();
+        if (model != null)
+            model.IsInteractable = true;
+    }
 
-        Debug.Log("WAIT 5 sec");
-        yield return new WaitForSeconds(5f);
-
+    private IEnumerator ConvertMeshes()
+    {
         Debug.Log("step 5");
 
         var combinedObject = CombineMeshes(_arMeshManager.meshes);
@@ -217,43 +220,8 @@ public class ScanController : Singleton<ScanController>
         _initPos = mesh.transform.position;
         _initRot = mesh.transform.rotation;
 
-        var model = FindObjectOfType<ModelInteraction>();
-        if (model != null)
-            model.CanRotate = true;
 
         Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
-        //Debug.Log("WAIT 10 sec");
-        //yield return new WaitForSeconds(10f);
-
-        //var handledMeshes = new List<GameObject>();
-
-        //foreach (var camData in cameraDatas)
-        //{
-        //    if (slicedMeshes.Count == 0)
-        //        break;
-
-        //    int handledCount = 0;
-        //    for (int i = 0; i < slicedMeshes.Count; ++i)
-        //    {
-        //        if (slicedMeshes[i].name.StartsWith("Handled"))
-        //            continue;
-
-        //        var mf = slicedMeshes[i].GetComponent<MeshFilter>();
-        //        if (IsMeshInCamera(mf, camData.Position, camData.Rotation))
-        //        {
-        //            mf.GenerateUV(_checkMeshCamera);
-        //            var render = mf.GetComponent<MeshRenderer>();
-        //            render.material = _nonWireframeMaterial;
-        //            render.material.color = Color.white;
-        //            render.material.SetTexture("_BaseMap", camData.Texture);
-
-        //            mf.name = $"Handled_{mf.name}";
-        //            ++handledCount;
-        //        }
-        //    }
-
-        //    Debug.Log($"CamData {camData.Id}: {handledCount} handled");
-        //}
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
@@ -281,33 +249,6 @@ public class ScanController : Singleton<ScanController>
         Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
         SaveCameraTextureToMesh(meshFilter);
     }
-
-    //private MeshFilter CreateMesh(MeshFilter meshFilter)
-    //{
-    //    var mesh = meshFilter.mesh;
-    //    // Получение вершин меша
-    //    Vector3[] vertices = new Vector3[mesh.vertices.Length];
-    //    mesh.vertices.CopyTo(vertices, 0);
-
-    //    // Получение треугольников меша
-    //    int[] triangles = new int[mesh.triangles.Length];
-    //    mesh.triangles.CopyTo(triangles, 0);
-
-    //    GameObject meshObject = Instantiate(meshPrefab, Vector3.zero, Quaternion.identity);
-
-    //    // Передача данных меша объекту
-    //    Mesh meshComponent = new Mesh();
-    //    meshComponent.vertices = vertices;
-    //    meshComponent.triangles = triangles;
-    //    meshObject.GetComponent<MeshFilter>().mesh = meshComponent;
-    //    meshObject.GetComponent<MeshRenderer>().material = meshPrefab.GetComponent<MeshRenderer>().sharedMaterial;
-
-    //    // Расположение объекта в пространстве
-    //    meshObject.transform.position = meshFilter.transform.position;
-    //    meshObject.transform.rotation = meshFilter.transform.rotation;
-    //    meshObject.transform.localScale = Vector3.one;
-    //    return 
-    //}
 
     private void UpdateMeshObject(MeshFilter meshFilter)
     {
@@ -382,8 +323,13 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Converting()
     {
-        var model = FindObjectOfType<ModelInteraction>();
-        model.CanRotate = false;
+        var model = FindObjectOfType<ThirdPersonCamera>();
+        if (model != null)
+            model.IsInteractable = false;
+
+        yield return StartCoroutine(ConvertMeshes());
+        yield return null;
+
         Reporter.Instance.doShow();
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         Debug.Log("WAIT 10 sec");
@@ -436,8 +382,8 @@ public class ScanController : Singleton<ScanController>
                 renderer.enabled = false;
             }
         }
-
-        model.CanRotate = true;
+        if (model != null)
+            model.IsInteractable = true;
         Debug.Log("DONE Converting");
     }
 

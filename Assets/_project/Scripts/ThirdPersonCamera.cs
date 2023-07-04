@@ -15,6 +15,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
     public float MoveSpeed { get => movementSpeed; set => movementSpeed = value; }
     public float ZoomSpeed { get => zoomSpeed; set => zoomSpeed = value; }
+    public bool IsInteractable = false;
 
     private Vector3 offset;
 
@@ -30,6 +31,8 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!IsInteractable) return;
+
         if (Input.touchCount == 1)
         {
             Touch touch = Input.GetTouch(0);
