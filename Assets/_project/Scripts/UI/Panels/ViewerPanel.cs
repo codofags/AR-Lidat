@@ -17,7 +17,7 @@ public class ViewerPanel : MonoBehaviour
     private void OnConvertClick()
     {
         //todo Начать скан местности
+        
         ScanController.Instance.ConvertToModel();
-        UIController.Instance.ShowExportPanel();
     }
 }

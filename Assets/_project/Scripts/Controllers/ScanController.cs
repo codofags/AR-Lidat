@@ -143,8 +143,6 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Stopping()
     {
-        yield return new WaitForSeconds(1);
-
         Debug.Log(_arMeshManager == null);
         //UIController.Instance.HideUI();
         if (_arMeshManager != null)
@@ -157,6 +155,8 @@ public class ScanController : Singleton<ScanController>
             arMeshSubsystem.Stop();
             _isScanning = false;
         }
+
+        yield return new WaitForSeconds(1);
 
         Debug.Log("step 1");
 
@@ -201,6 +201,8 @@ public class ScanController : Singleton<ScanController>
         var model = FindObjectOfType<ThirdPersonCamera>();
         if (model != null)
             model.IsInteractable = true;
+
+        yield return StartCoroutine(ConvertMeshes());
     }
 
     private IEnumerator ConvertMeshes()
@@ -341,7 +343,6 @@ public class ScanController : Singleton<ScanController>
         if (model != null)
             model.IsInteractable = false;
 
-        yield return StartCoroutine(ConvertMeshes());
         yield return null;
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         Debug.Log("WAIT 10 sec");
