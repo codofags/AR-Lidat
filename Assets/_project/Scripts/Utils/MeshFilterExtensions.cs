@@ -38,6 +38,7 @@ public static class MeshFilterExtensions
 
         Vector2[] textureCoordinates = CalcTextureCoordinates(mesh, meshFilter.transform.localToWorldMatrix, camera, texture);
         mesh.uv = textureCoordinates;
+        mesh.RecalculateBounds();
         meshFilter.mesh = mesh;
     }
 
