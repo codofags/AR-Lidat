@@ -5,9 +5,16 @@ using UnityEngine;
 
 public class UIController : Singleton<UIController>
 {
+    [field: SerializeField] public InfoPanel InfoPanel { get; private set; }
     [SerializeField] private MainPanel _mainPanel;
     [SerializeField] private ViewerPanel _viewerPanel;
     [SerializeField] private ExportPanel _exportPanel;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        InfoPanel.Hide();
+    }
 
     public void ShowUI()
     {

@@ -33,6 +33,10 @@ public class ScanController : Singleton<ScanController>
     private Vector3 _initPos;
     private Quaternion _initRot;
 
+    private static string SCAN_TEXT = "СКАНИРОВАНИЕ";
+    private static string MESH_CONVERT_TEXT = "Создание Mesh.\r\nСтатус: сгенерирован";
+    private static string MESH_TEXTURE_TEXT = "Наложение текстур.\r\nСтатус: не экспортировано";
+
     protected override void Awake()
     {
         base.Awake();
@@ -63,6 +67,7 @@ public class ScanController : Singleton<ScanController>
     {
         if (!_isScanning)
         {
+            UIController.Instance.InfoPanel.Show(SCAN_TEXT);
             _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
 
@@ -99,6 +104,7 @@ public class ScanController : Singleton<ScanController>
     {
         if (_isScanning)
         {
+            UIController.Instance.InfoPanel.Show(MESH_CONVERT_TEXT);
             CameraPositionSaver.Instance.StopSaving();
 
             StartCoroutine(Stopping());
@@ -222,6 +228,8 @@ public class ScanController : Singleton<ScanController>
 
 
         Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
+
+        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_TEXT);
     }
 
     private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)

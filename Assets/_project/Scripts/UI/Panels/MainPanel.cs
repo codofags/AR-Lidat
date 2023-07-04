@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace ScanAR.UI
@@ -12,17 +7,21 @@ namespace ScanAR.UI
     {
         [SerializeField] private Button _recordBtn;
         [SerializeField] private Button _stopBtn;
+        [SerializeField] private Slider _sliderFOV;
+
 
         private void Awake()
         {
             _recordBtn.onClick.AddListener(OnRecordBtnClick);
             _stopBtn.onClick.AddListener(OnStopBtnClick);
+            _sliderFOV.onValueChanged.AddListener(SetFOV);
         }
 
         private void OnDestroy()
         {
             _recordBtn.onClick.RemoveAllListeners();
             _stopBtn.onClick.RemoveAllListeners();
+            _sliderFOV.onValueChanged.RemoveListener(SetFOV);
         }
 
         private void OnRecordBtnClick()
@@ -43,6 +42,11 @@ namespace ScanAR.UI
         {
             _recordBtn.gameObject.SetActive(!_recordBtn.gameObject.activeSelf);
             _stopBtn.gameObject.SetActive(!_stopBtn.gameObject.activeSelf);
+        }
+
+        private void SetFOV(float value)
+        {
+            Camera.main.fieldOfView = value;
         }
     }
 }
