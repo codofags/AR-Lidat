@@ -10,19 +10,19 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] private float maxVerticalAngle = 80f;
     [SerializeField] private float rotationSpeed = 3f;
     [SerializeField] private float damping = 5f;
-    [SerializeField] private float zoomSpeed = 5f;
     [SerializeField] private float movementSpeed = 5f;
+    [SerializeField] private float zoomSpeed = 5f; // Скорость масштабирования
 
     public float MoveSpeed { get => movementSpeed; set => movementSpeed = value; }
-    public float ZoomSpeed { get => zoomSpeed; set => zoomSpeed = value; }
     public bool IsInteractable = false;
-
     private Vector3 offset;
 
     private float currentX = 0f;
     private float currentY = 0f;
 
-    private Vector2 lastTouchPosition;
+    private bool isMoving = false;
+    private Vector2 initialTouchPosition;
+    private float initialDistance; // Изначальное расстояние между пальцами
 
     private void Start()
     {
@@ -50,27 +50,42 @@ public class ThirdPersonCamera : MonoBehaviour
             Touch touch1 = Input.GetTouch(0);
             Touch touch2 = Input.GetTouch(1);
 
-            if (touch2.phase == TouchPhase.Moved)
-            {
-                float prevDistance = Vector2.Distance(touch1.position - touch1.deltaPosition, touch2.position - touch2.deltaPosition);
-                float currentDistance = Vector2.Distance(touch1.position, touch2.position);
-
-                float deltaDistance = currentDistance - prevDistance;
-                float zoomAmount = deltaDistance * zoomSpeed;
-
-                distance -= zoomAmount;
-                distance = Mathf.Clamp(distance, minDistance, maxDistance);
-            }
-
             if (touch1.phase == TouchPhase.Moved && touch2.phase == TouchPhase.Moved)
             {
-                Vector2 touchDelta = touch1.deltaPosition - touch2.deltaPosition;
+                if (!isMoving)
+                {
+                    initialTouchPosition = (touch1.position + touch2.position) / 2f;
+                    initialDistance = Vector2.Distance(touch1.position, touch2.position);
+                    isMoving = true;
+                }
+                else
+                {
+                    Vector2 currentTouchPosition = (touch1.position + touch2.position) / 2f;
+                    Vector2 touchDelta = currentTouchPosition - initialTouchPosition;
 
-                Vector3 moveDirection = new Vector3(touchDelta.x, 0f, touchDelta.y) * movementSpeed * Time.deltaTime;
-                moveDirection = Quaternion.Euler(0f, currentX, 0f) * moveDirection;
+                    Vector3 moveDirection = Quaternion.Euler(0f, currentX, 0f) * new Vector3(touchDelta.x, 0f, touchDelta.y) * movementSpeed * Time.deltaTime;
 
-                target.position += moveDirection;
-                transform.position += moveDirection;
+                    // Исправление направления движения вверх и вниз относительно поворота камеры
+                    Vector3 verticalOffset = Quaternion.Euler(currentY, currentX, 0f) * Vector3.up * touchDelta.y * movementSpeed * Time.deltaTime;
+
+                    target.position += verticalOffset;
+                    transform.position += verticalOffset;
+
+                    target.position += moveDirection;
+                    transform.position += moveDirection;
+
+                    initialTouchPosition = currentTouchPosition;
+
+                    // Масштабирование при отдалении и сближении пальцев
+                    float currentDistance = Vector2.Distance(touch1.position, touch2.position);
+                    float zoomDelta = currentDistance - initialDistance;
+                    float zoomAmount = zoomDelta * zoomSpeed * Time.deltaTime;
+                    distance = Mathf.Clamp(distance - zoomAmount, minDistance, maxDistance);
+                }
+            }
+            else
+            {
+                isMoving = false;
             }
         }
 

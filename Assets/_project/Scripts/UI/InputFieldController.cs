@@ -22,8 +22,8 @@ public class InputFieldController : MonoBehaviour
             {
                 case 0:
                     inputField.text = model.MoveSpeed.ToString(); break;
-                    case 1:
-                    inputField.text = model.ZoomSpeed.ToString(); break;
+                    //case 1:
+                    //inputField.text = model.ZoomSpeed.ToString(); break;
                     //case 2:
                     //inputField.text = model.MoveSpeed.ToString(); break;
                     //case 3:
@@ -47,8 +47,8 @@ public class InputFieldController : MonoBehaviour
             {
                 case 0:
                     model.MoveSpeed = floatValue; break;
-                case 1:
-                    model.ZoomSpeed = floatValue; break;
+                //case 1:
+                //    model.ZoomSpeed = floatValue; break;
                     //case 2:
                     //inputField.text = model.MoveSpeed.ToString(); break;
                     //case 3:

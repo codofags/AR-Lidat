@@ -50,7 +50,8 @@ public class ScanController : Singleton<ScanController>
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
-        _arMeshManager.meshes.Clear();
+        if (_arMeshManager.meshes != null && _arMeshManager.meshes.Count > 0)
+            _arMeshManager.meshes.Clear();
     }
 
     private void Update()
