@@ -53,12 +53,17 @@ public class ScanController : Singleton<ScanController>
 
     private void OnEnable()
     {
-        _arMeshManager.meshesChanged += OnMeshesChanged;
+        //_arMeshManager.meshesChanged += OnMeshesChanged;
     }
 
     private void OnDisable()
     {
-        _arMeshManager.meshesChanged -= OnMeshesChanged;
+        //_arMeshManager.meshesChanged -= OnMeshesChanged;
+    }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
     }
 
     private void Update()
@@ -82,6 +87,7 @@ public class ScanController : Singleton<ScanController>
                 CameraPositionSaver.Instance.StartSaving();
                 Debug.Log("Scan START");
             }
+            StartCoroutine(Scaning());
         }
     }
 
@@ -93,20 +99,13 @@ public class ScanController : Singleton<ScanController>
             yield break;
 
         ScanStop();
-        //var sccreenShot = ScreenCapture.CaptureScreenshotAsTexture();
-        //yield return new WaitForSeconds(2f);
-        //foreach (var meshFilter in _arMeshManager.meshes)
-        //{
-        //    meshFilter.GetComponent<MeshRenderer>().enabled = true;
-        //    meshFilter.TextureMesh(sccreenShot);
-        //}
-        Debug.Log("Done");
     }
 
     public void ScanStop()
     {
         if (_isScanning)
         {
+            UIController.Instance.Fade.enabled = true;
             UIController.Instance.InfoPanel.Show(MESH_CONVERT_START_TEXT);
             _checkMeshCamera.fieldOfView = _arCameraManager.GetComponent<Camera>().fieldOfView;
             CameraPositionSaver.Instance.StopSaving();
@@ -194,111 +193,19 @@ public class ScanController : Singleton<ScanController>
 
         _modelViewer.gameObject.SetActive(true);
         UIController.Instance.ShowViewerPanel();
-
+        UIController.Instance.InfoPanel.Show(MESH_CONVERT_END_TEXT);
+        UIController.Instance.Fade.enabled = false;
         var model = FindObjectOfType<ThirdPersonCamera>();
+
         if (model != null)
             model.IsInteractable = true;
 
-        UIController.Instance.InfoPanel.Show(MESH_CONVERT_END_TEXT);
         Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
-
-    }
-
-    private void OnMeshesChanged(ARMeshesChangedEventArgs eventArgs)
-    {
-        foreach (var meshFilter in eventArgs.added)
-        {
-            //CreateMeshObject(meshFilter);
-            //meshFilter.GetComponent<MeshRenderer>().material.color = Color.green;
-        }
-
-        foreach (var meshFilter in eventArgs.updated)
-        {
-            //UpdateMeshObject(meshFilter);
-            //meshFilter.GetComponent<MeshRenderer>().material.color = Random.ColorHSV();
-        }
-
-        foreach (var meshFilter in eventArgs.removed)
-        {
-            //RemoveMeshObject(meshFilter);
-        }
-    }
-
-    private void CreateMeshObject(MeshFilter meshFilter)
-    {
-        Debug.Log($"Mesh create. {_arMeshManager.meshes.Count}");
-        SaveCameraTextureToMesh(meshFilter);
-    }
-
-    private void UpdateMeshObject(MeshFilter meshFilter)
-    {
-        _getScreenTimeTemp += Time.deltaTime;
-        if (_getScreenTimeTemp >= _getScreenTime)
-        {
-            SaveCameraTextureToMesh(meshFilter);
-            _getScreenTimeTemp = 0f;
-        }
-
-        if (meshFilter == null)
-        {
-            Debug.LogError("Missing MeshFilter component.");
-            return;
-        }
-    }
-
-    private void RemoveMeshObject(MeshFilter meshFilter)
-    {
-        if (meshFilter == null)
-        {
-            Debug.LogError("Missing MeshFilter component.");
-            return;
-        }
-
-        var data = _datas.FirstOrDefault(data => data.MeshFilter == meshFilter);
-        if (data != null)
-            _datas.Remove(data);
-
-        Destroy(meshFilter.gameObject);
-    }
-
-    IEnumerator SaveScreen(MeshFilter meshFilter)
-    {
-        ToogleMeshes(false);
-        UIController.Instance.HideUI();
-        var screenShoot = ScreenCapture.CaptureScreenshotAsTexture();
-
-        yield return new WaitForEndOfFrame();
-        yield return new WaitForEndOfFrame();
-        var data = _datas.FirstOrDefault((data) => data.MeshFilter == meshFilter);
-        if (data != null)
-        {
-            data.Texture = screenShoot;
-            Debug.Log("Update Screen");
-        }
-        else
-        {
-            data = new MeshData(meshFilter, screenShoot);
-            Debug.Log("Create Screen");
-            _datas.Add(data);
-        }
-
-
-        UIController.Instance.ShowUI();
-        ToogleMeshes(true);
-        _scanning = null;
-    }
-
-    private void SaveCameraTextureToMesh(MeshFilter meshFilter)
-    {
-        Debug.Log("Save Screen");
-        if (_scanning == null)
-            _scanning = StartCoroutine(SaveScreen(meshFilter));
     }
 
     public void ConvertToModel()
     {
-        //SetTextures();
-
+        UIController.Instance.Fade.enabled = true;
         UIController.Instance.InfoPanel.Show(MESH_TEXTURE_START_TEXT);
         UIController.Instance.HideViewer();
         StartCoroutine(Converting());
@@ -331,11 +238,9 @@ public class ScanController : Singleton<ScanController>
                 var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
                 _checkMeshCamera.transform.localPosition = camData.Position;
                 _checkMeshCamera.transform.localRotation = camData.Rotation;
-                //IsMeshInCamera(mf, camData.Position, camData.Rotation))
                 if (_checkMeshCamera.IsMeshFullyIn(mf))
                 {
                     mf.GenerateUV(_checkMeshCamera, camData.Texture);
-                    //mf.GenerateUV_2(_checkMeshCamera, camData.Texture);
                     var render = mf.GetComponent<MeshRenderer>();
                     render.material = _nonWireframeMaterial;
                     render.material.color = Color.white;
@@ -368,37 +273,10 @@ public class ScanController : Singleton<ScanController>
 
         UIController.Instance.InfoPanel.Show(MESH_TEXTURE_END_TEXT);
         UIController.Instance.ShowExportPanel();
+        UIController.Instance.Fade.enabled = false;
+
         Debug.Log("DONE Converting");
     }
-
-    public void SetTextures()
-    {
-        if (_datas == null || _datas.Count == 0)
-        {
-            Debug.Log("No DATAS");
-            return;
-        }
-
-        Debug.Log($"Convert Meshes: {_arMeshManager.meshes.Count}. Datas: {_datas.Count}");
-        foreach (var data in _datas)
-        {
-            data.MeshFilter.TexturedMesh(data.Texture);
-        }
-    }
-
-    private void ToogleMeshes(bool activate)
-    {
-        //_console.enabled = activate;
-        if (_arMeshManager.meshes == null || _arMeshManager.meshes.Count <= 0)
-            return;
-
-        foreach (var mesh in _arMeshManager.meshes)
-        {
-            mesh.GetComponent<MeshRenderer>().enabled = activate;
-        }
-    }
-
-
 
     private MeshFilter CombineMeshes(IList<MeshFilter> meshFilters)
     {
@@ -435,6 +313,18 @@ public class ScanController : Singleton<ScanController>
 
     public void Restart()
     {
+        ARSession session = FindObjectOfType<ARSession>();
+
+        if (session != null)
+        {
+            session.Reset();
+            session.enabled = true;
+        }
+
+        if (_arMeshManager.meshes.Count > 0)
+        {
+            _arMeshManager.meshes.Clear();
+        }
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

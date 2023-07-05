@@ -2,6 +2,7 @@ using ScanAR.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIController : Singleton<UIController>
 {
@@ -9,6 +10,7 @@ public class UIController : Singleton<UIController>
     [SerializeField] private MainPanel _mainPanel;
     [SerializeField] private ViewerPanel _viewerPanel;
     [SerializeField] private ExportPanel _exportPanel;
+    [field: SerializeField] public Image Fade { get; private set; }
 
     protected override void Awake()
     {
