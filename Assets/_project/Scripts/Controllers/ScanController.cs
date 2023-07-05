@@ -33,9 +33,9 @@ public class ScanController : Singleton<ScanController>
     private Vector3 _initPos;
     private Quaternion _initRot;
 
-    private static string SCAN_TEXT = "СКАНИРОВАНИЕ";
-    private static string MESH_CONVERT_TEXT = "Создание Mesh.\r\nСтатус: сгенерирован";
-    private static string MESH_TEXTURE_TEXT = "Наложение текстур.\r\nСтатус: не экспортировано";
+    private static string SCAN_TEXT = "SCANNING";
+    private static string MESH_CONVERT_TEXT = "Creating a Mesh.\r\nStatus: Generated";
+    private static string MESH_TEXTURE_TEXT = "Texture Overlay.\r\nStatus: Not exported";
 
     protected override void Awake()
     {
@@ -44,6 +44,9 @@ public class ScanController : Singleton<ScanController>
         _getScreenTimeTemp = _getScreenTime;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
+
+        if (_arMeshManager.meshes != null && _arMeshManager.meshes.Count > 0)
+            _arMeshManager.meshes.Clear();
     }
 
     private void OnEnable()
@@ -54,8 +57,6 @@ public class ScanController : Singleton<ScanController>
     private void OnDisable()
     {
         _arMeshManager.meshesChanged -= OnMeshesChanged;
-        if (_arMeshManager.meshes != null && _arMeshManager.meshes.Count > 0)
-            _arMeshManager.meshes.Clear();
     }
 
     private void Update()
@@ -187,6 +188,8 @@ public class ScanController : Singleton<ScanController>
             newCameraView.localScale = Vector3.one * 0.1f;
         }
 
+        yield return new WaitForSeconds(1f);
+
         Debug.Log("step 4");
         var combinedObject = CombineMeshes(_arMeshManager.meshes);
         foreach (var meshFilter in _arMeshManager.meshes)
@@ -195,12 +198,6 @@ public class ScanController : Singleton<ScanController>
         }
 
         _arCameraManager.enabled = false;
-        _modelViewer.gameObject.SetActive(true);
-        UIController.Instance.ShowViewerPanel();
-
-        var model = FindObjectOfType<ThirdPersonCamera>();
-        if (model != null)
-            model.IsInteractable = true;
 
         yield return StartCoroutine(ConvertMeshes());
     }
@@ -234,6 +231,12 @@ public class ScanController : Singleton<ScanController>
         _initRot = mesh.transform.rotation;
 
 
+        _modelViewer.gameObject.SetActive(true);
+        UIController.Instance.ShowViewerPanel();
+
+        var model = FindObjectOfType<ThirdPersonCamera>();
+        if (model != null)
+            model.IsInteractable = true;
         Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
 
     }

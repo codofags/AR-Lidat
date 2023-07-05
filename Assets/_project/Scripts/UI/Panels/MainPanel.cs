@@ -57,7 +57,7 @@ namespace ScanAR.UI
 
         private void SetFOV(float value)
         {
-            arCameraManager.GetComponent<Camera>().fieldOfView
+            arCameraManager.GetComponent<Camera>().fieldOfView = value;
         }
     }
 }
