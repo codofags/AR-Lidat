@@ -3,25 +3,6 @@ using UnityEngine;
 
 public static class MeshFilterExtensions
 {
-    public static void GenerateUV(this MeshFilter meshFilter, Camera camera)
-    {
-        Debug.Log("Generate UV");
-        Mesh mesh = new Mesh();
-
-        Vector3[] vertices = meshFilter.mesh.vertices;
-        Vector3[] normals = meshFilter.mesh.normals;
-        int[] faces = meshFilter.mesh.triangles;
-
-        mesh.vertices = vertices;
-        mesh.normals = normals;
-        mesh.triangles = faces;
-
-
-        Vector2[] textureCoordinates = CalcTextureCoordinates(mesh, meshFilter.transform.localToWorldMatrix, camera);
-        mesh.uv = textureCoordinates;
-        meshFilter.mesh = mesh;
-    }
-
     public static void GenerateUV(this MeshFilter meshFilter, Camera camera, Texture2D texture)
     {
         Debug.Log("Generate UV");
@@ -42,6 +23,24 @@ public static class MeshFilterExtensions
         meshFilter.mesh = mesh;
     }
 
+    public static void GenerateUV_2(this MeshFilter meshFilter, Camera camera, Texture2D texture)
+    {
+        Mesh mesh = meshFilter.mesh;
+        Vector2[] uv = new Vector2[mesh.vertices.Length];
+
+        Matrix4x4 worldToScreenMatrix = camera.worldToCameraMatrix * camera.projectionMatrix;
+
+        for (int i = 0; i < uv.Length; i++)
+        {
+            Vector3 vertex = mesh.vertices[i];
+            Vector3 screenPos = worldToScreenMatrix.MultiplyPoint(meshFilter.transform.TransformPoint(vertex));
+            Vector2 normalizedScreenPos = new Vector2(screenPos.x / texture.width, screenPos.y / texture.height);
+            uv[i] = normalizedScreenPos;
+        }
+
+        mesh.uv = uv;
+    }
+
     public static void TexturedMesh(this MeshFilter meshFilter, Texture texture)
     {
         Debug.Log("Start Textured.");
@@ -58,30 +57,8 @@ public static class MeshFilterExtensions
     //    meshFilter.TexturedMesh(texture);
     //}
 
-    private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix, Camera camera)
-    {
-
-        Vector2[] textureCoordinates = new Vector2[geometry.vertices.Length];
-        Vector2 screenSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
-
-        for (int i = 0; i < geometry.vertices.Length; i++)
-        {
-            Vector3 vertex = geometry.vertices[i];
-            Vector4 vertex4 = new Vector4(vertex.x, vertex.y, vertex.z, 1f);
-            Vector4 worldVertex4 = modelMatrix * vertex4;
-            Vector3 worldVector3 = new Vector3(worldVertex4.x, worldVertex4.y, worldVertex4.z);
-            Vector3 screenPoint = camera.WorldToScreenPoint(worldVector3);
-            float u = screenPoint.x / screenSize.x;
-            float v = (screenPoint.y / screenSize.y);
-            textureCoordinates[i] = new Vector2(u, v);
-        }
-
-        return textureCoordinates;
-    }
-
     private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix, Camera camera, Texture2D texture)
     {
-
         Vector2[] textureCoordinates = new Vector2[geometry.vertices.Length];
         Vector2 screenSize = new Vector2(texture.width, texture.height);
 
@@ -92,13 +69,42 @@ public static class MeshFilterExtensions
             Vector4 worldVertex4 = modelMatrix * vertex4;
             Vector3 worldVector3 = new Vector3(worldVertex4.x, worldVertex4.y, worldVertex4.z);
             Vector3 screenPoint = camera.WorldToScreenPoint(worldVector3);
-            float u = screenPoint.x / screenSize.x;
-            float v = (screenPoint.y / screenSize.y);
-            textureCoordinates[i] = new Vector2(u, v);
+
+            // Проверка на наличие текстуры
+            if (texture != null)
+            {
+                // Проверка на нахождение точки в пределах экрана
+                if (screenPoint.x >= 0 && screenPoint.x <= screenSize.x && screenPoint.y >= 0 && screenPoint.y <= screenSize.y)
+                {
+                    float u = screenPoint.x / screenSize.x;
+                    float v = screenPoint.y / screenSize.y;
+
+                    // Проверка на наличие пикселя в текстуре
+                    if (u >= 0 && u <= 1 && v >= 0 && v <= 1)
+                    {
+                        // Преобразование координаты (0,0) в левый верхний угол текстуры
+                        Vector2 textureCoordinate = new Vector2(u, 1 - v);
+                        textureCoordinates[i] = textureCoordinate;
+                    }
+                    else
+                    {
+                        textureCoordinates[i] = Vector2.zero;
+                    }
+                }
+                else
+                {
+                    textureCoordinates[i] = Vector2.zero;
+                }
+            }
+            else
+            {
+                textureCoordinates[i] = Vector2.zero;
+            }
         }
 
         return textureCoordinates;
     }
+
 
     public static bool IsMeshFullyInCamera(this MeshFilter meshFilter, Camera camera, Vector3 camPosition, Quaternion camRotation)
     {

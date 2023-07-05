@@ -106,6 +106,7 @@ public class ScanController : Singleton<ScanController>
         if (_isScanning)
         {
             UIController.Instance.InfoPanel.Show(MESH_CONVERT_TEXT);
+            _checkMeshCamera.fieldOfView = _arCameraManager.GetComponent<Camera>().fieldOfView;
             CameraPositionSaver.Instance.StopSaving();
 
             StartCoroutine(Stopping());
@@ -371,6 +372,7 @@ public class ScanController : Singleton<ScanController>
                 if (_checkMeshCamera.IsMeshFullyIn(mf))
                 {
                     mf.GenerateUV(_checkMeshCamera, camData.Texture);
+                    //mf.GenerateUV_2(_checkMeshCamera, camData.Texture);
                     var render = mf.GetComponent<MeshRenderer>();
                     render.material = _nonWireframeMaterial;
                     render.material.color = Color.white;
