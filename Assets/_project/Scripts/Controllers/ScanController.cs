@@ -233,23 +233,42 @@ public class ScanController : Singleton<ScanController>
             for (int i = 0; i < _slicedMeshes.Count; ++i)
             {
                 if (_slicedMeshes[i].name.StartsWith("Handled"))
-                    continue;
-
-                var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
-                _checkMeshCamera.transform.localPosition = camData.Position;
-                _checkMeshCamera.transform.localRotation = camData.Rotation;
-                if (_checkMeshCamera.IsMeshFullyIn(mf))
                 {
-                    mf.GenerateUV(_checkMeshCamera, camData.Texture);
-                    var render = mf.GetComponent<MeshRenderer>();
-                    render.material = _nonWireframeMaterial;
-                    render.material.color = Color.white;
-                    render.material.SetTexture("_BaseMap", camData.Texture);
+                    var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
+                    _checkMeshCamera.transform.localPosition = camData.Position;
+                    _checkMeshCamera.transform.localRotation = camData.Rotation;
+                    if (_checkMeshCamera.IsMeshFullyIn(mf))
+                    {
+                        var uv2 = mf.GetGeneratedUV(_checkMeshCamera, camData.Texture);
+                        var render = mf.GetComponent<MeshRenderer>();
+                        mf.CombineTextures(camData.Texture, uv2);
+                        //render.material = _nonWireframeMaterial;
+                        //render.material.color = Color.white;
+                        //render.material.SetTexture("_BaseMap", camData.Texture);
 
-                    mf.name = $"Handled_{mf.name}";
-                    ++handledCount;
-                    handledMeshes.Add(mf.gameObject);
+                        mf.name = $"Handled_{mf.name}";
+                        ++handledCount;
+                        handledMeshes.Add(mf.gameObject);
+                    }
                 }
+                else
+                {
+                    var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
+                    _checkMeshCamera.transform.localPosition = camData.Position;
+                    _checkMeshCamera.transform.localRotation = camData.Rotation;
+                    if (_checkMeshCamera.IsMeshFullyIn(mf))
+                    {
+                        mf.GenerateUV(_checkMeshCamera, camData.Texture);
+                        var render = mf.GetComponent<MeshRenderer>();
+                        render.material = _nonWireframeMaterial;
+                        render.material.color = Color.white;
+                        render.material.SetTexture("_BaseMap", camData.Texture);
+
+                        mf.name = $"Handled_{mf.name}";
+                        ++handledCount;
+                        handledMeshes.Add(mf.gameObject);
+                    }
+                }                
                 yield return new WaitForEndOfFrame();
             }
 
