@@ -77,7 +77,7 @@ public static class MeshFilterExtensions
                 if (screenPoint.x >= 0 && screenPoint.x <= screenSize.x && screenPoint.y >= 0 && screenPoint.y <= screenSize.y)
                 {
                     float u = screenPoint.x / screenSize.x;
-                    float v = 1 - screenPoint.y / screenSize.y;
+                    float v = screenPoint.y / screenSize.y;
 
                     // Проверка на наличие пикселя в текстуре
                     if (u >= 0 && u <= 1 && v >= 0 && v <= 1)
