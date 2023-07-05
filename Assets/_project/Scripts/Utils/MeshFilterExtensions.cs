@@ -70,20 +70,20 @@ public static class MeshFilterExtensions
             Vector3 worldVector3 = new Vector3(worldVertex4.x, worldVertex4.y, worldVertex4.z);
             Vector3 screenPoint = camera.WorldToScreenPoint(worldVector3);
 
-            // Проверка на наличие текстуры
-            if (texture != null)
+            // Проверка на наличие текстуры и ее размер
+            if (texture != null && texture.width > 0 && texture.height > 0)
             {
                 // Проверка на нахождение точки в пределах экрана
                 if (screenPoint.x >= 0 && screenPoint.x <= screenSize.x && screenPoint.y >= 0 && screenPoint.y <= screenSize.y)
                 {
                     float u = screenPoint.x / screenSize.x;
-                    float v = screenPoint.y / screenSize.y;
+                    float v = 1 - screenPoint.y / screenSize.y;
 
                     // Проверка на наличие пикселя в текстуре
                     if (u >= 0 && u <= 1 && v >= 0 && v <= 1)
                     {
                         // Преобразование координаты (0,0) в левый верхний угол текстуры
-                        Vector2 textureCoordinate = new Vector2(u, 1 - v);
+                        Vector2 textureCoordinate = new Vector2(u, v);
                         textureCoordinates[i] = textureCoordinate;
                     }
                     else
@@ -104,7 +104,6 @@ public static class MeshFilterExtensions
 
         return textureCoordinates;
     }
-
 
     public static bool IsMeshFullyInCamera(this MeshFilter meshFilter, Camera camera, Vector3 camPosition, Quaternion camRotation)
     {

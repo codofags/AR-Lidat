@@ -34,8 +34,10 @@ public class ScanController : Singleton<ScanController>
     private Quaternion _initRot;
 
     private static string SCAN_TEXT = "SCANNING";
-    private static string MESH_CONVERT_TEXT = "Creating a Mesh.\r\nStatus: Generated";
-    private static string MESH_TEXTURE_TEXT = "Texture Overlay.\r\nStatus: Not exported";
+    private static string MESH_CONVERT_START_TEXT = "Creating a Mesh.\r\nStatus: Generating";
+    private static string MESH_CONVERT_END_TEXT = "Creating a Mesh.\r\nStatus: Generated";
+    private static string MESH_TEXTURE_START_TEXT = "Texture Overlay.\r\nStatus: Texturing";
+    private static string MESH_TEXTURE_END_TEXT = "Texture Overlay.\r\nStatus: Not exported";
 
     protected override void Awake()
     {
@@ -105,41 +107,22 @@ public class ScanController : Singleton<ScanController>
     {
         if (_isScanning)
         {
-            UIController.Instance.InfoPanel.Show(MESH_CONVERT_TEXT);
+            UIController.Instance.InfoPanel.Show(MESH_CONVERT_START_TEXT);
             _checkMeshCamera.fieldOfView = _arCameraManager.GetComponent<Camera>().fieldOfView;
             CameraPositionSaver.Instance.StopSaving();
 
+            if (_arMeshManager != null)
+                _arMeshManager.enabled = false; // Отключаем ARMeshManager
+
+            XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+
+            if (arMeshSubsystem != null)
+            {
+                arMeshSubsystem.Stop();
+                _isScanning = false;
+            }
+
             StartCoroutine(Stopping());
-            //Camera.main.enabled = false;
-            //_arMeshManager.enabled = false; // Отключаем ARMeshManager
-
-            //XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
-
-            //ToogleMeshes(false);
-            //UIController.Instance.HideUI();
-            //var screenShot = ScreenCapture.CaptureScreenshotAsTexture();
-            //foreach (var data in _datas)
-            //{
-            //    data.Texture = screenShot;
-            ////}
-            //ToogleMeshes(true);
-            //UIController.Instance.ShowUI();
-
-            //UIController.Instance.ShowViewerPanel();
-
-            //foreach (var meshFilter in _arMeshManager.meshes)
-            //{
-            //    meshFilter.transform.SetParent(_modelViewParent, false);
-            //}
-
-            //_modelViewer.SetActive(true);
-            //if (arMeshSubsystem != null)
-            //{
-            //    arMeshSubsystem.Stop();
-            //    _arCameraManager.enabled = false;
-            //    _isScanning = false;
-            //    Debug.Log($"Scan STOP. Meshes: {_arMeshManager.meshes.Count} Datas: {_datas.Count}");
-            //}
         }
     }
 
@@ -147,16 +130,6 @@ public class ScanController : Singleton<ScanController>
     {
         Debug.Log(_arMeshManager == null);
         //UIController.Instance.HideUI();
-        if (_arMeshManager != null)
-            _arMeshManager.enabled = false; // Отключаем ARMeshManager
-
-        XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
-
-        if (arMeshSubsystem != null)
-        {
-            arMeshSubsystem.Stop();
-            _isScanning = false;
-        }
 
         yield return new WaitForSeconds(1);
 
@@ -200,19 +173,6 @@ public class ScanController : Singleton<ScanController>
 
         _arCameraManager.enabled = false;
 
-        yield return StartCoroutine(ConvertMeshes());
-    }
-
-    private IEnumerator ConvertMeshes()
-    {
-        Debug.Log("step 5");
-
-        var combinedObject = CombineMeshes(_arMeshManager.meshes);
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.gameObject.SetActive(false);
-        }
-
         Debug.Log("WAIT 5 sec");
         yield return new WaitForSeconds(5f);
 
@@ -226,10 +186,10 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
-        var meshesGOs = _slicedMeshes.Select(mesh => mesh.GetComponent<MeshFilter>()).ToList();
-        var mesh = CombineMeshes(meshesGOs);
-        _initPos = mesh.transform.position;
-        _initRot = mesh.transform.rotation;
+        //var meshesGOs = _slicedMeshes.Select(mesh => mesh.GetComponent<MeshFilter>()).ToList();
+        //var mesh = CombineMeshes(meshesGOs);
+        //_initPos = mesh.transform.position;
+        //_initRot = mesh.transform.rotation;
 
 
         _modelViewer.gameObject.SetActive(true);
@@ -238,6 +198,8 @@ public class ScanController : Singleton<ScanController>
         var model = FindObjectOfType<ThirdPersonCamera>();
         if (model != null)
             model.IsInteractable = true;
+
+        UIController.Instance.InfoPanel.Show(MESH_CONVERT_END_TEXT);
         Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
 
     }
@@ -337,6 +299,7 @@ public class ScanController : Singleton<ScanController>
     {
         //SetTextures();
 
+        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_START_TEXT);
         UIController.Instance.HideViewer();
         StartCoroutine(Converting());
     }
@@ -403,7 +366,7 @@ public class ScanController : Singleton<ScanController>
         if (model != null)
             model.IsInteractable = true;
 
-        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_TEXT);
+        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_END_TEXT);
         UIController.Instance.ShowExportPanel();
         Debug.Log("DONE Converting");
     }

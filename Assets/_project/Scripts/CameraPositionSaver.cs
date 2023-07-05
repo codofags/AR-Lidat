@@ -71,7 +71,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
             }
         }
 
-        if (difference > 2)
+        if (difference > 1)
         {
             SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
             TextureGetter.Instance.GetImageAsync(_currentId);

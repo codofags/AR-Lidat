@@ -8,7 +8,6 @@ namespace ScanAR.UI
     {
         [SerializeField] private Button _recordBtn;
         [SerializeField] private Button _stopBtn;
-        [SerializeField] private Slider _sliderFOV;
 
 
         private ARCameraManager arCameraManager;
@@ -17,7 +16,6 @@ namespace ScanAR.UI
         {
             _recordBtn.onClick.AddListener(OnRecordBtnClick);
             _stopBtn.onClick.AddListener(OnStopBtnClick);
-            _sliderFOV.onValueChanged.AddListener(SetFOV);
         }
 
         private void Start()
@@ -32,7 +30,6 @@ namespace ScanAR.UI
         {
             _recordBtn.onClick.RemoveAllListeners();
             _stopBtn.onClick.RemoveAllListeners();
-            _sliderFOV.onValueChanged.RemoveListener(SetFOV);
         }
 
         private void OnRecordBtnClick()
@@ -53,11 +50,6 @@ namespace ScanAR.UI
         {
             _recordBtn.gameObject.SetActive(!_recordBtn.gameObject.activeSelf);
             _stopBtn.gameObject.SetActive(!_stopBtn.gameObject.activeSelf);
-        }
-
-        private void SetFOV(float value)
-        {
-            arCameraManager.GetComponent<Camera>().fieldOfView = value;
         }
     }
 }
