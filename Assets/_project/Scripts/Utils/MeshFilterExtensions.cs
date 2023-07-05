@@ -23,40 +23,6 @@ public static class MeshFilterExtensions
         meshFilter.mesh = mesh;
     }
 
-    public static void GenerateUV_2(this MeshFilter meshFilter, Camera camera, Texture2D texture)
-    {
-        Mesh mesh = meshFilter.mesh;
-        Vector2[] uv = new Vector2[mesh.vertices.Length];
-
-        Matrix4x4 worldToScreenMatrix = camera.worldToCameraMatrix * camera.projectionMatrix;
-
-        for (int i = 0; i < uv.Length; i++)
-        {
-            Vector3 vertex = mesh.vertices[i];
-            Vector3 screenPos = worldToScreenMatrix.MultiplyPoint(meshFilter.transform.TransformPoint(vertex));
-            Vector2 normalizedScreenPos = new Vector2(screenPos.x / texture.width, screenPos.y / texture.height);
-            uv[i] = normalizedScreenPos;
-        }
-
-        mesh.uv = uv;
-    }
-
-    public static void TexturedMesh(this MeshFilter meshFilter, Texture texture)
-    {
-        Debug.Log("Start Textured.");
-        var renderer = meshFilter.GetComponent<MeshRenderer>();
-        var material = new Material(renderer.material);
-
-        material.mainTexture = texture;
-        renderer.material = material;
-    }
-
-    //public static void TextureMesh(this MeshFilter meshFilter, Texture texture)
-    //{
-    //    meshFilter.GenerateUV();
-    //    meshFilter.TexturedMesh(texture);
-    //}
-
     private static Vector2[] CalcTextureCoordinates(Mesh geometry, Matrix4x4 modelMatrix, Camera camera, Texture2D texture)
     {
         Vector2[] textureCoordinates = new Vector2[geometry.vertices.Length];
@@ -137,6 +103,7 @@ public static class MeshFilterExtensions
 
         return true;
     }
+    
     public static Mesh Extract(this Mesh m, int meshIndex)
     {
         var vertices = m.vertices;

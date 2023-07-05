@@ -45,11 +45,11 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         while(true)
         {
             yield return new WaitForSeconds(1f);
-            CheckCameraForSave();
-            //SavedCameraData.Add(_currentId, new ScanData() {Id = _currentId, Position = transform.position, Rotation = transform.rotation });
-            //TextureGetter.Instance.GetImageAsync(_currentId);
+            //CheckCameraForSave();
+            SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
+            TextureGetter.Instance.GetImageAsync(_currentId);
 
-            //++_currentId;
+            ++_currentId;
         }
     }
 
@@ -58,7 +58,6 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         float difference = float.MaxValue;
         foreach (var camData in SavedCameraData)
         {
-
             // ѕровер€ем разницу в повороте и позиции камеры
             float rotationDifference = Quaternion.Angle(camData.Value.Rotation, transform.rotation);
             float positionDifference = Vector3.Distance(camData.Value.Position, transform.position);
@@ -71,7 +70,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
             }
         }
 
-        if (difference > 1)
+        if (difference > .5f)
         {
             SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
             TextureGetter.Instance.GetImageAsync(_currentId);
