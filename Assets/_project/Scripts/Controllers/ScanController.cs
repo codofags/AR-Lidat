@@ -345,6 +345,7 @@ public class ScanController : Singleton<ScanController>
         {
             _arMeshManager.meshes.Clear();
         }
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
