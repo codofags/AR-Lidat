@@ -4,34 +4,49 @@ public static class CameraExtension
 {
     public static bool IsMeshFullyIn(this Camera camera, MeshFilter meshFilter)
     {
+        // Получаем границы меша
         Bounds bounds = meshFilter.mesh.bounds;
-        Plane[] cameraPlanes = GeometryUtility.CalculateFrustumPlanes(camera);
-
-        // Получаем все вершины меша в мировых координатах
-        Vector3[] vertices = meshFilter.mesh.vertices;
-        Vector3[] worldVertices = new Vector3[vertices.Length];
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            worldVertices[i] = meshFilter.transform.TransformPoint(vertices[i]);
-        }
 
         // Проверяем, что все вершины меша находятся внутри видимого объема камеры
-        for (int i = 0; i < worldVertices.Length; i++)
+        Vector3[] vertices = meshFilter.mesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
         {
-            if (!GeometryUtility.TestPlanesAABB(cameraPlanes, new Bounds(worldVertices[i], Vector3.zero)))
+            // Получаем вершину меша в мировых координатах
+            Vector3 worldVertex = meshFilter.transform.TransformPoint(vertices[i]);
+
+            // Проверяем, что вершина находится внутри видимого объема камеры
+            if (!camera.IsPointVisible(worldVertex))
             {
                 return false;
             }
         }
 
         // Проверяем, что ограничивающий объем меша полностью находится в видимом объеме камеры
-        if (!GeometryUtility.TestPlanesAABB(cameraPlanes, bounds))
+        if (!camera.IsBoundsVisible(bounds))
         {
             return false;
         }
 
         return true;
     }
+
+    // Метод для проверки видимости точки в видимом объеме камеры
+    private static bool IsPointVisible(this Camera camera, Vector3 point)
+    {
+        Vector3 viewportPoint = camera.WorldToViewportPoint(point);
+        return viewportPoint.x >= 0 && viewportPoint.x <= 1 && viewportPoint.y >= 0 && viewportPoint.y <= 1 && viewportPoint.z > 0;
+    }
+
+    // Метод для проверки видимости границы в видимом объеме камеры
+    private static bool IsBoundsVisible(this Camera camera, Bounds bounds)
+    {
+        // Получаем плоскости обзора камеры
+        Plane[] cameraPlanes = GeometryUtility.CalculateFrustumPlanes(camera);
+
+        // Проверяем, что все 6 граней границы находятся внутри видимого объема камеры
+        return GeometryUtility.TestPlanesAABB(cameraPlanes, bounds);
+    }
+
 
     public static bool IsCameraLookingAtObject(this Camera camera, GameObject target)
     {
