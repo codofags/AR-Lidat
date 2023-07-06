@@ -128,7 +128,7 @@ public class ScanController : Singleton<ScanController>
     IEnumerator Stopping()
     {
         Debug.Log(_arMeshManager == null);
-        //UIController.Instance.HideUI();
+        UIController.Instance.HideUI();
 
         yield return new WaitForSeconds(1);
 

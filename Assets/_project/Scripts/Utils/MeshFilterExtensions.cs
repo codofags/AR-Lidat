@@ -58,8 +58,15 @@ public static class MeshFilterExtensions
                 // Проверка на нахождение точки в пределах экрана
                 if (screenPoint.x >= 0 && screenPoint.x <= screenSize.x && screenPoint.y >= 0 && screenPoint.y <= screenSize.y)
                 {
+                    // Исправлено: Измените вычисление координаты v для правильного отображения текстуры
                     float u = screenPoint.x / screenSize.x;
-                    float v = screenPoint.y / screenSize.y;
+                    float v = 1 - screenPoint.y / screenSize.y;
+
+                    // Исправлено: Проверяем ориентацию камеры для коррекции ориентации текстуры
+                    if (camera.transform.forward.y < 0)
+                    {
+                        v = 1 - v;
+                    }
 
                     // Проверка на наличие пикселя в текстуре
                     if (u >= 0 && u <= 1 && v >= 0 && v <= 1)
