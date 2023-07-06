@@ -105,20 +105,29 @@ public class ScanController : Singleton<ScanController>
     {
         if (_isScanning)
         {
-            _checkMeshCamera.fieldOfView = _arCameraManager.GetComponent<Camera>().fieldOfView;
+            if (_arCameraManager != null)
+            {
+                if (_arCameraManager.TryGetComponent(out Camera cam))
+                {
+                    _checkMeshCamera.fieldOfView = cam.fieldOfView;
+                }
+            }
+
             CameraPositionSaver.Instance.StopSaving();
 
             if (_arMeshManager != null)
+            {
                 _arMeshManager.enabled = false; // Отключаем ARMeshManager
 
-            XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+                XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
-            if (arMeshSubsystem != null)
-            {
-                arMeshSubsystem.Stop();
-                _isScanning = false;
+                if (arMeshSubsystem != null)
+                {
+                    arMeshSubsystem.Stop();
+                }
             }
 
+            _isScanning = false;
             _cameraViewer.gameObject.SetActive(true);
             UIController.Instance.Fade.enabled = true;
             UIController.Instance.InfoPanel.Show(MESH_CONVERT_START_TEXT);
