@@ -234,6 +234,7 @@ public class ScanController : Singleton<ScanController>
             {
                 if (_slicedMeshes[i].name.StartsWith("Handled"))
                 {
+                    continue;
                     var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
                     _checkMeshCamera.transform.localPosition = camData.Position;
                     _checkMeshCamera.transform.localRotation = camData.Rotation;
