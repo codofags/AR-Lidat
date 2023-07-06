@@ -15,7 +15,7 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private float _scanningTime = 5f;
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _arCameraManager;
-    [SerializeField] private GameObject _modelViewer;
+    [SerializeField] private GameObject _cameraViewer;
     [SerializeField] private Transform _modelViewParent;
     [SerializeField] private float _getScreenTime = .5f;
 
@@ -105,8 +105,6 @@ public class ScanController : Singleton<ScanController>
     {
         if (_isScanning)
         {
-            UIController.Instance.Fade.enabled = true;
-            UIController.Instance.InfoPanel.Show(MESH_CONVERT_START_TEXT);
             _checkMeshCamera.fieldOfView = _arCameraManager.GetComponent<Camera>().fieldOfView;
             CameraPositionSaver.Instance.StopSaving();
 
@@ -120,6 +118,11 @@ public class ScanController : Singleton<ScanController>
                 arMeshSubsystem.Stop();
                 _isScanning = false;
             }
+
+            _cameraViewer.gameObject.SetActive(true);
+            UIController.Instance.Fade.enabled = true;
+            UIController.Instance.InfoPanel.Show(MESH_CONVERT_START_TEXT);
+            
 
             StartCoroutine(Stopping());
         }
@@ -189,9 +192,6 @@ public class ScanController : Singleton<ScanController>
         //var mesh = CombineMeshes(meshesGOs);
         //_initPos = mesh.transform.position;
         //_initRot = mesh.transform.rotation;
-
-
-        _modelViewer.gameObject.SetActive(true);
         UIController.Instance.ShowViewerPanel();
         UIController.Instance.InfoPanel.Show(MESH_CONVERT_END_TEXT);
         UIController.Instance.Fade.enabled = false;
