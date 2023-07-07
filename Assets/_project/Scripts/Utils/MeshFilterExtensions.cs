@@ -62,11 +62,11 @@ public static class MeshFilterExtensions
                     float u = screenPoint.x / screenSize.x;
                     float v = 1 - screenPoint.y / screenSize.y;
 
-                    // Исправлено: Проверяем ориентацию камеры для коррекции ориентации текстуры
-                    if (camera.transform.forward.y < 0)
-                    {
-                        v = 1 - v;
-                    }
+                    //// Исправлено: Проверяем ориентацию камеры для коррекции ориентации текстуры
+                    //if (camera.transform.forward.y < 0)
+                    //{
+                    //    v = 1 - v;
+                    //}
 
                     // Проверка на наличие пикселя в текстуре
                     if (u >= 0 && u <= 1 && v >= 0 && v <= 1)

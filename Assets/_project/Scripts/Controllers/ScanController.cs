@@ -63,8 +63,9 @@ public class ScanController : Singleton<ScanController>
         //_arMeshManager.meshesChanged -= OnMeshesChanged;
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         StopAllCoroutines();
     }
 
