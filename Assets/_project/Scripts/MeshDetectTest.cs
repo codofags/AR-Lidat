@@ -30,9 +30,11 @@ public class MeshDetectTest : MonoBehaviour
     [ContextMenu("Next")]
     public void NextPoint()
     {
-        var pos = _cameraPositions[_currentIndex].localPosition;
-        var rot = _cameraPositions[_currentIndex].localRotation;
+        _checkMeshCamera.transform.localPosition = _cameraPositions[_currentIndex].localPosition;
+        _checkMeshCamera.transform.localRotation = _cameraPositions[_currentIndex].localRotation;
+
         ++_currentIndex;
+
 
         for (int i = 0; i < _slicedMeshes.Count; ++i)
         {
@@ -41,7 +43,7 @@ public class MeshDetectTest : MonoBehaviour
             var render = mf.GetComponent<MeshRenderer>();
             render.material = _nonWireframeMaterial;
 
-            if (IsMeshInCamera(mf, pos, rot))
+            if (_checkMeshCamera.IsMeshFullyIn(mf))
             {
                 //mf.GenerateUV(_checkMeshCamera);
                 //var render = mf.GetComponent<MeshRenderer>();

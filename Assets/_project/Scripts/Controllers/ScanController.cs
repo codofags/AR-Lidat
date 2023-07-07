@@ -10,6 +10,13 @@ using UnityEngine.XR.ARFoundation;
 
 public class ScanController : Singleton<ScanController>
 {
+    private static string SCAN_TEXT = "SCANNING";
+    private static string MESH_CONVERT_START_TEXT = "Creating a Mesh.\r\nStatus: Generating";
+    private static string MESH_CONVERT_END_TEXT = "Creating a Mesh.\r\nStatus: Generated";
+    private static string MESH_TEXTURE_START_TEXT = "Texture Overlay.\r\nStatus: Texturing";
+    private static string MESH_TEXTURE_END_TEXT = "Texture Overlay.\r\nStatus: Not exported";
+
+
     [SerializeField] private Camera _checkMeshCamera;
     [SerializeField] private MeshSlicer _slicer;
     [SerializeField] private float _scanningTime = 5f;
@@ -32,12 +39,7 @@ public class ScanController : Singleton<ScanController>
     private List<GameObject> _slicedMeshes = new List<GameObject>();
     private Vector3 _initPos;
     private Quaternion _initRot;
-
-    private static string SCAN_TEXT = "SCANNING";
-    private static string MESH_CONVERT_START_TEXT = "Creating a Mesh.\r\nStatus: Generating";
-    private static string MESH_CONVERT_END_TEXT = "Creating a Mesh.\r\nStatus: Generated";
-    private static string MESH_TEXTURE_START_TEXT = "Texture Overlay.\r\nStatus: Texturing";
-    private static string MESH_TEXTURE_END_TEXT = "Texture Overlay.\r\nStatus: Not exported";
+    private Vector2 _uvOffset = Vector2.zero;
 
     protected override void Awake()
     {
@@ -87,6 +89,8 @@ public class ScanController : Singleton<ScanController>
                 CameraPositionSaver.Instance.StartSaving();
                 Debug.Log("Scan START");
             }
+            _isScanning = true;
+
             StartCoroutine(Scaning());
         }
     }
@@ -244,22 +248,22 @@ public class ScanController : Singleton<ScanController>
                 if (_slicedMeshes[i].name.StartsWith("Handled"))
                 {
                     continue;
-                    var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
-                    _checkMeshCamera.transform.localPosition = camData.Position;
-                    _checkMeshCamera.transform.localRotation = camData.Rotation;
-                    if (_checkMeshCamera.IsMeshFullyIn(mf))
-                    {
-                        var uv2 = mf.GetGeneratedUV(_checkMeshCamera, camData.Texture);
-                        var render = mf.GetComponent<MeshRenderer>();
-                        mf.CombineTextures(camData.Texture, uv2);
-                        //render.material = _nonWireframeMaterial;
-                        //render.material.color = Color.white;
-                        //render.material.SetTexture("_BaseMap", camData.Texture);
+                    //var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
+                    //_checkMeshCamera.transform.localPosition = camData.Position;
+                    //_checkMeshCamera.transform.localRotation = camData.Rotation;
+                    //if (_checkMeshCamera.IsMeshFullyIn(mf))
+                    //{
+                    //    var uv2 = mf.GetGeneratedUV(_checkMeshCamera, camData.Texture, _uvOffset);
+                    //    var render = mf.GetComponent<MeshRenderer>();
+                    //    mf.CombineTextures(camData.Texture, uv2);
+                    //    //render.material = _nonWireframeMaterial;
+                    //    //render.material.color = Color.white;
+                    //    //render.material.SetTexture("_BaseMap", camData.Texture);
 
-                        mf.name = $"Handled_{mf.name}";
-                        ++handledCount;
-                        handledMeshes.Add(mf.gameObject);
-                    }
+                    //    mf.name = $"Handled_{mf.name}";
+                    //    ++handledCount;
+                    //    handledMeshes.Add(mf.gameObject);
+                    //}
                 }
                 else
                 {
@@ -268,7 +272,7 @@ public class ScanController : Singleton<ScanController>
                     _checkMeshCamera.transform.localRotation = camData.Rotation;
                     if (_checkMeshCamera.IsMeshFullyIn(mf))
                     {
-                        mf.GenerateUV(_checkMeshCamera, camData.Texture);
+                        mf.GenerateUV(_checkMeshCamera, camData.Texture, _uvOffset);
                         var render = mf.GetComponent<MeshRenderer>();
                         render.material = _nonWireframeMaterial;
                         render.material.color = Color.white;
@@ -342,18 +346,18 @@ public class ScanController : Singleton<ScanController>
 
     public void Restart()
     {
-        ARSession session = FindObjectOfType<ARSession>();
+        //ARSession session = FindObjectOfType<ARSession>();
 
-        if (session != null)
-        {
-            session.Reset();
-            session.enabled = true;
-        }
+        //if (session != null)
+        //{
+        //    session.Reset();
+        //    session.enabled = true;
+        //}
 
-        if (_arMeshManager.meshes.Count > 0)
-        {
-            _arMeshManager.meshes.Clear();
-        }
+        ////if (_arMeshManager.meshes.Count > 0)
+        ////{
+        ////    _arMeshManager.meshes.Clear();
+        ////}
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -361,5 +365,15 @@ public class ScanController : Singleton<ScanController>
     public void OpenConsole()
     {
         Reporter.Instance.doShow();
+    }
+
+    public void OnOffsetChangedU(float u)
+    {
+        _uvOffset.x = u;
+    }
+
+    public void OnOffsetChangedV(float v)
+    {
+        _uvOffset.y = v;
     }
 }

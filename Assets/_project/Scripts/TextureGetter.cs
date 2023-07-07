@@ -43,6 +43,7 @@ public class TextureGetter : Singleton<TextureGetter>
         // Get information about the device camera image.
         if (_cameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
+            Debug.Log(Camera.main.transform.rotation.eulerAngles);
             // If successful, launch a coroutine that waits for the image
             // to be ready, then apply it to a texture.
             StartCoroutine(ProcessImage(image, id));

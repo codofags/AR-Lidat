@@ -263,5 +263,8 @@ public class MeshSlicer : MonoBehaviour
         return ySlicedMeshes;
     }
 
-
+    public void OnChangeVoxelSize(float value)
+    {
+        _voxelSizeInMeters = value;
+    }
 }
