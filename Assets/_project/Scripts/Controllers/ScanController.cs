@@ -47,7 +47,7 @@ public class ScanController : Singleton<ScanController>
 
         if (_arMeshManager.meshes != null && _arMeshManager.meshes.Count > 0)
             _arMeshManager.meshes.Clear();
-        Debug.Log($"Rot: {Camera.main.transform.rotation.y}");
+        Debug.Log($"Rot: {Camera.main.transform.rotation}");
     }
 
     private void OnEnable()
@@ -69,7 +69,7 @@ public class ScanController : Singleton<ScanController>
     private void Update()
     {
         if (_isScanning )
-            Debug.Log($"Rot_2: {Camera.main.transform.rotation.y}");
+            Debug.Log($"Rot_2: {Camera.main.transform.rotation}");
     }
 
     public void ScanStart()
