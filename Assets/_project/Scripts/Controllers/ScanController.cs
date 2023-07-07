@@ -30,9 +30,6 @@ public class ScanController : Singleton<ScanController>
     [SerializeField] private Material _nonWireframeMaterial;
 
     private bool _isScanning = false;
-    private List<MeshData> _datas = new List<MeshData>();
-    private float _getScreenTimeTemp = 1f;
-    private Coroutine _scanning;
 
     [SerializeField] private MeshFilter[] TestMeshes;
 
@@ -45,12 +42,12 @@ public class ScanController : Singleton<ScanController>
     {
         base.Awake();
         _isScanning = false;
-        _getScreenTimeTemp = _getScreenTime;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
 
         if (_arMeshManager.meshes != null && _arMeshManager.meshes.Count > 0)
             _arMeshManager.meshes.Clear();
+        Debug.Log($"Rot: {Camera.main.transform.rotation.y}");
     }
 
     private void OnEnable()
@@ -71,7 +68,8 @@ public class ScanController : Singleton<ScanController>
 
     private void Update()
     {
-        _getScreenTimeTemp += Time.deltaTime;
+        if (_isScanning )
+            Debug.Log($"Rot_2: {Camera.main.transform.rotation.y}");
     }
 
     public void ScanStart()
@@ -202,8 +200,6 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
-        //var meshesGOs = _slicedMeshes.Select(mesh => mesh.GetComponent<MeshFilter>()).ToList();
-        //var mesh = CombineMeshes(meshesGOs);
         //_initPos = mesh.transform.position;
         //_initRot = mesh.transform.rotation;
         UIController.Instance.ShowViewerPanel();
