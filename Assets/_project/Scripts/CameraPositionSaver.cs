@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 
@@ -11,6 +12,8 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     public Dictionary<int, ScanData> SavedCameraData = new Dictionary<int, ScanData>();
     private int _currentId = 0;
+    private Vector3 _lastPosition;
+    private Quaternion _lastRotation;
 
     private void Start()
     {
@@ -25,6 +28,12 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     public void StartSaving()
     {
         Debug.Log("StartSaving");
+        SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
+        TextureGetter.Instance.GetImageAsync(_currentId);
+
+        _currentId++;
+        _lastPosition = transform.position;
+        _lastRotation = transform.rotation;
         _savingProcesss = StartCoroutine(SavePositionProcess());
         //_getCameraTextureProcess = StartCoroutine(SaveTextureProcess());
     }
@@ -45,39 +54,34 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         while(true)
         {
             yield return new WaitForSeconds(1f);
-            //CheckCameraForSave();
-            SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
-            TextureGetter.Instance.GetImageAsync(_currentId);
+            CheckCameraForSave();
+            //SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
+            //TextureGetter.Instance.GetImageAsync(_currentId);
 
-            ++_currentId;
+            //++_currentId;
         }
     }
 
     private void CheckCameraForSave()
     {
-        float difference = float.MaxValue;
-        foreach (var camData in SavedCameraData)
+        Vector3 currentPosition = transform.position;
+        Quaternion currentRotation = transform.rotation;
+
+        // ѕровер€ем изменение позиции и поворота камеры
+        float positionDifference = Vector3.Distance(_lastPosition, currentPosition);
+        float rotationDifference = Quaternion.Angle(_lastRotation, currentRotation);
+
+        if (positionDifference >= 5f || rotationDifference >= 45f)
         {
-            // ѕровер€ем разницу в повороте и позиции камеры
-            float rotationDifference = Quaternion.Angle(camData.Value.Rotation, transform.rotation);
-            float positionDifference = Vector3.Distance(camData.Value.Position, transform.position);
-
-            var dif = rotationDifference + positionDifference;
-
-            if (difference > dif)
-            {
-                difference = dif;
-            }
-        }
-
-        if (difference > .5f)
-        {
-            SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
+            SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = currentPosition, Rotation = currentRotation });
             TextureGetter.Instance.GetImageAsync(_currentId);
 
-            ++_currentId;
+            _currentId++;
+            _lastPosition = currentPosition;
+            _lastRotation = currentRotation;
         }
-        Debug.Log($"Cam Dif: {difference}");
+
+        Debug.Log($"Cam Dif: Position={positionDifference}, Rotation={rotationDifference}");
     }
 
     private void OnTextureGetted(Texture2D texture, int id)
