@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.UIElements;
 
 public class CameraPositionSaver : Singleton<CameraPositionSaver>
 {
@@ -53,7 +54,8 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     {
         while(true)
         {
-            yield return new WaitForSeconds(1f);
+            //yield return new WaitForSeconds(1f);
+            yield return new WaitForEndOfFrame();
             CheckCameraForSave();
             //SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
             //TextureGetter.Instance.GetImageAsync(_currentId);
@@ -73,6 +75,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
         if (positionDifference >= 5f || rotationDifference >= 45f)
         {
+            Debug.Log($"Camera Save: {transform.position} - {transform.rotation}");
             SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = currentPosition, Rotation = currentRotation });
             TextureGetter.Instance.GetImageAsync(_currentId);
 

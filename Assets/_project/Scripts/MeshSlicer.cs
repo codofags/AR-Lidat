@@ -78,11 +78,8 @@ public class MeshSlicer : MonoBehaviour
             //posObj.transform.localScale = Vector3.one * 0.1f;
 
             var sh = nextObjectForSlice.Slice(position, transform.right * -1);
-            Debug.Log($"SH {sh != null}");
             var neededPart = sh.CreateLowerHull();
             Destroy(nextObjectForSlice);
-
-            Debug.Log($"neededPart {neededPart != null}");
 
             if (neededPart != null)
             {

@@ -44,12 +44,11 @@ public static class MeshFilterExtensions
                 float v = 1 - screenPoint.y / screenSize.y;
 
                 // Исправлено: Проверяем ориентацию камеры для коррекции ориентации текстуры
-                //if (camera.transform.forward.y < 0)
-                //{
-                //    Debug.Log("y < 0");
-                //    v = 1 - v;
-                //}
-                //else
+                if (camera.transform.forward.y < 0)
+                {
+                    v = 1 - v;
+                }
+                else
                 //{
 
                 //    Debug.Log("y > 0");
