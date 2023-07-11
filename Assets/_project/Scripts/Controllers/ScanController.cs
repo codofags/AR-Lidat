@@ -280,7 +280,7 @@ public class ScanController : Singleton<ScanController>
                         handledMeshes.Add(mf.gameObject);
                     }
                 }                
-                yield return new WaitForEndOfFrame();
+                //yield return new WaitForEndOfFrame();
             }
 
             Debug.Log($"CamData {camData.Id}: {handledCount} handled");
