@@ -1,12 +1,12 @@
-using CoolishUI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
+using System;
+using HoloGroup.Networking.Internal.Sockets;
 
 public class ScanController : Singleton<ScanController>
 {
@@ -37,6 +37,7 @@ public class ScanController : Singleton<ScanController>
     private Vector3 _initPos;
     private Quaternion _initRot;
     private Vector2 _uvOffset = Vector2.zero;
+    private TCPsocket _socket;
 
     protected override void Awake()
     {
@@ -104,6 +105,7 @@ public class ScanController : Singleton<ScanController>
         ScanStop();
     }
 
+    [ContextMenu("StopScan")]
     public void ScanStop()
     {
         if (_isScanning)
@@ -155,7 +157,7 @@ public class ScanController : Singleton<ScanController>
 
             var renderer = meshFilter.GetComponent<MeshRenderer>();
             renderer.material = _nonWireframeMaterial;
-            renderer.material.color = Random.ColorHSV();
+            renderer.material.color = UnityEngine.Random.ColorHSV();
         }
 
         Debug.Log("step 2");
@@ -223,6 +225,8 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Converting()
     {
+        yield return null;
+#if !UNITY_EDITOR
         var model = FindObjectOfType<ThirdPersonCamera>();
         if (model != null)
             model.IsInteractable = false;
@@ -300,7 +304,7 @@ public class ScanController : Singleton<ScanController>
         }
         if (model != null)
             model.IsInteractable = true;
-
+#endif
         UIController.Instance.InfoPanel.Show(MESH_TEXTURE_END_TEXT);
         UIController.Instance.ShowExportPanel();
         UIController.Instance.Fade.enabled = false;
@@ -357,6 +361,31 @@ public class ScanController : Singleton<ScanController>
         ////}
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public async void ExportModel(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            name = "NONAME";
+
+        var serializer = new ModelSerializer();
+        var modelData = serializer.Serialize(_modelViewParent.gameObject);
+
+        List<byte> data = new List<byte>();
+        data.AddRange(BitConverter.GetBytes(10));// send model
+
+        var nameData = System.Text.Encoding.UTF8.GetBytes(name);
+
+        data.AddRange(BitConverter.GetBytes(nameData.Length));
+        data.AddRange(nameData);
+        data.AddRange(BitConverter.GetBytes(modelData.Length));
+        data.AddRange(modelData);
+
+        var socketBehaviour = new SocketBehaviourMobile();
+        socketBehaviour.DataForSend = data.ToArray();
+
+        _socket = new TCPsocket(socketBehaviour, ETcpSocketType.Socket, 5200, "192.168.31.49");
+
     }
 
     public void OpenConsole()
