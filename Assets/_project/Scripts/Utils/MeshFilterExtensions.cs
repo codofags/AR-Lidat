@@ -48,11 +48,6 @@ public static class MeshFilterExtensions
                 {
                     v = 1 - v;
                 }
-                else
-                //{
-
-                //    Debug.Log("y > 0");
-                //}
 
                 // Проверка на наличие пикселя в текстуре
                 if (u >= 0 && u <= 1 && v >= 0 && v <= 1)

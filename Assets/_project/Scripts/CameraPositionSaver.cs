@@ -13,8 +13,6 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     public Dictionary<int, ScanData> SavedCameraData = new Dictionary<int, ScanData>();
     private int _currentId = 0;
-    private Vector3 _lastPosition;
-    private Quaternion _lastRotation;
 
     private void Start()
     {
@@ -29,12 +27,6 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     public void StartSaving()
     {
         Debug.Log("StartSaving");
-        SavedCameraData.Add(_currentId, new ScanData() { Id = _currentId, Position = transform.position, Rotation = transform.rotation });
-        TextureGetter.Instance.GetImageAsync(_currentId);
-
-        _currentId++;
-        _lastPosition = transform.position;
-        _lastRotation = transform.rotation;
         _savingProcesss = StartCoroutine(SavePositionProcess());
         //_getCameraTextureProcess = StartCoroutine(SaveTextureProcess());
     }
