@@ -258,6 +258,8 @@ public class ScanController : Singleton<ScanController>
 
         foreach (var camData in cameraDatas)
         {
+            infoPanel.Converting((tempStep * 100f) / steps);
+            tempStep++;
             if (_slicedMeshes.Count == 0)
                 break;
 
@@ -304,8 +306,7 @@ public class ScanController : Singleton<ScanController>
                 }                
                 //yield return new WaitForEndOfFrame();
             }
-            tempStep++;
-            infoPanel.Converting((tempStep * 100f) / steps);
+            
             Debug.Log($"CamData {camData.Id}: {handledCount} handled");
         }
 
