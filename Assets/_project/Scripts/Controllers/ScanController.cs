@@ -38,6 +38,7 @@ public class ScanController : Singleton<ScanController>
     private Quaternion _initRot;
     private Vector2 _uvOffset = Vector2.zero;
     private TCPsocket _socket;
+    private List<Transform> _ghostCameras = new List<Transform>();
 
     protected override void Awake()
     {
@@ -166,7 +167,7 @@ public class ScanController : Singleton<ScanController>
         _checkMeshCamera.transform.parent = _modelViewParent;
 
         Debug.Log("step 3");
-
+        _ghostCameras.Clear();
         foreach (var camPos in cameraDatas)
         {
             if (camPos.Texture == null)
@@ -176,6 +177,7 @@ public class ScanController : Singleton<ScanController>
             newCameraView.localPosition = camPos.Position;
             newCameraView.localRotation = camPos.Rotation;
             newCameraView.localScale = Vector3.one * 0.1f;
+            _ghostCameras.Add(newCameraView);
         }
 
         yield return new WaitForSeconds(1f);
@@ -368,6 +370,7 @@ public class ScanController : Singleton<ScanController>
         if (string.IsNullOrEmpty(name))
             name = "NONAME";
 
+        _ghostCameras.ForEach(cam => cam.gameObject.SetActive(false));
         var serializer = new ModelSerializer();
         var modelData = serializer.Serialize(_modelViewParent.gameObject);
 
