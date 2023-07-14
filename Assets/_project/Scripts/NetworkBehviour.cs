@@ -32,7 +32,7 @@ public class NetworkBehviour : MonoBehaviour
             DestroyImmediate(gameObject);
 
         _clientTCP = new Client(100000);
-        _clientTCP.ReceiveTimeout = 1000 * 60; // 1 minute
+        _clientTCP.ReceiveTimeout = 10 * 60; // 1 minute
 
 
         _clientTCP.OnConnected = () => OnConnectedToServer();
