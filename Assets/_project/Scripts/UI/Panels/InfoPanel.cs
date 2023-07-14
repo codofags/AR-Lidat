@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
 
 public class InfoPanel : MonoBehaviour
@@ -19,5 +20,15 @@ public class InfoPanel : MonoBehaviour
     public void Hide()
     {
         gameObject.SetActive(false);
+    }
+
+    internal void Generating(float v)
+    {
+        _text.text = $"Generating Mesh {v}%";
+    }
+
+    public void Converting(float v)
+    {
+        _text.text = $"Converting Textures {v}%";
     }
 }

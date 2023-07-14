@@ -7,6 +7,7 @@ using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 using System;
 using HoloGroup.Networking.Internal.Sockets;
+using System.Threading.Tasks;
 
 public class ScanController : Singleton<ScanController>
 {
@@ -39,6 +40,7 @@ public class ScanController : Singleton<ScanController>
     private Vector2 _uvOffset = Vector2.zero;
     private TCPsocket _socket;
     private List<Transform> _ghostCameras = new List<Transform>();
+    private bool isExporting = false;
 
     protected override void Awake()
     {
@@ -145,13 +147,15 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Stopping()
     {
+        int steps = 6;
+        int tempStep = 0;
         Debug.Log(_arMeshManager == null);
         UIController.Instance.HideUI();
-
+        UIController.Instance.InfoPanel.Generating((tempStep * 100) * steps);
         yield return new WaitForSeconds(1);
 
         Debug.Log("step 1");
-
+        tempStep++;
         foreach (var meshFilter in _arMeshManager.meshes)
         {
             meshFilter.transform.SetParent(_modelViewParent, false);
@@ -161,12 +165,15 @@ public class ScanController : Singleton<ScanController>
             renderer.material.color = UnityEngine.Random.ColorHSV();
         }
 
+        UIController.Instance.InfoPanel.Generating((tempStep * 100) * steps);
         Debug.Log("step 2");
-
+        tempStep++;
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         _checkMeshCamera.transform.parent = _modelViewParent;
 
+        UIController.Instance.InfoPanel.Generating((tempStep * 100) * steps);
         Debug.Log("step 3");
+        tempStep++;
         _ghostCameras.Clear();
         foreach (var camPos in cameraDatas)
         {
@@ -180,9 +187,11 @@ public class ScanController : Singleton<ScanController>
             _ghostCameras.Add(newCameraView);
         }
 
+        UIController.Instance.InfoPanel.Generating((tempStep * 100) * steps);
         yield return new WaitForSeconds(1f);
 
         Debug.Log("step 4");
+        tempStep++;
         var combinedObject = CombineMeshes(_arMeshManager.meshes);
         foreach (var meshFilter in _arMeshManager.meshes)
         {
@@ -191,11 +200,13 @@ public class ScanController : Singleton<ScanController>
 
         _arCameraManager.enabled = false;
 
+        UIController.Instance.InfoPanel.Generating((tempStep * 100) * steps);
         Debug.Log("WAIT 5 sec");
         yield return new WaitForSeconds(5f);
 
-        Debug.Log("step 6");
-
+        Debug.Log("step 5");
+        tempStep++;
+        UIController.Instance.InfoPanel.Generating((tempStep * 100) * steps);
         _slicedMeshes = _slicer.SliceMesh(combinedObject, _nonWireframeMaterial);
         Debug.Log($"Mesh count: {_slicedMeshes.Count}");
 
@@ -204,6 +215,7 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
+        UIController.Instance.InfoPanel.Generating(100);
         //_initPos = mesh.transform.position;
         //_initRot = mesh.transform.rotation;
         UIController.Instance.ShowViewerPanel();
@@ -235,6 +247,10 @@ public class ScanController : Singleton<ScanController>
 
         yield return null;
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
+        float steps = cameraDatas.Count;
+        float tempStep = 0;
+        var infoPanel = UIController.Instance.InfoPanel;
+        infoPanel.Converting((tempStep * 100f) / steps);
         Debug.Log("WAIT 10 sec");
         yield return new WaitForSeconds(10f);
 
@@ -288,7 +304,8 @@ public class ScanController : Singleton<ScanController>
                 }                
                 //yield return new WaitForEndOfFrame();
             }
-
+            tempStep++;
+            infoPanel.Converting((tempStep * 100f) / steps);
             Debug.Log($"CamData {camData.Id}: {handledCount} handled");
         }
 
@@ -365,10 +382,18 @@ public class ScanController : Singleton<ScanController>
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    public async void ExportModel(string name)
+    public async Task<bool> ExportModel(string name)
     {
         if (string.IsNullOrEmpty(name))
             name = "NONAME";
+
+        if (isExporting)
+        {
+            Debug.Log("Export is already in progress.");
+            return false;
+        }
+
+        isExporting = true;
 
         _ghostCameras.ForEach(cam => cam.gameObject.SetActive(false));
         var serializer = new ModelSerializer();
@@ -388,7 +413,10 @@ public class ScanController : Singleton<ScanController>
         socketBehaviour.DataForSend = data.ToArray();
 
         _socket = new TCPsocket(socketBehaviour, ETcpSocketType.Socket, 5200, "192.168.31.49");
-
+        await Task.Delay(100); // Добавьте небольшую задержку, чтобы убедиться, что отправка началась.
+        isExporting = false;
+        Debug.Log("Model exported successfully.");
+        return true;
     }
 
     public void OpenConsole()
