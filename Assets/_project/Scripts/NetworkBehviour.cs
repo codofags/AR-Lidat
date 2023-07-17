@@ -1,3 +1,4 @@
+using kcp2k;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,16 +11,22 @@ public class NetworkBehviour : MonoBehaviour
     public static NetworkBehviour Instance;
 
     public Action<byte[]> OnModelReceived;
+    public Action OnIncomingCall;
+    public Action<bool> OnConnectedToCall;
+    public Action<int, int, byte[]> OnAudioFrameReceived;
 
     [SerializeField] private int _networkPortTCP;
     [SerializeField] private int _operationsPerUpdateCount = 1000;
     [SerializeField] private string _applicationServerIp;
 
     private Client _clientTCP;
+    private KcpClient _clientUDP;
+
     private int _connectionTimeOutMs = 10000;
     private float _tcpKeepAliveNextTime;
     private float _tcpKeepAliveDelaySec = 30;
-
+    private string _networkName = string.Empty;
+    private int _udpId = 0;
     private ModelReceiver _modelReceiver;
 
     public bool IsConnected { get { return _clientTCP.Connected; } }
@@ -31,18 +38,23 @@ public class NetworkBehviour : MonoBehaviour
         else
             DestroyImmediate(gameObject);
 
+        _networkName = $"User_{UnityEngine.Random.Range(1, 9999999)}";
         _clientTCP = new Client(100000);
         _clientTCP.ReceiveTimeout = 1000 * 60; // 1 minute
 
 
-        _clientTCP.OnConnected = () => OnConnectedToServer();
+        _clientTCP.OnConnected = () => OnConnected();
         _clientTCP.OnData = (message) => OnDataReceived(message);
         _clientTCP.OnDisconnected = () => OnDisconnected();
+
+        var config = new KcpConfig() { DualMode = false, NoDelay = true };
+        _clientUDP = new KcpClient(OnConnectedUDP, OnDataUDP, OnDisconnectedUDP, OnErrorUDP, config);
     }
 
     private void Update()
     {
         _clientTCP.Tick(_operationsPerUpdateCount);
+        _clientUDP.Tick();
 
 
         if (_clientTCP.Connected)
@@ -54,6 +66,7 @@ public class NetworkBehviour : MonoBehaviour
                 _tcpKeepAliveNextTime += _tcpKeepAliveDelaySec;
             }
         }
+
     }
 
     private void OnApplicationQuit()
@@ -112,6 +125,10 @@ public class NetworkBehviour : MonoBehaviour
         var helloMessage = new List<byte>();
         helloMessage.AddRange(BitConverter.GetBytes((int)MessageType.HELLO));
         helloMessage.AddRange(BitConverter.GetBytes(true));
+        var nameBytes = System.Text.Encoding.UTF8.GetBytes(_networkName);
+        helloMessage.AddRange(BitConverter.GetBytes(nameBytes.Length));
+        helloMessage.AddRange(nameBytes);
+
 
         SendNetworkMessage(helloMessage.ToArray());
 
@@ -152,7 +169,7 @@ public class NetworkBehviour : MonoBehaviour
             sendedBytes += chunckLenght;
             Debug.Log($"Sended: {sendedBytes}/{modelData.Length}");
             onPercentChange?.Invoke(((float)sendedBytes / (float)modelData.Length) * 100);
-            await Task.Delay(500);
+            await Task.Delay(10);
         }
         while (sendedBytes < modelData.Length);
 
@@ -160,7 +177,7 @@ public class NetworkBehviour : MonoBehaviour
 
     }
 
-    private void OnConnectedToServer()
+    private void OnConnected()
     {
     }
 
@@ -189,16 +206,21 @@ public class NetworkBehviour : MonoBehaviour
                 if (_modelReceiver == null)
                     _modelReceiver = new ModelReceiver();
 
-                if(_modelReceiver.HandleMessage(arrayData, offset))
+                if (_modelReceiver.HandleMessage(arrayData, offset))
                 {
-                    if(_modelReceiver.IsReceiveCompleted)
+                    if (_modelReceiver.IsReceiveCompleted)
                     {
                         OnModelReceived?.Invoke(_modelReceiver.FullModelData);
                         _modelReceiver = null;
                     }
                 }
                 break;
-
+            case MessageType.ConnectedToCall:
+                HandleConnectedToCall(arrayData, offset);
+                break;
+            case MessageType.CallRoomListUpdate:
+                HandleIncomingCall();
+                break;
             default:
                 throw new Exception($"Unhandled message type: {messageType}");
         }
@@ -226,7 +248,17 @@ public class NetworkBehviour : MonoBehaviour
 
             Debug.Log(name);
         }
-        
+
+    }
+
+    private void HandleConnectedToCall(byte[] data, int offset)
+    {
+        OnConnectedToCall?.Invoke(true);
+    }
+
+    private void HandleIncomingCall()
+    {
+        OnIncomingCall?.Invoke();
     }
 
     [ContextMenu("GetModelList")]
@@ -265,6 +297,126 @@ public class NetworkBehviour : MonoBehaviour
 
         SendNetworkMessage(buffer.ToArray());
     }
+
+
+
+
+    #region UDP_CALLBACKS
+    private void SendNetworkMessageUDP(byte[] data, KcpChannel channel)
+    {
+        try
+        {
+            _clientUDP.Send(new ArraySegment<byte>(data), channel);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("HANDLE EXCEPTION UDP:");
+            Debug.LogException(e);
+        }
+    }
+
+    private void OnConnectedUDP()
+    {
+        Debug.Log($"UDP connect");
+    }
+
+    private void OnDataUDP(ArraySegment<byte> data, KcpChannel channel)
+    {
+        var arrayData = new byte[data.Count];
+        Buffer.BlockCopy(data.Array, data.Offset, arrayData, 0, data.Count);
+
+
+        int offset = 0;
+        var messageType = (MessageTypeUDP)BitConverter.ToInt32(arrayData, offset);
+        offset += 4;
+
+        switch (messageType)
+        {
+            case MessageTypeUDP.HELLO:
+                _udpId = BitConverter.ToInt32(arrayData, offset);
+                break;
+            case MessageTypeUDP.CALL_FRAME:
+                var chunkNumber = BitConverter.ToInt32(arrayData, offset);
+                offset += 4;
+                var channels = BitConverter.ToInt32(arrayData, offset);
+                offset += 4;
+
+                var frameData = new byte[arrayData.Length - offset];
+                Buffer.BlockCopy(arrayData, offset, frameData, 0, frameData.Length);
+                OnAudioFrameReceived?.Invoke(chunkNumber, channels, frameData);
+                break;
+            default:
+                throw new Exception($"Unhandled message type: {messageType}");
+        }
+    }
+
+    private void OnDisconnectedUDP()
+    {
+        Debug.Log($"UDP disconnected");
+        OnConnectedToCall?.Invoke(false);
+    }
+
+    private void OnErrorUDP(ErrorCode error, string message)
+    {
+        Debug.LogError($"UDP error:  {error.ToString()}\n {message}");
+
+    }
+    #endregion
+
+
+    public async void InitCall()
+    {
+        _clientUDP.Connect(_applicationServerIp, (ushort)(_networkPortTCP + 1));
+
+        while(_udpId == 0)
+        {
+            await Task.Delay(100);
+        }
+
+        SendInitCall();
+    }
+
+    public async void ConnectToCall()
+    {
+        _clientUDP.Connect(_applicationServerIp, (ushort)(_networkPortTCP + 1));
+
+        while (_udpId == 0)
+        {
+            await Task.Delay(100);
+        }
+
+        SendConnectToCall();
+    }
+
+
+    private void SendInitCall()
+    {
+        var buffer = new List<byte>();
+        buffer.AddRange(BitConverter.GetBytes((int)MessageType.InitCall));
+        buffer.AddRange(BitConverter.GetBytes(_udpId));
+
+
+        SendNetworkMessage(buffer.ToArray());
+    }
+
+    private void SendConnectToCall()
+    {
+        var buffer = new List<byte>();
+        buffer.AddRange(BitConverter.GetBytes((int)MessageType.ConnectToCall));
+
+        SendNetworkMessage(buffer.ToArray());
+    }
+
+    public void SendCallFrame(byte[] data, int channels, int chunkNumber)
+    {
+        var buffer = new List<byte>();
+        buffer.AddRange(BitConverter.GetBytes((int)MessageTypeUDP.CALL_FRAME));
+        buffer.AddRange(BitConverter.GetBytes(chunkNumber));
+        buffer.AddRange(BitConverter.GetBytes(channels));
+        buffer.AddRange(data);
+
+        SendNetworkMessageUDP(buffer.ToArray(), KcpChannel.Reliable);
+    }
 }
 
 public enum MessageType
@@ -280,9 +432,19 @@ public enum MessageType
     SendModelToVR = 11,
 
     GotModelsListFromServer = 20,
-    GotModelFromServer = 21
+    GotModelFromServer = 21,
+
+    InitCall = 50,
+    ConnectToCall = 51,
+    ConnectedToCall = 52,
+    CallRoomListUpdate = 53
 }
 
+public enum MessageTypeUDP
+{
+    HELLO = 0,
+    CALL_FRAME = 1
+}
 public class ModelReceiver
 {
     private enum ModelMessageType
