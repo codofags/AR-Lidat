@@ -498,7 +498,7 @@ PlayerSettings:
   enableCrashReportAPI: 0
   cameraUsageDescription: Required For AR.
   locationUsageDescription: 
-  microphoneUsageDescription: 
+  microphoneUsageDescription: Audio call
   bluetoothUsageDescription: 
   macOSTargetOSVersion: 10.13.0
   switchNMETAOverride: 
@@ -777,7 +777,7 @@ PlayerSettings:
   suppressCommonWarnings: 1
   allowUnsafeCode: 0
   useDeterministicCompilation: 1
-  selectedPlatform: 3
+  selectedPlatform: 0
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 1
   gcIncremental: 0
