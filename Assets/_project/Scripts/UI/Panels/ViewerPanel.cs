@@ -34,6 +34,8 @@ public class ViewerPanel : MonoBehaviour
     public void Complete()
     {
         _icon.enabled = false;
-        _text.text = "Обработать";
+
+        if(_text != null)
+            _text.text = "Обработать";
     }
 }
