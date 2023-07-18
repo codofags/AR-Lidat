@@ -498,7 +498,7 @@ PlayerSettings:
   enableCrashReportAPI: 0
   cameraUsageDescription: Required For AR.
   locationUsageDescription: 
-  microphoneUsageDescription: 
+  microphoneUsageDescription: Audio call
   bluetoothUsageDescription: 
   macOSTargetOSVersion: 10.13.0
   switchNMETAOverride: 
