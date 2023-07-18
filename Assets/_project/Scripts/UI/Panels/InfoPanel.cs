@@ -1,10 +1,15 @@
-﻿using System;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class InfoPanel : MonoBehaviour
 {
+
     [SerializeField] private TMP_Text _text;
+
+    public void Show()
+    {
+        gameObject.SetActive(true);
+    }
 
     public void Show(string text)
     {

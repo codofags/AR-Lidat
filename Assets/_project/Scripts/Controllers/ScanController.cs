@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 public class ScanController : Singleton<ScanController>
 {
-    private static string SCAN_TEXT = "SCANNING";
-    private static string MESH_CONVERT_START_TEXT = "Creating a Mesh.\r\nStatus: Generating";
-    private static string MESH_CONVERT_END_TEXT = "Creating a Mesh.\r\nStatus: Generated";
-    private static string MESH_TEXTURE_START_TEXT = "Texture Overlay.\r\nStatus: Texturing";
-    private static string MESH_TEXTURE_END_TEXT = "Texture Overlay.\r\nStatus: Not exported";
+    private static string SCAN_TEXT = "Сканирование";
+    private static string MESH_CONVERT_START_TEXT = "Создание Mesh\r\nСтатус: Обработка";
+    private static string MESH_CONVERT_END_TEXT = "Просмотр Mesh";
+    private static string MESH_TEXTURE_START_TEXT = "Наложение текстур\r\nСтатус: Обработка";
+    private static string MESH_TEXTURE_END_TEXT = "Просмотр модели";
 
 
     [SerializeField] private Camera _checkMeshCamera;
@@ -80,7 +80,7 @@ public class ScanController : Singleton<ScanController>
     {
         if (!_isScanning)
         {
-            UIController.Instance.InfoPanel.Show(SCAN_TEXT);
+            UIController.Instance.TopBar.SetInfoText(SCAN_TEXT);
             _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
             XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
 
@@ -137,8 +137,9 @@ public class ScanController : Singleton<ScanController>
 
             _isScanning = false;
             _cameraViewer.gameObject.SetActive(true);
-            UIController.Instance.Fade.enabled = true;
-            UIController.Instance.InfoPanel.Show(MESH_CONVERT_START_TEXT);
+            UIController.Instance.ShowViewerPanel();
+            //UIController.Instance.Fade.enabled = true;
+            UIController.Instance.TopBar.SetInfoText(MESH_CONVERT_START_TEXT);
             
 
             StartCoroutine(Stopping());
@@ -147,11 +148,12 @@ public class ScanController : Singleton<ScanController>
 
     IEnumerator Stopping()
     {
+        var topBar = UIController.Instance.TopBar;
         int steps = 6;
         int tempStep = 0;
         Debug.Log(_arMeshManager == null);
-        UIController.Instance.HideUI();
-        UIController.Instance.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Show();
+        topBar.InfoPanel.Generating((tempStep * 100) / steps);
         yield return new WaitForSeconds(1);
 
         Debug.Log("step 1");
@@ -165,13 +167,15 @@ public class ScanController : Singleton<ScanController>
             renderer.material.color = UnityEngine.Random.ColorHSV();
         }
 
-        UIController.Instance.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        yield return new WaitForEndOfFrame();
         Debug.Log("step 2");
         tempStep++;
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         _checkMeshCamera.transform.parent = _modelViewParent;
 
-        UIController.Instance.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        yield return new WaitForEndOfFrame();
         Debug.Log("step 3");
         tempStep++;
         _ghostCameras.Clear();
@@ -187,7 +191,7 @@ public class ScanController : Singleton<ScanController>
             _ghostCameras.Add(newCameraView);
         }
 
-        UIController.Instance.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Generating((tempStep * 100) / steps);
         yield return new WaitForSeconds(1f);
 
         Debug.Log("step 4");
@@ -200,13 +204,14 @@ public class ScanController : Singleton<ScanController>
 
         _arCameraManager.enabled = false;
 
-        UIController.Instance.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Generating((tempStep * 100) / steps);
         Debug.Log("WAIT 5 sec");
         yield return new WaitForSeconds(5f);
 
         Debug.Log("step 5");
         tempStep++;
-        UIController.Instance.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        yield return new WaitForEndOfFrame();
         _slicedMeshes = _slicer.SliceMesh(combinedObject, _nonWireframeMaterial);
         Debug.Log($"Mesh count: {_slicedMeshes.Count}");
 
@@ -215,12 +220,13 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
-        UIController.Instance.InfoPanel.Generating(100);
+        topBar.InfoPanel.Generating(100);
         //_initPos = mesh.transform.position;
         //_initRot = mesh.transform.rotation;
         UIController.Instance.ShowViewerPanel();
-        UIController.Instance.InfoPanel.Show(MESH_CONVERT_END_TEXT);
-        UIController.Instance.Fade.enabled = false;
+        topBar.InfoPanel.Hide();
+        topBar.SetInfoText(MESH_CONVERT_END_TEXT);
+        UIController.Instance.ViewerPanel.Complete();
         var model = FindObjectOfType<ThirdPersonCamera>();
 
         if (model != null)
@@ -232,7 +238,7 @@ public class ScanController : Singleton<ScanController>
     public void ConvertToModel()
     {
         UIController.Instance.Fade.enabled = true;
-        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_START_TEXT);
+        UIController.Instance.TopBar.SetInfoText(MESH_TEXTURE_START_TEXT);
         UIController.Instance.HideViewer();
         StartCoroutine(Converting());
     }
@@ -249,7 +255,8 @@ public class ScanController : Singleton<ScanController>
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
         float steps = cameraDatas.Count;
         float tempStep = 0;
-        var infoPanel = UIController.Instance.InfoPanel;
+        var infoPanel = UIController.Instance.TopBar.InfoPanel;
+        infoPanel.Show();
         infoPanel.Converting((tempStep * 100f) / steps);
         Debug.Log("WAIT 10 sec");
         yield return new WaitForSeconds(10f);
@@ -324,8 +331,10 @@ public class ScanController : Singleton<ScanController>
         }
         if (model != null)
             model.IsInteractable = true;
+
+        infoPanel.Hide();
 #endif
-        UIController.Instance.InfoPanel.Show(MESH_TEXTURE_END_TEXT);
+        UIController.Instance.TopBar.SetInfoText(MESH_TEXTURE_END_TEXT);
         UIController.Instance.ShowExportPanel();
         UIController.Instance.Fade.enabled = false;
 
@@ -418,6 +427,29 @@ public class ScanController : Singleton<ScanController>
         isExporting = false;
         Debug.Log("Model exported successfully.");
         return true;
+    }
+
+    public void NewScan()
+    {
+        ARSession session = FindObjectOfType<ARSession>();
+        session.enabled = false;
+
+        // Остановка ARMeshManager
+        _arMeshManager.enabled = false;
+
+        // Очистка существующего меша
+        if (_arMeshManager.meshes.Count > 0)
+        {
+            foreach (var mesh in _arMeshManager.meshes)
+            {
+                Destroy(mesh.gameObject);
+            }
+        }
+
+        _arMeshManager.meshes.Clear();
+        session.enabled = true;
+        // Включение ARMeshManager для нового сканирования
+        _arMeshManager.enabled = true;
     }
 
     public void OpenConsole()
