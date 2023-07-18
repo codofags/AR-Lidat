@@ -71,7 +71,7 @@ public class NetworkBehviour : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        //_clientUDP.Disconnect();
+        _clientUDP.Disconnect();
         _clientTCP.Disconnect();
     }
 
@@ -262,8 +262,24 @@ public class NetworkBehviour : MonoBehaviour
     }
 
     [ContextMenu("GetModelList")]
-    public void SendGetModelList()
+    public async void SendGetModelList()
     {
+        await NetworkBehviour.Instance.Connect();
+
+        await Task.Delay(500);
+
+        var helloMessage = new List<byte>();
+        helloMessage.AddRange(BitConverter.GetBytes((int)MessageType.HELLO));
+        helloMessage.AddRange(BitConverter.GetBytes(false));
+        var nameBytes = System.Text.Encoding.UTF8.GetBytes(_networkName);
+        helloMessage.AddRange(BitConverter.GetBytes(nameBytes.Length));
+        helloMessage.AddRange(nameBytes);
+
+
+        SendNetworkMessage(helloMessage.ToArray());
+
+
+
         var buffer = new List<byte>();
         buffer.AddRange(BitConverter.GetBytes((int)MessageType.GetModelsListFromVR));
 

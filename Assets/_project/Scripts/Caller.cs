@@ -32,6 +32,7 @@ public class Caller : MonoBehaviour
         {
             if(chunkNumber > _incomingChunkNumber)
             {
+                Debug.Log("Audio chunk");
                 _incomingChunkNumber = chunkNumber;
                 PlaySamplePart(channels, frame);
             }
