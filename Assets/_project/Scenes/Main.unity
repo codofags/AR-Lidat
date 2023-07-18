@@ -11324,7 +11324,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _networkPortTCP: 5200
   _operationsPerUpdateCount: 1000
-  _applicationServerIp: 192.168.31.49
+  _applicationServerIp: 84.201.136.179
   ModelNemTest: 
   DeserializeMaterial: {fileID: 2100000, guid: 9d286784c905d0446b5b12508f90eabe, type: 2}
 --- !u!4 &1794700482

@@ -403,6 +403,7 @@ public class NetworkBehviour : MonoBehaviour
     {
         var buffer = new List<byte>();
         buffer.AddRange(BitConverter.GetBytes((int)MessageType.ConnectToCall));
+        buffer.AddRange(BitConverter.GetBytes(_udpId));
 
         SendNetworkMessage(buffer.ToArray());
     }
