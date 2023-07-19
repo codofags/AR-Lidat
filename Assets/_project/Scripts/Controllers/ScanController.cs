@@ -385,7 +385,7 @@ public class ScanController : Singleton<ScanController>
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    public void ExportModel(string name)
+    public async void ExportModel(string name)
     {
         if (string.IsNullOrEmpty(name))
             name = "NONAME";
@@ -402,20 +402,11 @@ public class ScanController : Singleton<ScanController>
         var serializer = new ModelSerializer();
         var modelData = serializer.Serialize(_modelViewParent.gameObject);
 
-        List<byte> data = new List<byte>();
-        data.AddRange(BitConverter.GetBytes(10));// send model
+        await NetworkBehviour.Instance.SendModel(modelData, name, (percent) =>
+        {
+            Debug.Log($"Percent: {percent} %");
+        });
 
-        var nameData = System.Text.Encoding.UTF8.GetBytes(name);
-
-        data.AddRange(BitConverter.GetBytes(nameData.Length));
-        data.AddRange(nameData);
-        data.AddRange(BitConverter.GetBytes(modelData.Length));
-        data.AddRange(modelData);
-
-        var socketBehaviour = new SocketBehaviourMobile();
-        socketBehaviour.DataForSend = data.ToArray();
-
-        _socket = new TCPsocket(socketBehaviour, ETcpSocketType.Socket, 5200, "192.168.31.49");
         isExporting = false;
         Debug.Log("Model exported successfully.");
     }

@@ -31,6 +31,9 @@ public class NetworkBehviour : MonoBehaviour
 
     public bool IsConnected { get { return _clientTCP.Connected; } }
 
+    private bool _isInitialized = false;
+    private bool _isInitializing = false;
+
     private void Awake()
     {
         if (Instance == null)
@@ -75,6 +78,31 @@ public class NetworkBehviour : MonoBehaviour
         _clientTCP.Disconnect();
     }
 
+    private async Task InitializeTCP()
+    {
+        if (_isInitialized || _isInitializing)
+            return;
+
+        _isInitializing = true;
+        await Connect();
+
+        await Task.Delay(500);
+
+        var helloMessage = new List<byte>();
+        helloMessage.AddRange(BitConverter.GetBytes((int)MessageType.HELLO));
+        helloMessage.AddRange(BitConverter.GetBytes(true));
+        var nameBytes = System.Text.Encoding.UTF8.GetBytes(_networkName);
+        helloMessage.AddRange(BitConverter.GetBytes(nameBytes.Length));
+        helloMessage.AddRange(nameBytes);
+
+
+        SendNetworkMessage(helloMessage.ToArray());
+
+        await Task.Delay(500);
+
+        _isInitializing = false;
+        _isInitialized = true;
+    }
 
     public async Task<bool> Connect()
     {
@@ -119,20 +147,7 @@ public class NetworkBehviour : MonoBehaviour
 
     public async Task SendModel(byte[] modelData, string name, Action<float> onPercentChange)
     {
-        Debug.Log("Connected");
-        await Task.Delay(500);
-
-        var helloMessage = new List<byte>();
-        helloMessage.AddRange(BitConverter.GetBytes((int)MessageType.HELLO));
-        helloMessage.AddRange(BitConverter.GetBytes(true));
-        var nameBytes = System.Text.Encoding.UTF8.GetBytes(_networkName);
-        helloMessage.AddRange(BitConverter.GetBytes(nameBytes.Length));
-        helloMessage.AddRange(nameBytes);
-
-
-        SendNetworkMessage(helloMessage.ToArray());
-
-        await Task.Delay(500);
+        await InitializeTCP();
 
         var infoMessage = new List<byte>();
         infoMessage.AddRange(BitConverter.GetBytes((int)MessageType.ModelFromPhone));
@@ -264,21 +279,7 @@ public class NetworkBehviour : MonoBehaviour
     [ContextMenu("GetModelList")]
     public async void SendGetModelList()
     {
-        await NetworkBehviour.Instance.Connect();
-
-        await Task.Delay(500);
-
-        var helloMessage = new List<byte>();
-        helloMessage.AddRange(BitConverter.GetBytes((int)MessageType.HELLO));
-        helloMessage.AddRange(BitConverter.GetBytes(false));
-        var nameBytes = System.Text.Encoding.UTF8.GetBytes(_networkName);
-        helloMessage.AddRange(BitConverter.GetBytes(nameBytes.Length));
-        helloMessage.AddRange(nameBytes);
-
-
-        SendNetworkMessage(helloMessage.ToArray());
-
-
+        await InitializeTCP();
 
         var buffer = new List<byte>();
         buffer.AddRange(BitConverter.GetBytes((int)MessageType.GetModelsListFromVR));
