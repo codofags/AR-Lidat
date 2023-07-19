@@ -69,12 +69,6 @@ public class ScanController : Singleton<ScanController>
         StopAllCoroutines();
     }
 
-    private void Update()
-    {
-        if (_isScanning )
-            Debug.Log($"Rot_2: {_arCameraManager.transform.eulerAngles}");
-    }
-
     public void ScanStart()
     {
         if (!_isScanning)
@@ -88,7 +82,7 @@ public class ScanController : Singleton<ScanController>
                 arMeshSubsystem.Start();
                 _isScanning = true;
                 //StartCoroutine(Scaning());
-                //CameraPositionSaver.Instance.StartSaving();
+                CameraPositionSaver.Instance.StartSaving();
                 Debug.Log("Scan START");
             }
             _isScanning = true;
