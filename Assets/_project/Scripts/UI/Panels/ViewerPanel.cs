@@ -20,8 +20,10 @@ public class ViewerPanel : MonoBehaviour
 
     public void Show()
     {
+        _convertBtn.interactable = false;
+        _text.text = "Обработка";
         gameObject.SetActive(true);
-        _icon.enabled = true;
+        _icon.gameObject.SetActive(true);
     }
 
     private void OnConvertClick()
@@ -33,7 +35,8 @@ public class ViewerPanel : MonoBehaviour
 
     public void Complete()
     {
-        _icon.enabled = false;
+        _icon.gameObject.SetActive(false);
+        _convertBtn.interactable = true;
         _text.text = "Обработать";
     }
 }

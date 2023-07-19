@@ -5,9 +5,9 @@ using UnityEngine.UI;
 public class UIController : Singleton<UIController>
 {
     [field: SerializeField] public TopBar TopBar { get; private set; }
-    [SerializeField] private MainPanel _mainPanel;
+    [field: SerializeField] public MainPanel MainPanel { get; private set; }
     [field: SerializeField] public ViewerPanel ViewerPanel { get; private set; }
-    [SerializeField] private ExportPanel _exportPanel;
+    [field: SerializeField] public ExportPanel ExportPanel { get; private set; }
     [field: SerializeField] public Image Fade { get; private set; }
 
     protected override void Awake()
@@ -18,17 +18,17 @@ public class UIController : Singleton<UIController>
 
     public void ShowUI()
     {
-        _mainPanel.gameObject.SetActive(true);
+        MainPanel.gameObject.SetActive(true);
     }
 
     public void HideUI()
     {
-        _mainPanel.gameObject.SetActive(false);
+        MainPanel.gameObject.SetActive(false);
     }
 
     public void ShowViewerPanel()
     {
-        _mainPanel.gameObject.SetActive(false );
+        MainPanel.gameObject.SetActive(false );
         ViewerPanel.Show();
     }
 
@@ -40,6 +40,6 @@ public class UIController : Singleton<UIController>
     public void ShowExportPanel()
     {
         ViewerPanel.gameObject.SetActive(false);
-        _exportPanel.gameObject.SetActive(true);
+        ExportPanel.Show();
     }
 }

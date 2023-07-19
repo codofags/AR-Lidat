@@ -233,6 +233,7 @@ public class ScanController : Singleton<ScanController>
         //UIController.Instance.Fade.enabled = true;
         UIController.Instance.TopBar.SetInfoText(MESH_TEXTURE_START_TEXT);
         UIController.Instance.HideViewer();
+        UIController.Instance.ShowExportPanel();
         StartCoroutine(Converting());
     }
 
@@ -328,8 +329,7 @@ public class ScanController : Singleton<ScanController>
         infoPanel.Hide();
 #endif
         UIController.Instance.TopBar.SetInfoText(MESH_TEXTURE_END_TEXT);
-        UIController.Instance.ShowExportPanel();
-        //UIController.Instance.Fade.enabled = false;
+        UIController.Instance.ExportPanel.Complete();
 
         Debug.Log("DONE Converting");
     }
