@@ -1,13 +1,13 @@
+using HoloGroup.Networking.Internal.Sockets;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
-using System;
-using HoloGroup.Networking.Internal.Sockets;
-using System.Threading.Tasks;
 
 public class ScanController : Singleton<ScanController>
 {
@@ -245,7 +245,7 @@ public class ScanController : Singleton<ScanController>
     IEnumerator Converting()
     {
         yield return null;
-if !UNITY_EDITOR
+#if !UNITY_EDITOR
         var model = FindObjectOfType<ThirdPersonCamera>();
         if (model != null)
             model.IsInteractable = false;
