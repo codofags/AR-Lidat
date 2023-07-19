@@ -8677,7 +8677,7 @@ MonoBehaviour:
   _destroyNewEntities: 0
   _checkMeshCamera: {fileID: 1481281959}
   _slicer: {fileID: 1723227219}
-  _scanningTime: 60
+  _scanningTime: 120
   _arMeshManager: {fileID: 1420145518}
   _arCameraManager: {fileID: 929782452}
   _cameraViewer: {fileID: 1083321016}

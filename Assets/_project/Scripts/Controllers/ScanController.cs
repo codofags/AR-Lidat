@@ -443,6 +443,7 @@ public class ScanController : Singleton<ScanController>
         session.enabled = true;
         // Включение ARMeshManager для нового сканирования
         _arMeshManager.enabled = true;
+        Restart();
     }
 
     public void OpenConsole()

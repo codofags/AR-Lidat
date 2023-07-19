@@ -25,11 +25,10 @@ public class MenuPanel : MonoBehaviour
     {
         _rectTransform = GetComponent<RectTransform>();
         _menuBtn.onClick.AddListener(MenuClick);
-        _newScanBtn.onClick.AddListener(MenuClick);
+        _newScanBtn.onClick.AddListener(NewScanClick);
         _historyBtn.onClick.AddListener(MenuClick);
         _documentationBtn.onClick.AddListener(MenuClick);
         _aboutBtn.onClick.AddListener(MenuClick);
-        _newScanBtn.onClick.AddListener(NewScanClick);
     }
 
     private void NewScanClick()
