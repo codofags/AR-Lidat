@@ -236,7 +236,7 @@ public class ScanController : Singleton<ScanController>
 
     public void ConvertToModel()
     {
-        UIController.Instance.Fade.enabled = true;
+        //UIController.Instance.Fade.enabled = true;
         UIController.Instance.TopBar.SetInfoText(MESH_TEXTURE_START_TEXT);
         UIController.Instance.HideViewer();
         StartCoroutine(Converting());
@@ -245,7 +245,7 @@ public class ScanController : Singleton<ScanController>
     IEnumerator Converting()
     {
         yield return null;
-#if !UNITY_EDITOR
+if !UNITY_EDITOR
         var model = FindObjectOfType<ThirdPersonCamera>();
         if (model != null)
             model.IsInteractable = false;
@@ -310,9 +310,9 @@ public class ScanController : Singleton<ScanController>
                         handledMeshes.Add(mf.gameObject);
                     }
                 }                
-                //yield return new WaitForEndOfFrame();
             }
-            
+            infoPanel.Converting((tempStep * 100f) / steps);
+            yield return new WaitForEndOfFrame();
             Debug.Log($"CamData {camData.Id}: {handledCount} handled");
         }
 
@@ -335,7 +335,7 @@ public class ScanController : Singleton<ScanController>
 #endif
         UIController.Instance.TopBar.SetInfoText(MESH_TEXTURE_END_TEXT);
         UIController.Instance.ShowExportPanel();
-        UIController.Instance.Fade.enabled = false;
+        //UIController.Instance.Fade.enabled = false;
 
         Debug.Log("DONE Converting");
     }

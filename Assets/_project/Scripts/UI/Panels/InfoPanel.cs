@@ -29,11 +29,11 @@ public class InfoPanel : MonoBehaviour
 
     internal void Generating(float v)
     {
-        _text.text = $"Generating Mesh {v}%";
+        _text.text = $"{v}% выполнено";
     }
 
     public void Converting(float v)
     {
-        _text.text = $"Converting Textures {v}%";
+        _text.text = $"{v}% выполнено";
     }
 }
