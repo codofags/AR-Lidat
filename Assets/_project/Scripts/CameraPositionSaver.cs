@@ -64,7 +64,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
             float positionDifference = Vector3.Distance(savedCameraData.Position, currentPosition);
             float rotationDifference = Quaternion.Angle(savedCameraData.Rotation, currentRotation);
 
-            if (positionDifference < 3f && rotationDifference < 30f)
+            if (positionDifference < .5f && rotationDifference < 15f)
             {
                 shouldSave = false;
                 break; // Если хотя бы с одной камеры условие выполняется, выходим из цикла и не сохраняем новые данные
@@ -81,7 +81,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         }
         else
         {
-            Debug.Log("Camera data not saved.");
+            //Debug.Log("Camera data not saved.");
         }
     }
 
