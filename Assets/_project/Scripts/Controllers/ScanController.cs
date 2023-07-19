@@ -437,9 +437,9 @@ public class ScanController : Singleton<ScanController>
             {
                 Destroy(mesh.gameObject);
             }
+            _arMeshManager.meshes.Clear();
         }
 
-        _arMeshManager.meshes.Clear();
         session.enabled = true;
         // Включение ARMeshManager для нового сканирования
         _arMeshManager.enabled = true;
