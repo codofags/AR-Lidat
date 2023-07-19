@@ -1,17 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using UnityEngine.UI;
-using UnityEngine.XR.ARFoundation;
-using UnityEngine.UIElements;
 
 public class CameraPositionSaver : Singleton<CameraPositionSaver>
 {
     private Coroutine _savingProcesss;
     private Coroutine _getCameraTextureProcess;
 
-    public List<ScanData> SavedCameraData = new List< ScanData>();
+    public List<ScanData> SavedCameraData = new List<ScanData>();
     private int _currentId = 0;
 
     private void Start()
@@ -92,6 +88,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     private void OnTextureGetted(Texture2D texture, int id)
     {
         SavedCameraData[id].Texture = texture;
+        Debug.Log($"Cameras: {SavedCameraData.Count}");
     }
 
 }
