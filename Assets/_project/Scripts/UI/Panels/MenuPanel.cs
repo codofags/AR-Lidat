@@ -1,8 +1,7 @@
-using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
 using TMPro;
-using System;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuPanel : MonoBehaviour
 {
