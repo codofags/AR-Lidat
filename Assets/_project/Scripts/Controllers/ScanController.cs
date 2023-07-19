@@ -88,7 +88,7 @@ public class ScanController : Singleton<ScanController>
                 arMeshSubsystem.Start();
                 _isScanning = true;
                 //StartCoroutine(Scaning());
-                CameraPositionSaver.Instance.StartSaving();
+                //CameraPositionSaver.Instance.StartSaving();
                 Debug.Log("Scan START");
             }
             _isScanning = true;
