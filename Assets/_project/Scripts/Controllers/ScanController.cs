@@ -51,7 +51,6 @@ public class ScanController : Singleton<ScanController>
 
         if (_arMeshManager.meshes != null && _arMeshManager.meshes.Count > 0)
             _arMeshManager.meshes.Clear();
-        Debug.Log($"Rot: {_arCameraManager.transform.eulerAngles}");
     }
 
     private void OnEnable()
