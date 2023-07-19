@@ -1,6 +1,4 @@
 using ScanAR.UI;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +13,7 @@ public class UIController : Singleton<UIController>
     protected override void Awake()
     {
         base.Awake();
-        TopBar.InfoPanel.Hide();
+        //TopBar.InfoPanel.Hide();
     }
 
     public void ShowUI()
