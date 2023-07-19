@@ -88,7 +88,7 @@ public class ScanController : Singleton<ScanController>
                 arMeshSubsystem.Start();
                 _isScanning = true;
                 //StartCoroutine(Scaning());
-                //CameraPositionSaver.Instance.StartSaving();
+                CameraPositionSaver.Instance.StartSaving();
                 Debug.Log("Scan START");
             }
             _isScanning = true;
@@ -170,7 +170,7 @@ public class ScanController : Singleton<ScanController>
         yield return new WaitForEndOfFrame();
         Debug.Log("step 2");
         tempStep++;
-        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
+        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData;
         _checkMeshCamera.transform.parent = _modelViewParent;
 
         topBar.InfoPanel.Generating((tempStep * 100) / steps);

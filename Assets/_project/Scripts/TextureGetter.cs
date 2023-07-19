@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
@@ -15,6 +14,7 @@ public class TextureGetter : Singleton<TextureGetter>
     private bool _isPerformingScreenGrab = false;
     private bool _isRotateEnabled = false;
     private Action<Texture2D, int> _onTextureGetted;
+
     public void Initialize(Action<Texture2D, int> onTextureGetted)
     {
         _onTextureGetted = onTextureGetted;
@@ -25,18 +25,18 @@ public class TextureGetter : Singleton<TextureGetter>
         //Camera.onPostRender += OnPostRenderCallback;
     }
 
-    public void EnableRotate()
-    {
-        _isRotateEnabled = true;
-    }
+    //public void EnableRotate()
+    //{
+    //    _isRotateEnabled = true;
+    //}
 
-    public void GetImageFromRnderTexture()
-    {
-        _destinationTexture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-        _showTextureImage.texture = _destinationTexture;
+    //public void GetImageFromRnderTexture()
+    //{
+    //    _destinationTexture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+    //    _showTextureImage.texture = _destinationTexture;
 
-        _isPerformingScreenGrab = true;
-    }
+    //    _isPerformingScreenGrab = true;
+    //}
 
     public void GetImageAsync(int id)
     {
@@ -106,7 +106,7 @@ public class TextureGetter : Singleton<TextureGetter>
         texture = texture.RotateTexture(false);
 
 
-        _showTextureImage.texture = texture;
+        //_showTextureImage.texture = texture;
         // Need to dispose the request to delete resources associated
         // with the request, including the raw data.
         request.Dispose();
@@ -115,30 +115,30 @@ public class TextureGetter : Singleton<TextureGetter>
     }
 
 
-    void OnPostRenderCallback(Camera cam)
-    {
-        if (_isPerformingScreenGrab)
-        {
-            // Check whether the Camera that just finished rendering is the one you want to take a screen grab from
-            if (cam.tag == "TextureCamera")
-            {
-                // Define the parameters for the ReadPixels operation
-                Rect regionToReadFrom = new Rect(0, 0, Screen.width, Screen.height);
-                int xPosToWriteTo = 0;
-                int yPosToWriteTo = 0;
-                bool updateMipMapsAutomatically = false;
+    //void OnPostRenderCallback(Camera cam)
+    //{
+    //    if (_isPerformingScreenGrab)
+    //    {
+    //        // Check whether the Camera that just finished rendering is the one you want to take a screen grab from
+    //        if (cam.tag == "TextureCamera")
+    //        {
+    //            // Define the parameters for the ReadPixels operation
+    //            Rect regionToReadFrom = new Rect(0, 0, Screen.width, Screen.height);
+    //            int xPosToWriteTo = 0;
+    //            int yPosToWriteTo = 0;
+    //            bool updateMipMapsAutomatically = false;
 
-                // Copy the pixels from the Camera's render target to the texture
-                _destinationTexture.ReadPixels(regionToReadFrom, xPosToWriteTo, yPosToWriteTo, updateMipMapsAutomatically);
+    //            // Copy the pixels from the Camera's render target to the texture
+    //            _destinationTexture.ReadPixels(regionToReadFrom, xPosToWriteTo, yPosToWriteTo, updateMipMapsAutomatically);
 
-                // Upload texture data to the GPU, so the GPU renders the updated texture
-                // Note: This method is costly, and you should call it only when you need to
-                // If you do not intend to render the updated texture, there is no need to call this method at this point
-                _destinationTexture.Apply();
+    //            // Upload texture data to the GPU, so the GPU renders the updated texture
+    //            // Note: This method is costly, and you should call it only when you need to
+    //            // If you do not intend to render the updated texture, there is no need to call this method at this point
+    //            _destinationTexture.Apply();
 
-                // Reset the isPerformingScreenGrab state
-                _isPerformingScreenGrab = false;
-            }
-        }
-    }
+    //            // Reset the isPerformingScreenGrab state
+    //            _isPerformingScreenGrab = false;
+    //        }
+    //    }
+    //}
 }
