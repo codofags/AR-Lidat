@@ -13,7 +13,7 @@ public class MenuPanel : MonoBehaviour
     [SerializeField] private Button _historyBtn;
     [SerializeField] private Button _documentationBtn;
     [SerializeField] private Button _aboutBtn;
-
+    
     [Space]
     [SerializeField] private Sprite _defailtSprite;
     [SerializeField] private Sprite _backSprite;
@@ -25,6 +25,10 @@ public class MenuPanel : MonoBehaviour
     {
         _rectTransform = GetComponent<RectTransform>();
         _menuBtn.onClick.AddListener(MenuClick);
+        _newScanBtn.onClick.AddListener(MenuClick);
+        _historyBtn.onClick.AddListener(MenuClick);
+        _documentationBtn.onClick.AddListener(MenuClick);
+        _aboutBtn.onClick.AddListener(MenuClick);
         _newScanBtn.onClick.AddListener(NewScanClick);
     }
 
@@ -50,7 +54,7 @@ public class MenuPanel : MonoBehaviour
         _rectTransform.transform.DOLocalMoveX(-553.5261f, 0.35f).OnComplete(() => _isShown = false);
     }
 
-    private void MenuClick()
+    public void MenuClick()
     {
         if (!_isShown)
         {
