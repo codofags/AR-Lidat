@@ -385,7 +385,7 @@ public class ScanController : Singleton<ScanController>
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    public async Task<bool> ExportModel(string name)
+    public void ExportModel(string name)
     {
         if (string.IsNullOrEmpty(name))
             name = "NONAME";
@@ -393,7 +393,7 @@ public class ScanController : Singleton<ScanController>
         if (isExporting)
         {
             Debug.Log("Export is already in progress.");
-            return false;
+            return;
         }
 
         isExporting = true;
@@ -416,10 +416,8 @@ public class ScanController : Singleton<ScanController>
         socketBehaviour.DataForSend = data.ToArray();
 
         _socket = new TCPsocket(socketBehaviour, ETcpSocketType.Socket, 5200, "192.168.31.49");
-        await Task.Delay(100); // Добавьте небольшую задержку, чтобы убедиться, что отправка началась.
         isExporting = false;
         Debug.Log("Model exported successfully.");
-        return true;
     }
 
     public void NewScan()
