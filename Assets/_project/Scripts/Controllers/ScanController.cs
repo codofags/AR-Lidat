@@ -250,7 +250,7 @@ public class ScanController : Singleton<ScanController>
             model.IsInteractable = false;
 
         yield return null;
-        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData.Values.ToList();
+        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData;
         float steps = cameraDatas.Count;
         float tempStep = 0;
         var infoPanel = UIController.Instance.TopBar.InfoPanel;
