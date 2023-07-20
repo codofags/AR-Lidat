@@ -97,11 +97,11 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         var rawSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
         _testImageRaw.sprite = rawSprite;
 
-        var offset = (int)((texture.width / 2) - 333);
+        var offset = (int)((texture.width - 888) / 2);
         Debug.Log($"Texture: {texture.width}/{texture.height}  offset: {offset}");
 
-        var cuttedColors = texture.GetPixels(offset, 0, 666, 1440, 0);
-        var cuttedTexture = new Texture2D(666, 1440, texture.format, false);
+        var cuttedColors = texture.GetPixels(offset, 0, 444, 1920, 0);
+        var cuttedTexture = new Texture2D(888, 1920, texture.format, false);
 
         cuttedTexture.SetPixels(cuttedColors);
         cuttedTexture.Apply();
