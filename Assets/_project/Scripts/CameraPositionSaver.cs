@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public class CameraPositionSaver : Singleton<CameraPositionSaver>
 {
     [SerializeField] private Image _testImage;
+    [SerializeField] private Image _testImageRaw;
+
     private Coroutine _savingProcesss;
     private Coroutine _getCameraTextureProcess;
 
@@ -89,11 +91,24 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     private void OnTextureGetted(Texture2D texture, int id)
     {
-        SavedCameraData[id].Texture = texture;
-        Debug.Log($"Cameras: {SavedCameraData.Count}");
+        //SavedCameraData[id].Texture = texture;
+        //Debug.Log($"Cameras: {SavedCameraData.Count}");
 
-        var asSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
+        var rawSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
+        _testImageRaw.sprite = rawSprite;
+
+
+        var cuttedColors = texture.GetPixels(627, 0, 666, 1440, 0);
+        var cuttedTexture = new Texture2D(666, 1440, texture.format, false);
+
+        cuttedTexture.SetPixels(cuttedColors);
+        cuttedTexture.Apply();
+
+        var asSprite = Sprite.Create(cuttedTexture, new Rect(0, 0, cuttedTexture.width, cuttedTexture.height), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
         _testImage.sprite = asSprite;
+
+        SavedCameraData[id].Texture = cuttedTexture;
+        Debug.Log($"Cameras: {SavedCameraData.Count}");
     }
 
 }
