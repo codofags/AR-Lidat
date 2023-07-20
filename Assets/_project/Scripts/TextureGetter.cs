@@ -55,7 +55,7 @@ public class TextureGetter : Singleton<TextureGetter>
 
     IEnumerator ProcessImage(XRCpuImage image, int id)
     {
-        //Debug.Log($"Image: {image.width}/{image.height}. Camera: {Camera.main.pixelWidth}/{Camera.main.pixelHeight}");
+        Debug.Log($"Image: {image.width}/{image.height}. Camera: {Camera.main.pixelWidth}/{Camera.main.pixelHeight}. Screen: {Screen.width}/{Screen.height}");
 
         // Create the async conversion request.
         var request = image.ConvertAsync(new XRCpuImage.ConversionParams
@@ -65,7 +65,6 @@ public class TextureGetter : Singleton<TextureGetter>
 
             // Downsample by 2.
             outputDimensions = new Vector2Int(image.width / 2, image.height / 2),
-
             // Color image format.
             outputFormat = TextureFormat.RGB24,
 
