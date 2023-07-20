@@ -44,7 +44,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     private IEnumerator SavePositionProcess()
     {
-        while(true)
+        while (true)
         {
             //yield return new WaitForSeconds(.5f);
             yield return new WaitForEndOfFrame();
@@ -98,9 +98,9 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         _testImageRaw.sprite = rawSprite;
 
         var offset = (int)((texture.width - 888) / 2);
-        Debug.Log($"Texture: {texture.width}/{texture.height}  offset: {offset}");
+        Debug.Log($"Texture: {texture.width} / {texture.height}  offset: {offset}");
 
-        var cuttedColors = texture.GetPixels(offset, 0, 444, 1920, 0);
+        var cuttedColors = texture.GetPixels(offset, 0, 888, 1920, 0);
         var cuttedTexture = new Texture2D(888, 1920, texture.format, false);
 
         cuttedTexture.SetPixels(cuttedColors);
