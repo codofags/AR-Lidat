@@ -29,11 +29,11 @@ public class InfoPanel : MonoBehaviour
 
     internal void Generating(float v)
     {
-        _text.text = $"{v}% выполнено";
+        _text.text = $"{v}% done";
     }
 
     public void Converting(float v)
     {
-        _text.text = $"{v}% выполнено";
+        _text.text = $"{v}% done";
     }
 }

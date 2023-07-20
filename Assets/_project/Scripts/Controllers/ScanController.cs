@@ -11,11 +11,11 @@ using UnityEngine.XR.ARFoundation;
 
 public class ScanController : Singleton<ScanController>
 {
-    private string SCAN_TEXT = "Сканирование";
-    private string MESH_CONVERT_START_TEXT = "Создание Mesh\r\nСтатус: Обработка";
-    private string MESH_CONVERT_END_TEXT = "Просмотр Mesh";
-    private string MESH_TEXTURE_START_TEXT = "Наложение текстур\r\nСтатус: Обработка";
-    private string MESH_TEXTURE_END_TEXT = "Просмотр модели";
+    private string SCAN_TEXT = "Scanning";
+    private string MESH_CONVERT_START_TEXT = "Creating Mesh\r\nStatus: Processing";
+    private string MESH_CONVERT_END_TEXT = "Viewing the Mesh";
+    private string MESH_TEXTURE_START_TEXT = "Texture mapping\r\nStatus: Processing";
+    private string MESH_TEXTURE_END_TEXT = "Viewing the model";
 
 
     [SerializeField] private Camera _checkMeshCamera;

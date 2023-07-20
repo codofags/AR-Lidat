@@ -25,7 +25,7 @@ public class ExportPanel : MonoBehaviour
     {
         _exportBtn.interactable = false;
         _icon.gameObject.SetActive(true);
-        _exportText.text = "Обработка";
+        _exportText.text = "Processing";
         gameObject.SetActive(true);
     }
 
@@ -43,6 +43,6 @@ public class ExportPanel : MonoBehaviour
     {
         _icon.gameObject.SetActive(false);
         _exportBtn.interactable = true;
-        _exportText.text = "Экспортировать";
+        _exportText.text = "Export";
     }
 }
