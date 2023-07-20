@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,15 +21,21 @@ public class MenuPanel : MonoBehaviour
 
     private bool _isShown = false;
     private RectTransform _rectTransform;
-
+    
     private void Awake()
     {
         _rectTransform = GetComponent<RectTransform>();
         _menuBtn.onClick.AddListener(MenuClick);
         _newScanBtn.onClick.AddListener(NewScanClick);
-        _historyBtn.onClick.AddListener(MenuClick);
+        _historyBtn.onClick.AddListener(HistoryClick);
         _documentationBtn.onClick.AddListener(MenuClick);
         _aboutBtn.onClick.AddListener(MenuClick);
+    }
+
+    private void HistoryClick()
+    {
+        NetworkBehviour.Instance.SendGetModelList();
+        MenuClick();
     }
 
     private void NewScanClick()

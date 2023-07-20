@@ -241,7 +241,6 @@ public class NetworkBehviour : MonoBehaviour
         }
     }
 
-
     private void HandleModelList(byte[] data, int offset)
     {
         var count = BitConverter.ToInt32(data, offset);
@@ -263,6 +262,7 @@ public class NetworkBehviour : MonoBehaviour
 
             Debug.Log(name);
         }
+        OnGetModels?.Invoke(names);
 
     }
 
@@ -289,6 +289,8 @@ public class NetworkBehviour : MonoBehaviour
 
     public string ModelNemTest;
     public Material DeserializeMaterial;
+    public Action<List<string>> OnGetModels;
+
     [ContextMenu("GetModel")]
     public void GetModel()
     {
