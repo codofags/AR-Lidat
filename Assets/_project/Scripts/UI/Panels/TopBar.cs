@@ -8,6 +8,6 @@ public class TopBar : MonoBehaviour
 
     public void SetInfoText(string text)
     {
-        _infoText.text = text;
+        _infoText.SetText(text);
     }
 }

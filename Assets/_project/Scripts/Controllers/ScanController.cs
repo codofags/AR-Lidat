@@ -11,11 +11,11 @@ using UnityEngine.XR.ARFoundation;
 
 public class ScanController : Singleton<ScanController>
 {
-    private static string SCAN_TEXT = "Сканирование";
-    private static string MESH_CONVERT_START_TEXT = "Создание Mesh\r\nСтатус: Обработка";
-    private static string MESH_CONVERT_END_TEXT = "Просмотр Mesh";
-    private static string MESH_TEXTURE_START_TEXT = "Наложение текстур\r\nСтатус: Обработка";
-    private static string MESH_TEXTURE_END_TEXT = "Просмотр модели";
+    private string SCAN_TEXT = "Сканирование";
+    private string MESH_CONVERT_START_TEXT = "Создание Mesh\r\nСтатус: Обработка";
+    private string MESH_CONVERT_END_TEXT = "Просмотр Mesh";
+    private string MESH_TEXTURE_START_TEXT = "Наложение текстур\r\nСтатус: Обработка";
+    private string MESH_TEXTURE_END_TEXT = "Просмотр модели";
 
 
     [SerializeField] private Camera _checkMeshCamera;
@@ -45,6 +45,7 @@ public class ScanController : Singleton<ScanController>
     protected override void Awake()
     {
         base.Awake();
+        UIController.Instance.TopBar.SetInfoText(SCAN_TEXT);
         _isScanning = false;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
