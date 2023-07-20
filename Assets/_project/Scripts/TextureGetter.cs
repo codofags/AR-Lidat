@@ -67,7 +67,7 @@ public class TextureGetter : Singleton<TextureGetter>
             outputDimensions = new Vector2Int(image.width, image.height),
 
             // Color image format.
-            outputFormat = TextureFormat.RGB24,
+            outputFormat = TextureFormat.PVRTC_RGB4,
 
             // Flip across the Y axis.
             transformation = XRCpuImage.Transformation.MirrorY

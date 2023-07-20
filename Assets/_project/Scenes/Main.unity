@@ -6790,8 +6790,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u0421\u043A\u0430\u043D\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: d810bacfbb701b04ab59643206a47e25, type: 2}
-  m_sharedMaterial: {fileID: 4504562721279888835, guid: d810bacfbb701b04ab59643206a47e25,
+  m_fontAsset: {fileID: 11400000, guid: 686862520845be04899afbaee8ab2068, type: 2}
+  m_sharedMaterial: {fileID: 7901291178483882418, guid: 686862520845be04899afbaee8ab2068,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
