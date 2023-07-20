@@ -22,6 +22,14 @@ public class TextureGetter : Singleton<TextureGetter>
 
     private void Start()
     {
+        TextureFormat[] formats = System.Enum.GetValues(typeof(TextureFormat)) as TextureFormat[];
+        foreach (var format in formats)
+        {
+            if (SystemInfo.SupportsTextureFormat(format))
+            {
+                Debug.Log("Supported format: " + format.ToString());
+            }
+        }
         //Camera.onPostRender += OnPostRenderCallback;
     }
 
