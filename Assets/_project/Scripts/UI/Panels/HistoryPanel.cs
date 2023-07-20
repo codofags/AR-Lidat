@@ -19,6 +19,9 @@ public class HistoryPanel : MonoBehaviour
         {
             Destroy(_container.GetChild(i).gameObject);
         }
+        _container.DetachChildren();
+
+        names.Reverse();
 
         foreach (string name in names)
         {

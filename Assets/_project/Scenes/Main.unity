@@ -3727,6 +3727,7 @@ GameObject:
   - component: {fileID: 442101033}
   - component: {fileID: 442101035}
   - component: {fileID: 442101034}
+  - component: {fileID: 442101036}
   m_Layer: 5
   m_Name: HistoryPanel
   m_TagString: Untagged
@@ -3794,6 +3795,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 442101032}
   m_CullTransparentMesh: 1
+--- !u!114 &442101036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 442101032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 905db7b28a33e8b4e9a4e734b0b36157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _content: {fileID: 3467300921794458495, guid: d0d01d22fef2e8a4889a1eea1937a21a,
+    type: 3}
+  _container: {fileID: 398462164}
 --- !u!1 &456663297
 GameObject:
   m_ObjectHideFlags: 0

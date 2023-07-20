@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CameraPositionSaver : Singleton<CameraPositionSaver>
 {
+    [SerializeField] private int _textureLowingDevider = 2;
     private Coroutine _savingProcesss;
     private Coroutine _getCameraTextureProcess;
 
@@ -12,7 +13,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     private void Start()
     {
-        TextureGetter.Instance.Initialize(OnTextureGetted);
+        TextureGetter.Instance.Initialize(OnTextureGetted, _textureLowingDevider);
     }
 
     private void OnDisable()
@@ -87,7 +88,15 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     private void OnTextureGetted(Texture2D texture, int id)
     {
-        SavedCameraData[id].Texture = texture;
+        var offset = (int)((texture.width - 888 / _textureLowingDevider) / 2);
+
+        var cuttedColors = texture.GetPixels(offset, 0, 888 / _textureLowingDevider, 1920 / _textureLowingDevider, 0);
+        var cuttedTexture = new Texture2D(888/ _textureLowingDevider, 1920/ _textureLowingDevider, texture.format, false);
+
+        cuttedTexture.SetPixels(cuttedColors);
+        cuttedTexture.Apply();
+
+        SavedCameraData[id].Texture = cuttedTexture;
         Debug.Log($"Cameras: {SavedCameraData.Count}");
     }
 

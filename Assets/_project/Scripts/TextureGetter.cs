@@ -14,10 +14,12 @@ public class TextureGetter : Singleton<TextureGetter>
     private bool _isPerformingScreenGrab = false;
     private bool _isRotateEnabled = false;
     private Action<Texture2D, int> _onTextureGetted;
+    private int _textureDevider = 1;
 
-    public void Initialize(Action<Texture2D, int> onTextureGetted)
+    public void Initialize(Action<Texture2D, int> onTextureGetted, int devider)
     {
         _onTextureGetted = onTextureGetted;
+        _textureDevider = devider;
     }
 
     private void Start()
@@ -72,7 +74,7 @@ public class TextureGetter : Singleton<TextureGetter>
             inputRect = new RectInt(0, 0, image.width, image.height),
 
             // Downsample by 2.
-            outputDimensions = new Vector2Int(image.width / 2, image.height / 2),
+            outputDimensions = new Vector2Int(image.width / _textureDevider, image.height / _textureDevider),
 
             // Color image format.
             outputFormat = TextureFormat.RGB24,

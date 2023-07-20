@@ -147,49 +147,55 @@ public class NetworkBehviour : MonoBehaviour
 
     public async Task SendModel(byte[] modelData, string name, Action<float> onPercentChange)
     {
-        await InitializeTCP();
-
-        var infoMessage = new List<byte>();
-        infoMessage.AddRange(BitConverter.GetBytes((int)MessageType.ModelFromPhone));
-        infoMessage.AddRange(BitConverter.GetBytes(0)); // model info
-
-        var namaArray = System.Text.Encoding.UTF8.GetBytes(name);
-        infoMessage.AddRange(BitConverter.GetBytes(namaArray.Length));
-        infoMessage.AddRange(namaArray);
-
-        infoMessage.AddRange(BitConverter.GetBytes(modelData.Length));
-        SendNetworkMessage(infoMessage.ToArray());
-
-        await Task.Delay(500);
-
-        int sendedBytes = 0;
-
-        do
+        try
         {
-            if (!IsConnected)
+            await InitializeTCP();
+
+            var infoMessage = new List<byte>();
+            infoMessage.AddRange(BitConverter.GetBytes((int)MessageType.ModelFromPhone));
+            infoMessage.AddRange(BitConverter.GetBytes(0)); // model info
+
+            var namaArray = System.Text.Encoding.UTF8.GetBytes(name);
+            infoMessage.AddRange(BitConverter.GetBytes(namaArray.Length));
+            infoMessage.AddRange(namaArray);
+
+            infoMessage.AddRange(BitConverter.GetBytes(modelData.Length));
+            SendNetworkMessage(infoMessage.ToArray());
+
+            await Task.Delay(500);
+
+            int sendedBytes = 0;
+
+            do
             {
-                Debug.Log("Disconnected while transfering");
-                break;
+                if (!IsConnected)
+                {
+                    Debug.Log("Disconnected while transfering");
+                    break;
+                }
+
+                var chunckMsg = new List<byte>();
+                chunckMsg.AddRange(BitConverter.GetBytes((int)MessageType.ModelFromPhone));
+                chunckMsg.AddRange(BitConverter.GetBytes(1)); // model data
+
+                var chunckLenght = (modelData.Length - sendedBytes < 90000) ? modelData.Length - sendedBytes : 90000;
+                chunckMsg.AddRange(BitConverter.GetBytes(chunckLenght));
+                chunckMsg.AddRange(new ArraySegment<byte>(modelData, sendedBytes, chunckLenght));
+
+                SendNetworkMessage(chunckMsg.ToArray());
+                sendedBytes += chunckLenght;
+                Debug.Log($"Sended: {sendedBytes}/{modelData.Length}");
+                onPercentChange?.Invoke(((float)sendedBytes / (float)modelData.Length) * 100);
+                await Task.Delay(10);
             }
+            while (sendedBytes < modelData.Length);
 
-            var chunckMsg = new List<byte>();
-            chunckMsg.AddRange(BitConverter.GetBytes((int)MessageType.ModelFromPhone));
-            chunckMsg.AddRange(BitConverter.GetBytes(1)); // model data
-
-            var chunckLenght = (modelData.Length - sendedBytes < 90000) ? modelData.Length - sendedBytes : 90000;
-            chunckMsg.AddRange(BitConverter.GetBytes(chunckLenght));
-            chunckMsg.AddRange(new ArraySegment<byte>(modelData, sendedBytes, chunckLenght));
-
-            SendNetworkMessage(chunckMsg.ToArray());
-            sendedBytes += chunckLenght;
-            Debug.Log($"Sended: {sendedBytes}/{modelData.Length}");
-            onPercentChange?.Invoke(((float)sendedBytes / (float)modelData.Length) * 100);
-            await Task.Delay(10);
+            Debug.Log("Sended ALL");
         }
-        while (sendedBytes < modelData.Length);
-
-        Debug.Log("Sended ALL");
-
+        catch(Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     private void OnConnected()
