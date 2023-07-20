@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CameraPositionSaver : Singleton<CameraPositionSaver>
 {
+    [SerializeField] private Image _testImage;
     private Coroutine _savingProcesss;
     private Coroutine _getCameraTextureProcess;
 
@@ -89,6 +91,9 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     {
         SavedCameraData[id].Texture = texture;
         Debug.Log($"Cameras: {SavedCameraData.Count}");
+
+        var asSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
+        _testImage.sprite = asSprite;
     }
 
 }

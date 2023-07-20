@@ -64,7 +64,7 @@ public class TextureGetter : Singleton<TextureGetter>
             inputRect = new RectInt(0, 0, image.width, image.height),
 
             // Downsample by 2.
-            outputDimensions = new Vector2Int(image.width / 2, image.height / 2),
+            outputDimensions = new Vector2Int(image.width, image.height),
             // Color image format.
             outputFormat = TextureFormat.RGB24,
 
@@ -104,13 +104,18 @@ public class TextureGetter : Singleton<TextureGetter>
 
         texture = texture.RotateTexture(false);
 
+        var cuttedColors = texture.GetPixels(627, 0, 666, 1440, 0);
+        var cuttedTexture = new Texture2D(666, 1440, texture.format, false);
+
+        cuttedTexture.SetPixels(cuttedColors);
+        cuttedTexture.Apply();
 
         //_showTextureImage.texture = texture;
         // Need to dispose the request to delete resources associated
         // with the request, including the raw data.
         request.Dispose();
 
-        _onTextureGetted?.Invoke(texture, id);
+        _onTextureGetted?.Invoke(cuttedTexture, id);
     }
 
 
