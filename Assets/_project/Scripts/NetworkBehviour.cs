@@ -399,6 +399,7 @@ public class NetworkBehviour : MonoBehaviour
 
     public async void InitCall()
     {
+        Debug.Log("Calling");
         UIController.Instance.CallPanel.Show(CallState.Establishing);
         _clientUDP.Connect(_applicationServerIp, (ushort)(_networkPortTCP + 1));
 
