@@ -10,9 +10,15 @@ public class CallPanel : MonoBehaviour
 
     public void Show(CallState callState)
     {
+        gameObject.SetActive(true);
         _callingPanel.SetActive(callState == CallState.Calling);
         _incomingPanel.SetActive(callState == CallState.Incoming);
         _crashPanel.SetActive(callState == CallState.Crash);
         _establishingPanel.SetActive(callState == CallState.Establishing);
+    }
+
+    public void Hide()
+    {
+        gameObject.SetActive(false);
     }
 }
