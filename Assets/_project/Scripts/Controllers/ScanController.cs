@@ -252,7 +252,7 @@ public class ScanController : Singleton<ScanController>
         float tempStep = 0;
         var infoPanel = UIController.Instance.TopBar.InfoPanel;
         infoPanel.Show();
-        infoPanel.Converting((tempStep * 100f) / steps);
+        infoPanel.Process((tempStep * 100f) / steps);
         Debug.Log("WAIT 10 sec");
         yield return new WaitForSeconds(10f);
 
@@ -260,7 +260,7 @@ public class ScanController : Singleton<ScanController>
 
         foreach (var camData in cameraDatas)
         {
-            infoPanel.Converting((tempStep * 100f) / steps);
+            infoPanel.Process((tempStep * 100f) / steps);
             tempStep++;
             if (_slicedMeshes.Count == 0)
                 break;
@@ -307,7 +307,7 @@ public class ScanController : Singleton<ScanController>
                     }
                 }                
             }
-            infoPanel.Converting((tempStep * 100f) / steps);
+            infoPanel.Process((tempStep * 100f) / steps);
             yield return new WaitForEndOfFrame();
             Debug.Log($"CamData {camData.Id}: {handledCount} handled");
         }
