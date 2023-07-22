@@ -17,6 +17,7 @@ public class ExportStatusPanel : MonoBehaviour
         gameObject.SetActive(true);
         _succesPanel.SetActive(succes);
         _errorPanel.SetActive(!succes);
+        UIController.Instance.TopBar.InfoPanel.Hide();
     }
 
     private void Again(string modelName)

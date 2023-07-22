@@ -29,6 +29,6 @@ public class InfoPanel : MonoBehaviour
 
     internal void Process(float v)
     {
-        _text.text = $"{v}% done";
+        _text.text = $"{v.ToString("F2")}% done";
     }
 }
