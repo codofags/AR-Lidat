@@ -8,6 +8,7 @@ public class MenuPanel : MonoBehaviour
 {
     [SerializeField] private Button _menuBtn;
     [SerializeField] private TMP_Text _infoText;
+    [SerializeField] private string _documentationURL;
 
     [Space]
     [SerializeField] private Button _newScanBtn;
@@ -28,8 +29,22 @@ public class MenuPanel : MonoBehaviour
         _menuBtn.onClick.AddListener(MenuClick);
         _newScanBtn.onClick.AddListener(NewScanClick);
         _historyBtn.onClick.AddListener(HistoryClick);
-        _documentationBtn.onClick.AddListener(MenuClick);
+        _documentationBtn.onClick.AddListener(DocumentationClick);
         _aboutBtn.onClick.AddListener(MenuClick);
+    }
+
+    private void DocumentationClick()
+    {
+        // Проверяем, что URL не пустой
+        if (!string.IsNullOrEmpty(_documentationURL))
+        {
+            // Открываем гиперссылку
+            Application.OpenURL(_documentationURL);
+        }
+        else
+        {
+            Debug.LogWarning("URL is empty or null.");
+        }
     }
 
     private void HistoryClick()
@@ -40,7 +55,7 @@ public class MenuPanel : MonoBehaviour
 
     private void NewScanClick()
     {
-        ScanController.Instance.NewScan();
+        ScanController.Instance.Restart();
     }
 
     private void OnDestroy()

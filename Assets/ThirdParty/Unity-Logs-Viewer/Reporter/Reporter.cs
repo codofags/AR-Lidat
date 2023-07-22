@@ -1167,7 +1167,7 @@ public class Reporter : MonoBehaviour
         }
         GUILayout.EndHorizontal();
 
-        if (GUILayout.Button(closeContent, barStyle, GUILayout.Width(size.x * 2), GUILayout.Height(size.y * 2)))
+        if (GUILayout.Button(closeContent, barStyle, GUILayout.Width(size.x * 4), GUILayout.Height(size.y * 4)))
         {
             show = false;
             ReporterGUI gui = gameObject.GetComponent<ReporterGUI>();

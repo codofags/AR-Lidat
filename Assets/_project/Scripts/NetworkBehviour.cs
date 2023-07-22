@@ -130,10 +130,14 @@ public class NetworkBehviour : MonoBehaviour
     public void SendNetworkMessage(byte[] data)
     {
         if (!_clientTCP.Connected)
+        {
+            UIController.Instance.CallPanel.Show(CallState.Crash);
             return;
+        }
 
         if (!_clientTCP.Send(new ArraySegment<byte>(data)))
         {
+            UIController.Instance.CallPanel.Show(CallState.Crash);
             Debug.LogError($"Sending TCP error. data size: {data.Length}/{_clientTCP.MaxMessageSize}");
             throw new Exception();
         }

@@ -7,7 +7,6 @@ public class Caller : MonoBehaviour
 {
     public Action<byte[], int> OnSamplePartRecorded;
 
-    [SerializeField] private GameObject _acceptCallUi;
     [SerializeField] private AudioSource _output;
     [SerializeField] private float _chunkLenght = 0.1f;
 
@@ -40,13 +39,16 @@ public class Caller : MonoBehaviour
 
         NetworkBehviour.Instance.OnIncomingCall += () =>
         {
-            _acceptCallUi.SetActive(true);
+            UIController.Instance.CallPanel.Show(CallState.Incoming);
         };
 
         NetworkBehviour.Instance.OnConnectedToCall += (active) =>
         {
             if (active)
+            {
+                UIController.Instance.CallPanel.Show(CallState.Calling);
                 StartRecord();
+            }
             else
                 StopRecord();
         };
