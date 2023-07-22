@@ -170,6 +170,7 @@ public class NetworkBehviour : MonoBehaviour
             {
                 if (!IsConnected)
                 {
+                    UIController.Instance.ExportStatusPanel.Show(name, false);
                     Debug.Log("Disconnected while transfering");
                     break;
                 }
@@ -184,16 +185,19 @@ public class NetworkBehviour : MonoBehaviour
 
                 SendNetworkMessage(chunckMsg.ToArray());
                 sendedBytes += chunckLenght;
+
                 Debug.Log($"Sended: {sendedBytes}/{modelData.Length}");
                 onPercentChange?.Invoke(((float)sendedBytes / (float)modelData.Length) * 100);
                 await Task.Delay(10);
             }
             while (sendedBytes < modelData.Length);
 
+            UIController.Instance.ExportStatusPanel.Show(name, sendedBytes >= modelData.Length);
             Debug.Log("Sended ALL");
         }
         catch(Exception e)
         {
+            UIController.Instance.ExportStatusPanel.Show(name, false);
             Debug.LogException(e);
         }
     }

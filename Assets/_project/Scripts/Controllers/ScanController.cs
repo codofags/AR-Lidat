@@ -147,7 +147,7 @@ public class ScanController : Singleton<ScanController>
         int tempStep = 0;
         Debug.Log(_arMeshManager == null);
         topBar.InfoPanel.Show();
-        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Process((tempStep * 100) / steps);
         yield return new WaitForSeconds(1);
 
         Debug.Log("step 1");
@@ -161,14 +161,14 @@ public class ScanController : Singleton<ScanController>
             renderer.material.color = UnityEngine.Random.ColorHSV();
         }
 
-        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Process((tempStep * 100) / steps);
         yield return new WaitForEndOfFrame();
         Debug.Log("step 2");
         tempStep++;
         var cameraDatas = CameraPositionSaver.Instance.SavedCameraData;
         _checkMeshCamera.transform.parent = _modelViewParent;
 
-        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Process((tempStep * 100) / steps);
         yield return new WaitForEndOfFrame();
         Debug.Log("step 3");
         tempStep++;
@@ -185,7 +185,7 @@ public class ScanController : Singleton<ScanController>
             _ghostCameras.Add(newCameraView);
         }
 
-        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Process((tempStep * 100) / steps);
         yield return new WaitForSeconds(1f);
 
         Debug.Log("step 4");
@@ -198,13 +198,13 @@ public class ScanController : Singleton<ScanController>
 
         _arCameraManager.enabled = false;
 
-        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Process((tempStep * 100) / steps);
         Debug.Log("WAIT 5 sec");
         yield return new WaitForSeconds(5f);
 
         Debug.Log("step 5");
         tempStep++;
-        topBar.InfoPanel.Generating((tempStep * 100) / steps);
+        topBar.InfoPanel.Process((tempStep * 100) / steps);
         yield return new WaitForEndOfFrame();
         _slicedMeshes = _slicer.SliceMesh(combinedObject, _nonWireframeMaterial);
         Debug.Log($"Mesh count: {_slicedMeshes.Count}");
@@ -214,7 +214,7 @@ public class ScanController : Singleton<ScanController>
             sMesh.transform.SetParent(_modelViewParent, false);
         }
 
-        topBar.InfoPanel.Generating(100);
+        topBar.InfoPanel.Process(100);
         //_initPos = mesh.transform.position;
         //_initRot = mesh.transform.rotation;
         UIController.Instance.ShowViewerPanel();
@@ -397,6 +397,7 @@ public class ScanController : Singleton<ScanController>
             return;
         }
 
+        UIController.Instance.TopBar.InfoPanel.Show();
         isExporting = true;
 
         _ghostCameras.ForEach(cam => cam.gameObject.SetActive(false));
@@ -405,6 +406,7 @@ public class ScanController : Singleton<ScanController>
 
         await NetworkBehviour.Instance.SendModel(modelData, name, (percent) =>
         {
+            UIController.Instance.TopBar.InfoPanel.Process(percent);
             Debug.Log($"Percent: {percent} %");
         });
 

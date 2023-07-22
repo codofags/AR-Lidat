@@ -8,7 +8,7 @@ public class UIController : Singleton<UIController>
     [field: SerializeField] public MainPanel MainPanel { get; private set; }
     [field: SerializeField] public ViewerPanel ViewerPanel { get; private set; }
     [field: SerializeField] public ExportPanel ExportPanel { get; private set; }
-    [field: SerializeField] public Image Fade { get; private set; }
+    [field: SerializeField] public ExportStatusPanel ExportStatusPanel { get; private set; }
 
     protected override void Awake()
     {

@@ -27,12 +27,7 @@ public class InfoPanel : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    internal void Generating(float v)
-    {
-        _text.text = $"{v}% done";
-    }
-
-    public void Converting(float v)
+    internal void Process(float v)
     {
         _text.text = $"{v}% done";
     }
