@@ -54,6 +54,17 @@ public class Caller : MonoBehaviour
         };
     }
 
+    public void MuteActive()
+    {
+        if (_isRecordEnabled)
+        {
+            StopRecord();
+        }
+        else
+        {
+            StartRecord();
+        }
+    }
 
     public async void StartRecord()
     {
@@ -61,7 +72,6 @@ public class Caller : MonoBehaviour
         while (Microphone.GetPosition(null) < 0) { }
         _isRecordEnabled = true;
         Debug.Log("Start Recording");
-
         //_playerRoutine = StartCoroutine(PlayerRoutine());
     }
 
@@ -154,12 +164,6 @@ public class Caller : MonoBehaviour
         }
     }
 
-
-
-
-
-
-
     public void PlaySamplePart(int channels, byte[] audioData)
     {
         var array = ToFloatArray(audioData, out int samplesCount);
@@ -171,6 +175,17 @@ public class Caller : MonoBehaviour
         _output.Play();
     }
 
+    public void SoundActive()
+    {
+        if (!_output.isPlaying)
+        {
+            _output.Play();
+        }
+        else
+        {
+            _output.Stop();
+        }
+    }
 
     private float[] ToFloatArray(byte[] byteArray, out int samplesCount)
     {
