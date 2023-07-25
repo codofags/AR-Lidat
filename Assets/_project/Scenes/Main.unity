@@ -8722,7 +8722,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _menuBtn: {fileID: 1207849203}
   _infoText: {fileID: 984847248}
-  _documentationURL: 
+  _documentationURL: https://disk.yandex.ru/d/BynI9cUr-Cyfvg
   _newScanBtn: {fileID: 369773734}
   _historyBtn: {fileID: 1744358195}
   _documentationBtn: {fileID: 1061831114}
