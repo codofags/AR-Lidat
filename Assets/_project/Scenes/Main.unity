@@ -4051,10 +4051,10 @@ MonoBehaviour:
   _crashPanel: {fileID: 250003166}
   _establishingPanel: {fileID: 2028308393}
   _callingPanel: {fileID: 512441635}
-  _muteSprite: {fileID: 0}
-  _unmuteSprite: {fileID: 0}
-  _muteSoundSprite: {fileID: 0}
-  _unmuteSoundSprite: {fileID: 0}
+  _muteSprite: {fileID: 21300000, guid: 6c2315008cf0b304b8a68e00a3323985, type: 3}
+  _unmuteSprite: {fileID: 21300000, guid: b681046be62c10147b227af0d9bd32e6, type: 3}
+  _muteSoundSprite: {fileID: 21300000, guid: a48333c9470a2fb42ae714f9ba0e7c7c, type: 3}
+  _unmuteSoundSprite: {fileID: 21300000, guid: c221073ed8f97114bbd119ae37e77fcf, type: 3}
 --- !u!1 &361917830
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,6 +25,8 @@ public class CallPanel : MonoBehaviour
 
     public void Hide()
     {
+        var caller = FindAnyObjectByType<Caller>();
+        caller.StopRecord();
         gameObject.SetActive(false);
     }
 

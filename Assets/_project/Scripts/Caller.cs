@@ -86,6 +86,7 @@ public class Caller : MonoBehaviour
         _outgoingChunkNumber = 0;
         _incomingChunkNumber = 0;
 
+        Microphone.End(null);
         if (_playerRoutine != null)
         {
             StopCoroutine(_playerRoutine);
