@@ -22,9 +22,11 @@ public class Caller : MonoBehaviour
 
     private int _outgoingChunkNumber = 0;
     private int _incomingChunkNumber = 0;
+    private bool _isMuted = false;
 
     private void Start()
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         OnSamplePartRecorded += (d, s) => { NetworkBehviour.Instance.SendCallFrame(d,s, _outgoingChunkNumber++); };
 
         NetworkBehviour.Instance.OnAudioFrameReceived += (chunkNumber, channels, frame) =>
@@ -50,20 +52,16 @@ public class Caller : MonoBehaviour
                 StartRecord();
             }
             else
+            {
+                UIController.Instance.CallPanel.Show(CallState.Crash);
                 StopRecord();
+            }
         };
     }
 
     public void MuteActive()
     {
-        if (_isRecordEnabled)
-        {
-            StopRecord();
-        }
-        else
-        {
-            StartRecord();
-        }
+        _isMuted = !_isMuted;
     }
 
     public async void StartRecord()
@@ -106,12 +104,12 @@ public class Caller : MonoBehaviour
                 _timer = 0;
                 int pos = Microphone.GetPosition(null);
                 int diff = pos - _lastSamplePosition;
-                if (diff > 0)
+                if (diff > 0 && !_isMuted)
                 {
                     float[] samples = new float[diff * _inputClip.channels];
                     _inputClip.GetData(samples, _lastSamplePosition);
                     byte[] ba = ToByteArray(samples);
-                    OnSamplePartRecorded?.Invoke(ba, _inputClip.channels);
+                        OnSamplePartRecorded?.Invoke(ba, _inputClip.channels);
                 }
 
                 _lastSamplePosition = pos;
@@ -184,7 +182,7 @@ public class Caller : MonoBehaviour
         }
         else
         {
-            _output.Stop();
+            _output.volume = 0;
         }
     }
 

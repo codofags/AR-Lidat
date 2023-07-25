@@ -8,6 +8,7 @@ public class InfoPanel : MonoBehaviour
 
     public void Show()
     {
+        _text.text = $"0% done";
         gameObject.SetActive(true);
     }
 
