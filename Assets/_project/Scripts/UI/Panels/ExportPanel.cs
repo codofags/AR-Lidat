@@ -36,7 +36,8 @@ public class ExportPanel : MonoBehaviour
 
     public void OnExportClick()
     {
-        ScanController.Instance.ExportModel(_nameInput.text);
+        _exportPanel.SetActive(false);
+        ScanController.Instance. ExportModel(_nameInput.text);
     }
 
     public void Complete()
