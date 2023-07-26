@@ -350,6 +350,8 @@ public class ScanController : Singleton<ScanController>
         }
 
         Mesh mesh = new Mesh();
+        // Устанавливаем формат индекса Unit32
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.CombineMeshes(combine);
 
         mesh.RecalculateNormals();
