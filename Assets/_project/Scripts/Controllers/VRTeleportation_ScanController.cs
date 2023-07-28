@@ -33,6 +33,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
 
     [SerializeField] private MeshFilter[] TestMeshes;
 
+    private Vector2 _uvOffset = Vector2.zero;
     private List<GameObject> _slicedMeshes = new List<GameObject>();
     private List<Transform> _ghostCameras = new List<Transform>();
     private bool isExporting = false;
@@ -438,5 +439,15 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
     public void OpenConsole()
     {
         Reporter.Instance.doShow();
+    }
+
+    public void OnOffsetChangedU(float u)
+    {
+        _uvOffset.x = u;
+    }
+
+    public void OnOffsetChangedV(float v)
+    {
+        _uvOffset.y = v;
     }
 }
