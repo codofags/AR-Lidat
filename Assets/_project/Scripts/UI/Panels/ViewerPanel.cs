@@ -30,7 +30,7 @@ public class ViewerPanel : MonoBehaviour
     {
         //todo Начать скан местности
         
-        ScanController.Instance.ConvertToModel();
+        VRTeleportation_ScanController.Instance.ConvertToModel();
     }
 
     public void Complete()

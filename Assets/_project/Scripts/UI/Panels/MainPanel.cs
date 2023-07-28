@@ -35,14 +35,14 @@ namespace ScanAR.UI
         private void OnRecordBtnClick()
         {
             //todo Начать скан местности
-            ScanController.Instance.ScanStart();
+            VRTeleportation_ScanController.Instance.ScanStart();
             SwitchBtns();
         }
 
         private void OnStopBtnClick()
         {
             //todo Остановить скан
-            ScanController.Instance.ScanStop();
+            VRTeleportation_ScanController.Instance.ScanStop();
             SwitchBtns();
         }
 

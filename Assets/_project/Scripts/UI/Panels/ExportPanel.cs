@@ -37,7 +37,7 @@ public class ExportPanel : MonoBehaviour
     public void OnExportClick()
     {
         _exportPanel.SetActive(false);
-        ScanController.Instance. ExportModel(_nameInput.text);
+        VRTeleportation_ScanController.Instance. ExportModel(_nameInput.text);
     }
 
     public void Complete()

@@ -49,13 +49,13 @@ public class MenuPanel : MonoBehaviour
 
     private void HistoryClick()
     {
-        NetworkBehviour.Instance.SendGetModelList();
+        VRTeleportation_NetworkBehviour.Instance.SendGetModelList();
         MenuClick();
     }
 
     private void NewScanClick()
     {
-        ScanController.Instance.Restart();
+        VRTeleportation_ScanController.Instance.Restart();
     }
 
     private void OnDestroy()

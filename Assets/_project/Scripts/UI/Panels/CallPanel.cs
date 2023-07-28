@@ -25,7 +25,7 @@ public class CallPanel : MonoBehaviour
 
     public void Hide()
     {
-        var caller = FindAnyObjectByType<Caller>();
+        var caller = FindAnyObjectByType<VRTeleportation_Caller>();
         caller.StopRecord();
         gameObject.SetActive(false);
     }

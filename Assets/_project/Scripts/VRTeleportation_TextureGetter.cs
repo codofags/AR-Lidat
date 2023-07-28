@@ -1,18 +1,13 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
-public class TextureGetter : Singleton<TextureGetter>
+public class VRTeleportation_TextureGetter : Singleton<VRTeleportation_TextureGetter>
 {
-    [SerializeField] private RawImage _showTextureImage;
     [SerializeField] private ARCameraManager _cameraManager;
 
-    private Texture2D _destinationTexture;
-    private bool _isPerformingScreenGrab = false;
-    private bool _isRotateEnabled = false;
     private Action<Texture2D, int> _onTextureGetted;
     private int _textureDevider = 1;
 
@@ -21,32 +16,6 @@ public class TextureGetter : Singleton<TextureGetter>
         _onTextureGetted = onTextureGetted;
         _textureDevider = devider;
     }
-
-    private void Start()
-    {
-        //TextureFormat[] formats = System.Enum.GetValues(typeof(TextureFormat)) as TextureFormat[];
-        //foreach (var format in formats)
-        //{
-        //    if (SystemInfo.SupportsTextureFormat(format))
-        //    {
-        //        Debug.Log("Supported format: " + format.ToString());
-        //    }
-        //}
-        //Camera.onPostRender += OnPostRenderCallback;
-    }
-
-    //public void EnableRotate()
-    //{
-    //    _isRotateEnabled = true;
-    //}
-
-    //public void GetImageFromRnderTexture()
-    //{
-    //    _destinationTexture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-    //    _showTextureImage.texture = _destinationTexture;
-
-    //    _isPerformingScreenGrab = true;
-    //}
 
     public void GetImageAsync(int id)
     {
@@ -123,32 +92,4 @@ public class TextureGetter : Singleton<TextureGetter>
 
         _onTextureGetted?.Invoke(texture, id);
     }
-
-
-    //void OnPostRenderCallback(Camera cam)
-    //{
-    //    if (_isPerformingScreenGrab)
-    //    {
-    //        // Check whether the Camera that just finished rendering is the one you want to take a screen grab from
-    //        if (cam.tag == "TextureCamera")
-    //        {
-    //            // Define the parameters for the ReadPixels operation
-    //            Rect regionToReadFrom = new Rect(0, 0, Screen.width, Screen.height);
-    //            int xPosToWriteTo = 0;
-    //            int yPosToWriteTo = 0;
-    //            bool updateMipMapsAutomatically = false;
-
-    //            // Copy the pixels from the Camera's render target to the texture
-    //            _destinationTexture.ReadPixels(regionToReadFrom, xPosToWriteTo, yPosToWriteTo, updateMipMapsAutomatically);
-
-    //            // Upload texture data to the GPU, so the GPU renders the updated texture
-    //            // Note: This method is costly, and you should call it only when you need to
-    //            // If you do not intend to render the updated texture, there is no need to call this method at this point
-    //            _destinationTexture.Apply();
-
-    //            // Reset the isPerformingScreenGrab state
-    //            _isPerformingScreenGrab = false;
-    //        }
-    //    }
-    //}
 }

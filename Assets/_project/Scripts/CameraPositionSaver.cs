@@ -13,7 +13,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
     private void Start()
     {
-        TextureGetter.Instance.Initialize(OnTextureGetted, _textureLowingDevider);
+        VRTeleportation_TextureGetter.Instance.Initialize(OnTextureGetted, _textureLowingDevider);
     }
 
     private void OnDisable()
@@ -76,7 +76,7 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
         {
             Debug.Log($"Camera Save: {transform.position} - {transform.rotation}");
             SavedCameraData.Add(new ScanData() { Id = _currentId, Position = currentPosition, Rotation = currentRotation });
-            TextureGetter.Instance.GetImageAsync(_currentId);
+            VRTeleportation_TextureGetter.Instance.GetImageAsync(_currentId);
 
             _currentId++;
         }

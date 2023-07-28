@@ -23,7 +23,7 @@ public class ExportStatusPanel : MonoBehaviour
     private void Again(string modelName)
     {
         Hide();
-        ScanController.Instance.ExportModel(modelName);
+        VRTeleportation_ScanController.Instance.ExportModel(modelName);
     }
 
     public void Hide()

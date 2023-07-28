@@ -575,7 +575,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1420145520}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: ScanController, Assembly-CSharp
         m_MethodName: OpenConsole
         m_Mode: 1
@@ -1342,7 +1342,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1420145520}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: ScanController, Assembly-CSharp
         m_MethodName: OnOffsetChangedV
         m_Mode: 0
@@ -3397,7 +3397,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1794700481}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: NetworkBehviour, Assembly-CSharp
         m_MethodName: InitCall
         m_Mode: 1
@@ -3891,7 +3891,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1794700481}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: NetworkBehviour, Assembly-CSharp
         m_MethodName: ConnectToCall
         m_Mode: 1
@@ -9031,7 +9031,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _dontDestroyOnLoad: 0
   _destroyNewEntities: 0
-  _showTextureImage: {fileID: 0}
   _cameraManager: {fileID: 929782452}
 --- !u!1 &959001273
 GameObject:
@@ -13066,7 +13065,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1420145515}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f5b88c864f59d14f80d847382b1389c, type: 3}
+  m_Script: {fileID: 11500000, guid: bdb0820aeae6b1049bd4237a59b200a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _dontDestroyOnLoad: 0
@@ -13078,7 +13077,6 @@ MonoBehaviour:
   _arCameraManager: {fileID: 929782452}
   _cameraViewer: {fileID: 1083321016}
   _modelViewParent: {fileID: 1723227217}
-  _getScreenTime: 1
   _cameraViewPrefab: {fileID: 7984424349870055198, guid: 242480e7978aaf64b92ac9062a7ac4aa,
     type: 3}
   _nonWireframeMaterial: {fileID: 2100000, guid: 9d286784c905d0446b5b12508f90eabe,
@@ -16743,7 +16741,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1420145520}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: ScanController, Assembly-CSharp
         m_MethodName: OnOffsetChangedU
         m_Mode: 0
@@ -16897,7 +16895,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1794700482}
-  - component: {fileID: 1794700481}
+  - component: {fileID: 1794700483}
   m_Layer: 0
   m_Name: NetworkBehaviour
   m_TagString: Untagged
@@ -16905,23 +16903,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1794700481
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1794700480}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2265eeb00181a04b8857dfd5100d42e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _networkPortTCP: 5200
-  _operationsPerUpdateCount: 1000
-  _applicationServerIp: 84.201.136.179
-  ModelNemTest: 
-  DeserializeMaterial: {fileID: 2100000, guid: 9d286784c905d0446b5b12508f90eabe, type: 2}
 --- !u!4 &1794700482
 Transform:
   m_ObjectHideFlags: 0
@@ -16937,6 +16918,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1794700483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1794700480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b303607bc26c99a469db85cc9552369f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _networkPortTCP: 5200
+  _operationsPerUpdateCount: 1000
+  _applicationServerIp: 84.201.136.179
+  ModelNemTest: 
+  DeserializeMaterial: {fileID: 2100000, guid: 9d286784c905d0446b5b12508f90eabe, type: 2}
 --- !u!1 &1823640668
 GameObject:
   m_ObjectHideFlags: 0
@@ -18957,7 +18955,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1420145520}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: ScanController, Assembly-CSharp
         m_MethodName: Restart
         m_Mode: 1

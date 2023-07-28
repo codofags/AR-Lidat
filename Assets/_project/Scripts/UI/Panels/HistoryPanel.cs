@@ -10,7 +10,7 @@ public class HistoryPanel : MonoBehaviour
 
     private void Awake()
     {
-        NetworkBehviour.Instance.OnGetModels += CreateHistory;
+        VRTeleportation_NetworkBehviour.Instance.OnGetModels += CreateHistory;
     }
 
     private void CreateHistory(List<string> names)
