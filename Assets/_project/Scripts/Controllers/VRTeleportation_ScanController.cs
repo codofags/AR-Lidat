@@ -7,6 +7,7 @@ using UnityEngine.XR.ARFoundation;
 using GLTFast.Export;
 using GLTFast;
 using System.IO;
+using System.Linq;
 
 public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanController>
 {
