@@ -1,13 +1,12 @@
-using HoloGroup.Networking.Internal.Sockets;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
+using GLTFast.Export;
+using GLTFast;
+using System.IO;
 
 public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanController>
 {
@@ -130,7 +129,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
             UIController.Instance.ShowViewerPanel();
             //UIController.Instance.Fade.enabled = true;
             UIController.Instance.TopBar.SetInfoText(MESH_CONVERT_START_TEXT);
-            
+
 
             StartCoroutine(Stopping());
         }
@@ -399,14 +398,38 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
         isExporting = true;
 
         _ghostCameras.ForEach(cam => cam.gameObject.SetActive(false));
-        var serializer = new ModelSerializer();
-        var modelData = serializer.Serialize(_modelViewParent.gameObject);
+        //var serializer = new ModelSerializer();
+        //var modelData = serializer.Serialize(_modelViewParent.gameObject);
 
-        await VRTeleportation_NetworkBehviour.Instance.SendModel(modelData, name, (percent) =>
+        //await VRTeleportation_NetworkBehviour.Instance.SendModel(modelData, name, (percent) =>
+        //{
+        //    UIController.Instance.TopBar.InfoPanel.Process(percent);
+        //    Debug.Log($"Percent: {percent} %");
+        //});
+        var exportSettings = new ExportSettings
         {
-            UIController.Instance.TopBar.InfoPanel.Process(percent);
-            Debug.Log($"Percent: {percent} %");
-        });
+            Format = GltfFormat.Binary,
+            FileConflictResolution = FileConflictResolution.Overwrite,
+            // Export everything except cameras or animation
+            ComponentMask = ~(ComponentType.Camera | ComponentType.Animation)
+        };
+
+
+
+        var export = new GameObjectExport(exportSettings);
+        // Add a scene
+        export.AddScene(new GameObject[] { _modelViewParent.gameObject });
+
+        // Async glTF export
+        var path = Path.Combine(Application.persistentDataPath, $"{name}.glb");
+        Debug.Log(path);
+        bool success = await export.SaveToFileAndDispose(path);
+
+        if (!success)
+        {
+            Debug.LogError("Something went wrong exporting a glTF");
+        }
+
 
         isExporting = false;
         Debug.Log("Model exported successfully.");
