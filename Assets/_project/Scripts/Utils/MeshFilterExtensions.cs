@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public static class MeshFilterExtensions
+public static class MeshFilterExtensionsы
 {
     public static void GenerateUV(this MeshFilter meshFilter, Camera camera, Texture2D texture, Vector2 offset)
     {

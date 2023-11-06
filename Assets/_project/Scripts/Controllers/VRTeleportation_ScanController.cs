@@ -66,25 +66,82 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
         StopAllCoroutines();
     }
 
-    public void ScanStart()
+
+
+
+public void ScanStart()
+{
+    if (!_isScanning)
     {
-        if (!_isScanning)
+        UIController.Instance.TopBar.SetInfoText(SCAN_TEXT);
+        _arMeshManager.enabled = true;
+        XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
+
+        if (arMeshSubsystem != null)
         {
-            UIController.Instance.TopBar.SetInfoText(SCAN_TEXT);
-            _arMeshManager.enabled = true; // Включаем ARMeshManager для сканирования мешей
-            XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem; // Получаем доступ к подсистеме ARKitMeshSubsystem
-
-            if (arMeshSubsystem != null)
-            {
-                arMeshSubsystem.Start();
-                _isScanning = true;
-                //StartCoroutine(Scaning());
-                CameraPositionSaver.Instance.StartSaving();
-                Debug.Log("Scan START");
-            }
+            arMeshSubsystem.Start();
             _isScanning = true;
+            CameraPositionSaver.Instance.StartSaving();
+            Debug.Log("Scan START");
 
-            StartCoroutine(Scaning());
+           
+            MeshFilter[] arKitMeshes = FindARKitMeshes(); 
+
+        
+            StartCoroutine(ProcessARKitMeshes(arKitMeshes));
+        }
+        _isScanning = true;
+    }
+}
+private MeshFilter[] FindARKitMeshes()
+{
+  
+    MeshFilter[] allMeshFilters = GameObject.FindObjectsOfType<MeshFilter>();
+
+
+    List<MeshFilter> arKitMeshFilters = new List<MeshFilter>();
+
+ 
+    foreach (MeshFilter meshFilter in allMeshFilters)
+    {
+             
+            arKitMeshFilters.Add(meshFilter);
+        
+    }
+
+ 
+    return arKitMeshFilters.ToArray();
+}
+
+List<MeshFilter> _handledMeshes = new List<MeshFilter>();
+    private IEnumerator ProcessARKitMeshes(MeshFilter[] arKitMeshes)
+    {
+        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData;
+        foreach (var camData in cameraDatas)
+        {
+            foreach (var arKitMesh in arKitMeshes)
+            {
+                if (arKitMesh != null && !_handledMeshes.Contains(arKitMesh))
+                {
+                    if (_checkMeshCamera.IsMeshFullyIn(arKitMesh))
+                    {
+                        _checkMeshCamera.transform.localPosition = camData.Position;
+                        _checkMeshCamera.transform.localRotation = camData.Rotation;
+                        arKitMesh.GenerateUV(_checkMeshCamera, camData.Texture, _uvOffset);
+                        var render = arKitMesh.GetComponent<MeshRenderer>();
+                        render.material = _nonWireframeMaterial;
+                        render.material.color = Color.white;
+                        render.material.SetTexture("_BaseMap", camData.Texture);
+
+                        arKitMesh.name = $"Handled_{arKitMesh.name}";
+                        _handledMeshes.Add(arKitMesh);
+                    }
+                }
+                yield return new WaitForEndOfFrame();
+            }
+
+
+            Debug.Log($"CamData {camData.Id}: {_handledMeshes} handled");
         }
     }
 
@@ -115,7 +172,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
 
             if (_arMeshManager != null)
             {
-                _arMeshManager.enabled = false; // Отключаем ARMeshManager
+                _arMeshManager.enabled = false; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ARMeshManager
 
                 XRMeshSubsystem arMeshSubsystem = (XRMeshSubsystem)_arMeshManager.subsystem;
 
@@ -126,105 +183,17 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
             }
 
             _isScanning = false;
-            _cameraViewer.gameObject.SetActive(true);
-            UIController.Instance.ShowViewerPanel();
+            ///_cameraViewer.gameObject.SetActive(true);
+            //UIController.Instance.ShowViewerPanel();
             //UIController.Instance.Fade.enabled = true;
-            UIController.Instance.TopBar.SetInfoText(MESH_CONVERT_START_TEXT);
+            //UIController.Instance.TopBar.SetInfoText(MESH_CONVERT_START_TEXT);
             
 
-            StartCoroutine(Stopping());
+            ///StartCoroutine(Stopping());
         }
     }
 
-    IEnumerator Stopping()
-    {
-        var topBar = UIController.Instance.TopBar;
-        int steps = 6;
-        int tempStep = 0;
-        Debug.Log(_arMeshManager == null);
-        topBar.InfoPanel.Show();
-        topBar.InfoPanel.Process((tempStep * 100) / steps);
-        yield return new WaitForSeconds(1);
-
-        Debug.Log("step 1");
-        tempStep++;
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.transform.SetParent(_modelViewParent, false);
-
-            var renderer = meshFilter.GetComponent<MeshRenderer>();
-            renderer.material = _nonWireframeMaterial;
-            renderer.material.color = UnityEngine.Random.ColorHSV();
-        }
-
-        topBar.InfoPanel.Process((tempStep * 100) / steps);
-        yield return new WaitForEndOfFrame();
-        Debug.Log("step 2");
-        tempStep++;
-        var cameraDatas = CameraPositionSaver.Instance.SavedCameraData;
-        _checkMeshCamera.transform.parent = _modelViewParent;
-
-        topBar.InfoPanel.Process((tempStep * 100) / steps);
-        yield return new WaitForEndOfFrame();
-        Debug.Log("step 3");
-        tempStep++;
-        _ghostCameras.Clear();
-        foreach (var camPos in cameraDatas)
-        {
-            if (camPos.Texture == null)
-                continue;
-
-            var newCameraView = Instantiate(_cameraViewPrefab, _modelViewParent);
-            newCameraView.localPosition = camPos.Position;
-            newCameraView.localRotation = camPos.Rotation;
-            newCameraView.localScale = Vector3.one * 0.1f;
-            _ghostCameras.Add(newCameraView);
-        }
-
-        topBar.InfoPanel.Process((tempStep * 100) / steps);
-        yield return new WaitForSeconds(1f);
-
-        Debug.Log("step 4");
-        tempStep++;
-        var combinedObject = CombineMeshes(_arMeshManager.meshes);
-        foreach (var meshFilter in _arMeshManager.meshes)
-        {
-            meshFilter.gameObject.SetActive(false);
-        }
-
-        _arCameraManager.enabled = false;
-
-        topBar.InfoPanel.Process((tempStep * 100) / steps);
-        Debug.Log("WAIT 5 sec");
-        yield return new WaitForSeconds(5f);
-
-        Debug.Log("step 5");
-        tempStep++;
-        topBar.InfoPanel.Process((tempStep * 100) / steps);
-        yield return new WaitForEndOfFrame();
-        _slicedMeshes = _slicer.SliceMesh(combinedObject, _nonWireframeMaterial);
-        Debug.Log($"Mesh count: {_slicedMeshes.Count}");
-
-        foreach (var sMesh in _slicedMeshes)
-        {
-            sMesh.transform.SetParent(_modelViewParent, false);
-        }
-
-        topBar.InfoPanel.Process(100);
-        //_initPos = mesh.transform.position;
-        //_initRot = mesh.transform.rotation;
-        UIController.Instance.ShowViewerPanel();
-        topBar.InfoPanel.Hide();
-        topBar.SetInfoText(MESH_CONVERT_END_TEXT);
-        UIController.Instance.ViewerPanel.Complete();
-        var model = FindObjectOfType<ThirdPersonCamera>();
-
-        if (model != null)
-            model.IsInteractable = true;
-
-        Debug.Log($"Meshes Load: {_slicedMeshes.Count}. DONE.");
-    }
-
+ 
     public void ConvertToModel()
     {
         //UIController.Instance.Fade.enabled = true;
@@ -237,7 +206,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
     IEnumerator Converting()
     {
         yield return null;
-#if !UNITY_EDITOR
+        #if !UNITY_EDITOR
         var model = FindObjectOfType<ThirdPersonCamera>();
         if (model != null)
             model.IsInteractable = false;
@@ -286,7 +255,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
                 }
                 else
                 {
-                    var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
+                     var mf = _slicedMeshes[i].GetComponent<MeshFilter>();
                     _checkMeshCamera.transform.localPosition = camData.Position;
                     _checkMeshCamera.transform.localRotation = camData.Rotation;
                     if (_checkMeshCamera.IsMeshFullyIn(mf))
@@ -346,7 +315,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
         }
 
         Mesh mesh = new Mesh();
-        // Устанавливаем формат индекса Unit32
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Unit32
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.CombineMeshes(combine);
 
@@ -417,10 +386,10 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
         ARSession session = FindObjectOfType<ARSession>();
         session.enabled = false;
 
-        // Остановка ARMeshManager
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ARMeshManager
         _arMeshManager.enabled = false;
 
-        // Очистка существующего меша
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         if (_arMeshManager.meshes.Count > 0)
         {
             foreach (var mesh in _arMeshManager.meshes)
@@ -431,7 +400,7 @@ public class VRTeleportation_ScanController : Singleton<VRTeleportation_ScanCont
         }
 
         session.enabled = true;
-        // Включение ARMeshManager для нового сканирования
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ARMeshManager пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         _arMeshManager.enabled = true;
         Restart();
     }
