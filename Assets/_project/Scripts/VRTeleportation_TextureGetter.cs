@@ -9,7 +9,8 @@ public class VRTeleportation_TextureGetter : Singleton<VRTeleportation_TextureGe
     [SerializeField] private ARCameraManager _cameraManager;
 
     private Action<Texture2D, int> _onTextureGetted;
-    private int _textureDevider = 1;
+    private Action<Texture2D> _onTextureGet;
+    private int _textureDevider = 2;
 
     public void Initialize(Action<Texture2D, int> onTextureGetted, int devider)
     {
@@ -17,12 +18,16 @@ public class VRTeleportation_TextureGetter : Singleton<VRTeleportation_TextureGe
         _textureDevider = devider;
     }
 
-    public void GetImageAsync(int id)
+    public void Initialize(Action<Texture2D> onTextureGet)
+    {
+        _onTextureGet = onTextureGet;
+    }
+
+    public void GetImageAsync(int id = -1)
     {
         // Get information about the device camera image.
         if (_cameraManager.TryAcquireLatestCpuImage(out XRCpuImage image))
         {
-            Debug.Log(Camera.main.transform.rotation.eulerAngles);
             // If successful, launch a coroutine that waits for the image
             // to be ready, then apply it to a texture.
             StartCoroutine(ProcessImage(image, id));
@@ -32,10 +37,8 @@ public class VRTeleportation_TextureGetter : Singleton<VRTeleportation_TextureGe
         }
     }
 
-    IEnumerator ProcessImage(XRCpuImage image, int id)
+    IEnumerator ProcessImage(XRCpuImage image, int id = -1)
     {
-        //Debug.Log($"Image: {image.width}/{image.height}. Camera: {Camera.main.pixelWidth}/{Camera.main.pixelHeight}");
-
         // Create the async conversion request.
         var request = image.ConvertAsync(new XRCpuImage.ConversionParams
         {
@@ -90,6 +93,9 @@ public class VRTeleportation_TextureGetter : Singleton<VRTeleportation_TextureGe
         // with the request, including the raw data.
         request.Dispose();
 
-        _onTextureGetted?.Invoke(texture, id);
+        if (id != -1)
+            _onTextureGetted?.Invoke(texture, id);
+        
+        _onTextureGet?.Invoke(texture);
     }
 }

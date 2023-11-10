@@ -9,11 +9,15 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     private Coroutine _getCameraTextureProcess;
 
     public List<ScanData> SavedCameraData = new List<ScanData>();
+
+    [HideInInspector]public Texture2D FrameTexture;
     private int _currentId = 0;
 
     private void Start()
     {
         VRTeleportation_TextureGetter.Instance.Initialize(OnTextureGetted, _textureLowingDevider);
+
+        VRTeleportation_TextureGetter.Instance.Initialize(OnTextureGet);
     }
 
     private void OnDisable()
@@ -25,6 +29,13 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
     {
         Debug.Log("StartSaving");
         _savingProcesss = StartCoroutine(SavePositionProcess());
+        //_getCameraTextureProcess = StartCoroutine(SaveTextureProcess());
+    }
+
+    public void StartSavingOneFrame()
+    {
+        Debug.Log("StartSavingOneFrame");
+        _savingProcesss = StartCoroutine(SaveProcess());
         //_getCameraTextureProcess = StartCoroutine(SaveTextureProcess());
     }
 
@@ -51,6 +62,20 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
             //++_currentId;
         }
+    }
+
+    private IEnumerator SaveProcess()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(3f);
+            FrameCameraSave();
+        }
+    }
+
+    private void FrameCameraSave()
+    {
+           VRTeleportation_TextureGetter.Instance.GetImageAsync();
     }
 
     private void CheckCameraForSave()
@@ -98,6 +123,19 @@ public class CameraPositionSaver : Singleton<CameraPositionSaver>
 
         SavedCameraData[id].Texture = cuttedTexture;
         Debug.Log($"Cameras: {SavedCameraData.Count}");
+    }
+
+    private void OnTextureGet(Texture2D texture)
+    {
+        var offset = (int)((texture.width - 888 / _textureLowingDevider) / 2);
+
+        var cuttedColors = texture.GetPixels(offset, 0, 888 / _textureLowingDevider, 1920 / _textureLowingDevider, 0);
+        var cuttedTexture = new Texture2D(888 / _textureLowingDevider, 1920 / _textureLowingDevider, texture.format, false);
+
+        cuttedTexture.SetPixels(cuttedColors);
+        cuttedTexture.Apply();
+
+        FrameTexture = cuttedTexture;
     }
 
 }
