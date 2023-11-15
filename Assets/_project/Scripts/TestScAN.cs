@@ -13,18 +13,25 @@ using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEngine.AI;
+using static UnityEngine.Rendering.DebugUI.Table;
+
 
 public class TestScan : MonoBehaviour
 {
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _cameraManager;
+    public GameObject MeshObject;
     [SerializeField] private Material _nonWireframeMaterial;
+    private Scalar circleColor = new Scalar(0, 0, 0); // Цвет окружности (BGR формат)
     public RawImage rw;
+    public Texture2D camtexute;
+    Renderer rend;
     private Camera _camera;
     private int _textureDevider = 1;
     public Texture2D opencvprocessed;
     [SerializeField] private GameObject plane;
-    public Texture2D tex;
+    private MeshFilter[] meshFilters;
     int[,] newFilledPixels;
     int[,] newFilledPixels2;
     [SerializeField] private Texture2D texture2;
@@ -42,9 +49,10 @@ public class TestScan : MonoBehaviour
     public Material targetMaterial;
     public Texture2D txr;
     public bool isPiked;
+    public UnityEngine.UI.Slider sl;
     private bool certificateValidationBypassed = false;
     static List<Point> filledPixels = new List<Point>();
-    
+    public Text txt;
     bool capitured;
     public double cannyMinThres = 140;
     public Mat mats;
@@ -54,13 +62,94 @@ public class TestScan : MonoBehaviour
 
     private void Start()
     {
+
         Reporter.Instance.doShow();
         _camera = Camera.main;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
+        newFilledPixels = new int[2048, 2048];
+        newFilledPixels2 = new int[2048, 2048];
+        meshFilters = new MeshFilter[0];
         CameraPositionSaver.Instance.StartSavingOneFrame();
         ScanStart();
+        
     }
+
+   public void Combine()
+    {
+        MeshRenderer[] meshRenderers = FindObjectsOfType<MeshRenderer>();
+
+        foreach (MeshRenderer meshRenderer in meshRenderers)
+        {
+            // Проверяем, есть ли у объекта компонент MeshFilter
+            MeshFilter meshFilterl = meshRenderer.gameObject.GetComponent<MeshFilter>();
+
+            // Если MeshFilter отсутствует, добавляем его
+            if (meshFilterl == null)
+            {
+                meshFilterl = meshRenderer.gameObject.AddComponent<MeshFilter>();
+            }
+
+            // Присваиваем Mesh из MeshRenderer в MeshFilter
+            meshFilterl.mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
+
+
+            // Добавляем MeshFilter в массив, если его там еще нет
+            if (System.Array.IndexOf(meshFilters, meshFilterl) == -1)
+            {
+                // Добавляем MeshFilter в массив
+                System.Array.Resize(ref meshFilters, meshFilters.Length + 1);
+                meshFilters[meshFilters.Length - 1] = meshFilterl;
+            }
+        }
+
+        CombineInstance[] combine = new CombineInstance[meshFilters.Length];
+
+        for (int i = 0; i < meshFilters.Length; i++)
+        {
+            combine[i].mesh = meshFilters[i].sharedMesh;
+            combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
+            meshFilters[i].gameObject.SetActive(false);
+        }
+
+        MeshFilter meshFilter = MeshObject.AddComponent<MeshFilter>();
+        meshFilter.mesh = new Mesh();
+        meshFilter.mesh.CombineMeshes(combine, true);
+        MeshObject.AddComponent<MeshRenderer>().material = meshFilters[0].GetComponent<MeshRenderer>().sharedMaterial;
+        var tex = CameraPositionSaver.Instance.FrameTexture;
+        if (tex != null)
+        {
+            meshFilter.GenerateUV(_camera, tex, Vector2.zero);
+            originalTexture = tex;
+            MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", tex);
+
+        }
+        else
+        {
+            meshFilter.GenerateUV(_camera, camtexute, Vector2.zero);
+            MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", camtexute);
+        }
+        txt.text = "POP///" + meshFilters.Length + tex;
+        _arMeshManager.enabled = false;
+        MeshCollider meshCollider = MeshObject.GetComponent<MeshRenderer>().gameObject.GetComponent<MeshCollider>();
+
+        // Если MeshCollider отсутствует, добавляем его
+        if (meshCollider == null)
+        {
+            meshCollider = MeshObject.GetComponent<MeshRenderer>().gameObject.AddComponent<MeshCollider>();
+        }
+
+        // Присваиваем Mesh из связанного MeshFilter в MeshCollider
+        meshCollider.sharedMesh = meshFilter.sharedMesh;
+        XRMeshSubsystem arMeshSubsystem = _arMeshManager.subsystem;
+
+        if (arMeshSubsystem != null)
+        {
+            arMeshSubsystem.Stop();
+        }
+        isPiked = true;
+    }
+
 
     Texture2D TextureToTexture2D(Texture texture)
     {
@@ -115,11 +204,13 @@ public class TestScan : MonoBehaviour
     {
         isPiked = true;
     }
-    public void Copy()
+    
+    public void Sld()
     {
-        tex = originalTexture;
+        cannyMinThres = sl.value;
     }
 
+        
         
     Point GetPoint()
     {
@@ -127,10 +218,8 @@ public class TestScan : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out hit))
         {
-            Renderer rend = hit.transform.GetComponent<Renderer>();
-            MeshCollider meshCollider = hit.collider as MeshCollider;
-
-            if (rend != null && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null && meshCollider != null)
+            
+            //if (rend != null && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null && meshCollider != null)
             {
                 Texture2D tex = rend.material.mainTexture as Texture2D;
                 Vector2 pixelUV = hit.textureCoord;
@@ -139,124 +228,127 @@ public class TestScan : MonoBehaviour
                 double adjustedY = tex.height - pixelUV.y;
                 point = new Point((double)pixelUV.x, adjustedY);
             }
+
         }
+        txt.text = "POP///" + point.ToString();
         return point;
     }
     private void Update()
     {
+        
         if (Input.GetMouseButtonDown(0))
         {
 
-            
+
             // Choosen color is red by default
             RaycastHit hit;
             if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out hit))
             {
-                
+
                 {
                     //if (opencvprocessed == null)
                     {
                         if (isPiked == true)
                         {
                             Renderer renderer = hit.collider.GetComponent<Renderer>();
-
+                            rend = renderer;
                             Texture texture = renderer.material.mainTexture;
                             Texture2D texture2D = TextureToTexture2D(texture);
                             Debug.Log("Opencv paint");
                             Mat imgMat = new Mat(texture2D.height, texture2D.width, CvType.CV_8UC4);
                             Utils.texture2DToMat(texture2D, imgMat);
-                            
-                            Paint(imgMat, GetPoint(), new Size(texture2D.width, texture2D.height), new Scalar(255, 0, 0, 255));
+                            ///txt.text = "PLENAKA SET";
+                            Paint(imgMat, GetPoint(), new Size(texture2D.width, texture2D.height), new Scalar(0,255, 0, 255));
                         }
                     }
                 }
             }
         }
 
-
-        if (Input.touchCount > 0) // Проверяем, есть ли касания на экране.
-        {
-            Touch touch = Input.GetTouch(0); // Берем первое касание (первое пальце).
-
-            if (touch.phase == TouchPhase.Began) // Проверяем, что касание только началось.
+        
+        
+            if (Input.touchCount > 0) // Проверяем, есть ли касания на экране.
             {
-                Vector2 touchPosition = touch.position;
-                MeshCollider meshCol = GetMeshOnRaycast(touchPosition);
 
-                if (meshCol != null)
+                Touch touch = Input.GetTouch(0); // Берем первое касание (первое пальце).
+
+                if (touch.phase == TouchPhase.Began) // Проверяем, что касание только началось.
                 {
-                    // Возвращен меш, в которыq попал луч.
-                    Debug.Log("Raycast hit a mesh: " + meshCol.name);
-                    //Получаем текстуру кадра
-                    if (isPiked == false)
+                    Vector2 touchPosition = touch.position;
+                    MeshCollider meshCol = GetMeshOnRaycast(touchPosition);
+
+                    if (meshCol != null)
                     {
-                         tex = CameraPositionSaver.Instance.FrameTexture;
-                         
+                        // Возвращен меш, в которыq попал луч.
+                        Debug.Log("Raycast hit a mesh: " + meshCol.name);
+                    //Получаем текстуру кадра
+                    ///if (isPiked == false)
+                    {
+                        var tex = CameraPositionSaver.Instance.FrameTexture;
                     }
-                    
+
+
+
+
 
                         
-                    if (tex == null)
+                        //Тут нужно делать твои действия с OpenCV
+                        //if (isPiked == true)
+                        {
+                            Debug.Log("Opencv paint");
+                            Mat imgMat = new Mat(originalTexture.height, originalTexture.width, CvType.CV_8UC4);
+                            Utils.texture2DToMat(originalTexture, imgMat);
+
+                            Paint(imgMat, GetPoint(), new Size(originalTexture.width, originalTexture.height), new Scalar(0, 255, 0, 255));
+
+                        }
+                        /*
+                        // Создаем новый материал.
+
+                        var meshRenderer = meshCol.GetComponent<MeshRenderer>();
+                        meshRenderer.material = _nonWireframeMaterial;
+                        meshRenderer.material.color = Color.white;
+                        var meshFilter = meshRenderer.GetComponent<MeshFilter>();
+                        Texture2D texture;
+                        if (opencvprocessed != null)
+                        {
+                            Debug.Log("OpenCV texture");
+                            texture = opencvprocessed;
+                            //newMaterial.SetTexture("_BaseMap", opencvprocessed);
+                        }
+                        else
+                        {
+                            Debug.Log("Frame texture");
+                            texture = tex;
+                        }
+                      
+                        {
+                      
+                            ///isPiked = true;
+                        }
+                    Mesh mesh = meshFilter.sharedMesh;
+                    if (mesh != null && mesh.uv != null && mesh.uv.Length > 0)
                     {
-                        Debug.Log("Кадра еще нет!");
-                        return;
+                        meshRenderer.material.SetTexture("_BaseMap", texture);
                     }
                     else
                     {
-                        Debug.Log("Кадр есть");
+                        Debug.Log("NO UV");
                     }
-                    //Тут нужно делать твои действия с OpenCV
-                    if (isPiked == true)
-                    {
-                        Debug.Log("Opencv paint");
-                        Mat imgMat = new Mat(tex.height, tex.width, CvType.CV_8UC4);
-                        Utils.texture2DToMat(tex, imgMat);
-
-                        Paint(imgMat, GetPoint(), new Size(tex.width, tex.height), new Scalar(255, 0, 0, 255));
-                    }
-                    // Создаем новый материал.
-                    var meshRenderer = meshCol.GetComponent<MeshRenderer>();
-                    meshRenderer.material = _nonWireframeMaterial;
-                    meshRenderer.material.color = Color.white;
-                    var meshFilter = meshRenderer.GetComponent<MeshFilter>();
-                    Texture2D texture;
-                    if (opencvprocessed != null)
-                    {
-                        Debug.Log("OpenCV texture");
-                        texture = opencvprocessed;
-                        //newMaterial.SetTexture("_BaseMap", opencvprocessed);
+                    */
+                        // Отключаем ARMeshManager
+                        
                     }
                     else
                     {
-                        Debug.Log("Frame texture");
-                        texture = tex;
+                        // Луч не попал в меши.
+                        Debug.Log("Raycast did not hit mesh.");
                     }
-                    if (isPiked == false)
-                    {
-                        meshFilter.GenerateUV(_camera, texture, Vector2.zero);
-                        ///isPiked = true;
-                    }
-                    meshRenderer.material.SetTexture("_BaseMap", texture);
-
-                    // Отключаем ARMeshManager
-                    _arMeshManager.enabled = false; 
-
-                    XRMeshSubsystem arMeshSubsystem = _arMeshManager.subsystem;
-
-                    if (arMeshSubsystem != null)
-                    {
-                        arMeshSubsystem.Stop();
-                    }
-                }
-                else
-                {
-                    // Луч не попал в меши.
-                    Debug.Log("Raycast did not hit mesh.");
                 }
             }
-        }
-    }
 
+        
+    }
     public Texture2D GetAndProcessImageAsync()
     {
         XRCpuImage image;
@@ -324,62 +416,21 @@ public class TestScan : MonoBehaviour
     }
     Mat Paint(Mat image, Point p, Size imageSize, Scalar chosenColor)
     {
+
+ 
         double ratio = 2.5;
         Mat mRgbMat = image;
-        Mat sharpenedMat = new Mat();
         Imgproc.cvtColor(mRgbMat, mRgbMat, Imgproc.COLOR_RGBA2RGB);
-        //Imgproc.Laplacian(mRgbMat, sharpenedMat, CvType.CV_8U);
-
-        // Исходное изображение + коэффициент * (изображение после фильтрации - исходное изображение)
-        //double alpha = 0.5;  // Подстройте коэффициент alpha по вашему усмотрению
-        // Core.addWeighted(mRgbMat, 1 + alpha, sharpenedMat, -alpha, 0, mRgbMat);
         Mat mask = new Mat(new Size(mRgbMat.cols() / 8.0f, mRgbMat.rows() / 8.0f), CvType.CV_8UC1, new Scalar(0.0));
         Mat img = new Mat();
         mRgbMat.copyTo(img);
         //grayscale
         Mat mGreyScaleMat = new Mat();
         Imgproc.cvtColor(mRgbMat, mGreyScaleMat, Imgproc.COLOR_RGB2GRAY, 3);
-        //Imgproc.equalizeHist(mGreyScaleMat, mGreyScaleMat);
 
-        Core.MinMaxLocResult minMaxResult = Core.minMaxLoc(mGreyScaleMat);
-
-        // Calculate the scaling factor to equalize the brightness
-        double scale = 255.0 / (minMaxResult.maxVal - minMaxResult.minVal);
-
-        // Apply the scaling factor to equalize brightness
-        mGreyScaleMat.convertTo(mGreyScaleMat, CvType.CV_8UC1, scale, -minMaxResult.minVal * scale);
         Mat cannyGreyMat = new Mat();
-
-        double meanBrightness = 0.0;
-        int totalPixels = 0;
-
-        for (int y = 0; y < 10; y++)
-        {
-            for (int x = 0; x < 10; x++)
-            {
-                double[] pixel = mGreyScaleMat.get(y, x);
-                meanBrightness += pixel[0];
-                totalPixels++;
-            }
-        }
-
-        meanBrightness /= totalPixels;
-        // Измените это значение по своему усмотрению
-        Debug.Log(dark);
-        if (dark == false)
-        {
-            cannyMinThres = 40;
-        }
-
-        else
-        {
-            cannyMinThres = 100;
-        }
         Imgproc.Canny(mGreyScaleMat, cannyGreyMat, cannyMinThres, cannyMinThres * ratio, 3);
-        Core.normalize(cannyGreyMat, cannyGreyMat, 0, 255, Core.NORM_MINMAX);
-        // Imgproc.equalizeHist(cannyGreyMat, cannyGreyMat);
-        //ShowImage(cannyGreyMat);
-        //hsv
+
         Mat hsvImage = new Mat();
         Imgproc.cvtColor(img, hsvImage, Imgproc.COLOR_RGB2HSV);
         //got the hsv values
@@ -389,7 +440,7 @@ public class TestScan : MonoBehaviour
         List<Mat> slist = new List<Mat>();
         slist.Add(list[1]);
         Core.merge(slist, sChannelMat);
-        ///Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
+  
         // canny
         Mat cannyMat = new Mat();
         Imgproc.Canny(sChannelMat, cannyMat, cannyMinThres, cannyMinThres * ratio, 3);
@@ -402,7 +453,7 @@ public class TestScan : MonoBehaviour
         Point seedPoint = p;//new Point(p.x * (mRgbMat.width() / width), p.y * (mRgbMat.height() / height));
         // Make sure to resize the cannyMat or it'll throw an error
         Imgproc.resize(cannyMat, cannyMat, new Size(cannyMat.width() + 2.0, cannyMat.height() + 2.0));
-        //Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
+  
         //ShowImage(mRgbMat);
         int floodFillFlag = 8;
         Imgproc.floodFill(
@@ -421,7 +472,7 @@ public class TestScan : MonoBehaviour
         Imgproc.cvtColor(mRgbMat, rgbHsvImage, Imgproc.COLOR_RGB2HSV);
         List<Mat> list1 = new List<Mat>(3);
         Core.split(rgbHsvImage, list1);
-        //merged the �v� of original image with mRgb mat
+        //merged the “v” of original image with mRgb mat
         Mat result = new Mat();
         List<Mat> newList = new List<Mat>();
         newList.Add(list1[0]);
@@ -434,36 +485,40 @@ public class TestScan : MonoBehaviour
         Core.addWeighted(result, 0.7, img, 0.3, 0.0, result);
 
         result = ProcessResult(result, chosenColor, 110, texture2);
-        mats = result;
-        scalrs = chosenColor;
-        return result;
+        ///ShowImage(result);
+        return result; ;
     }
 
     Mat ProcessResult(Mat result, Scalar colorToRemove, int tolerance, Texture2D texture)
     {
         int rows = result.rows();
         int cols = result.cols();
+
+        Debug.Log(result.rows());
+        Debug.Log(result.cols());
         byte[] rgbData = new byte[3];
-        HashSet<Vector2Int> processedPixels = new HashSet<Vector2Int>();
-        Mat processedResult = new Mat(rows, cols, CvType.CV_8UC4);
+        byte[] rgbData2 = new byte[4];
+        int[,] filledPixels = new int[rows, cols];
+
+        // Создайте новый Mat для сохранения только соответствующих пикселей
+        Mat processedResult = new Mat(originalTexture.height, originalTexture.width, CvType.CV_8UC4);
+        Utils.texture2DToMat(originalTexture, processedResult);
 
         for (int y = 0; y < rows; y++)
         {
             for (int x = 0; x < cols; x++)
             {
-                Vector2Int pixelPosition = new Vector2Int(x, y);
-
-                // Проверяем, был ли этот пиксель уже обработан
-                
-
                 result.get(y, x, rgbData);
-
+                processedResult.get(y, x, rgbData2);
                 bool colorMatch = true;
                 for (int i = 0; i < 3; i++)
                 {
-                    if (Math.Abs(rgbData[i] - colorToRemove.val[i]) > tolerance)
+                    if (Math.Abs(rgbData[i] - colorToRemove.val[i]) > 100)
                     {
                         colorMatch = false;
+                        rgbData[0] = rgbData2[0];
+                        rgbData[1] = rgbData2[1];
+                        rgbData[2] = rgbData2[2];
                         break;
                     }
                 }
@@ -472,33 +527,126 @@ public class TestScan : MonoBehaviour
                 {
                     Color textureColor = texture.GetPixel(x, y);
 
-                    byte redByte = (byte)(textureColor.r * 255);
-                    byte greenByte = (byte)(textureColor.g * 255);
-                    byte blueByte = (byte)(textureColor.b * 255);
+                    {
+                        filledPixels[y, x] = 1;
 
-                    rgbData[0] = redByte;
-                    rgbData[1] = greenByte;
-                    rgbData[2] = blueByte;
+                    }
 
-                    // Отмечаем пиксель как обработанный
-                    processedPixels.Add(pixelPosition);
                 }
 
-                byte[] rgbaData = { rgbData[0], rgbData[1], rgbData[2], (byte)255 };
-                processedResult.put(y, x, rgbaData);
+                else
+                {
+
+                    filledPixels[y, x] = 0;
+                }
+
+            }
+        }
+
+
+        for (int x = 0; x < cols; x++)
+        {
+            int firstFilledY = -1; // Индекс первой заполненной строки
+            int lastFilledY = -1;  // Индекс последней заполненной строки
+            int filledCount = 0;   // Количество заполненных пикселей в столбце
+
+            for (int y = 0; y < rows; y++)
+            {
+                if (filledPixels[y, x] == 1)
+                {
+                    if (firstFilledY == -1)
+                    {
+                        firstFilledY = y;
+                    }
+                    lastFilledY = y;
+                    filledCount++;
+                    //Debug.Log(filledCount);
+                }
             }
 
+            if (filledCount >= 0)  // Замените yourThresholdValue на нужное вам значение
+            {
+                for (int y = firstFilledY + 1; y < lastFilledY; y++)
+                {
+                    if (newFilledPixels2[y, x] == 0)
+                    {
+                        if (filledPixels[y, x] == 0)
+                        {
+                            filledPixels[y, x] = 1;
+                            newFilledPixels2[y, x] = 1;
+                            // Примените fillTexture к текущему пикселю
+
+                        }
+                    }
+                }
+            }
+            firstFilledY = -1;
+            lastFilledY = -1;
+            filledCount = 0;
         }
+        for (int y = 0; y < rows; y++)
+        {
+            int countFilledPixelsInRow = 0;
+            int startX = -1; // Индекс начала залитой области
+            int endX = -1;   // Индекс конца залитой области
+
+            for (int x = 0; x < cols; x++)
+            {
+                //if(newFilledPixels[y, x]==0)
+                {
+                    if (filledPixels[y, x] == 1)
+                    {
+                        countFilledPixelsInRow++;
+                        if (startX == -1)
+                        {
+                            startX = x; // Устанавливаем начальный индекс
+                        }
+                        endX = x; // Обновляем конечный индекс
+                    }
+                }
+            }
+
+            if (countFilledPixelsInRow > 10)
+            {
+                for (int x = startX + 1; x < endX; x++) // Изменено на startX + 1 и x < endX
+                {
+                    if (newFilledPixels[y, x] == 0)
+                    {
+                        if (filledPixels[y, x] == 1)
+                        {
+                            newFilledPixels[y, x] = 1;
+                            // Примените fillTexture к текущему пикселю
+                            Color textureColor = texture.GetPixel(x - startX, y);
+                            byte redByte = (byte)(textureColor.r * 255);
+                            byte greenByte = (byte)(textureColor.g * 255);
+                            byte blueByte = (byte)(textureColor.b * 255);
+                            rgbData[0] = redByte;
+                            rgbData[1] = greenByte;
+                            rgbData[2] = blueByte;
+                            byte[] rgbaData = { rgbData[0], rgbData[1], rgbData[2], (byte)255 };
+                            processedResult.put(y, x, rgbaData);
+                        }
+                    }
+                }
+            }
+        }
+
         ShowImage(processedResult);
+
         return processedResult;
     }
     void ShowImage(Mat mat)
     {
         opencvprocessed = new Texture2D(mat.cols(), mat.rows(), TextureFormat.RGBA32, false);
         Utils.matToTexture2D(mat, opencvprocessed);
+        Imgproc.circle(mat, GetPoint(), 10, circleColor, -1); // Рисует круг
         Debug.Log("PAINT");
         rw.texture = opencvprocessed;
 
+        MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", opencvprocessed);
+        originalTexture= opencvprocessed;
+        ///Debug.Log(rend.name);
+        ///rend.material.SetTexture("_BaseMap", opencvprocessed);
     }
 
     private static Vector2[] CalcSimpleTextureCoordinates(Mesh geometry, Texture2D texture)
