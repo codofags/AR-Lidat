@@ -15,12 +15,14 @@ namespace OpenCVForUnityExample
     /// WebCamTextureToMatHelper Example
     /// </summary>
     [RequireComponent(typeof(WebCamTextureToMatHelper))]
+    
     public class WebCamTextureToMatHelperExample : MonoBehaviour
     {
         /// <summary>
         /// The requested resolution dropdown.
         /// </summary>
         public Dropdown requestedResolutionDropdown;
+        public GameObject tar;
 
         /// <summary>
         /// The requested resolution.
@@ -103,7 +105,7 @@ namespace OpenCVForUnityExample
             Utils.matToTexture2D(webCamTextureMat, texture);
 
             gameObject.GetComponent<Renderer>().material.mainTexture = texture;
-
+            tar.transform.localScale = new Vector3(webCamTextureMat.cols(), webCamTextureMat.rows(), 1);
             gameObject.transform.localScale = new Vector3(webCamTextureMat.cols(), webCamTextureMat.rows(), 1);
             Debug.Log("Screen.width " + Screen.width + " Screen.height " + Screen.height + " Screen.orientation " + Screen.orientation);
 

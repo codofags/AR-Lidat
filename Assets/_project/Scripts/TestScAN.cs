@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-
 using UnityEngine.XR;
 using System.Collections.Generic;
 using System.Collections;
@@ -11,10 +10,8 @@ using System;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using UnityEngine.AI;
-using static UnityEngine.Rendering.DebugUI.Table;
+
+
 
 
 public class TestScan : MonoBehaviour
@@ -24,7 +21,6 @@ public class TestScan : MonoBehaviour
     public GameObject MeshObject;
     [SerializeField] private Material _nonWireframeMaterial;
     private Scalar circleColor = new Scalar(0, 0, 0); // Цвет окружности (BGR формат)
-    public RawImage rw;
     public Texture2D camtexute;
     Renderer rend;
     private Camera _camera;
@@ -34,7 +30,7 @@ public class TestScan : MonoBehaviour
     private MeshFilter[] meshFilters;
     int[,] newFilledPixels;
     int[,] newFilledPixels2;
-    [SerializeField] private Texture2D texture2;
+    public Texture2D texture2;
     public Vector2 vector2;
     public Texture2D resizedTexture;
     private Point topLeftPoint; // Define these as class fields
@@ -52,7 +48,7 @@ public class TestScan : MonoBehaviour
     public UnityEngine.UI.Slider sl;
     private bool certificateValidationBypassed = false;
     static List<Point> filledPixels = new List<Point>();
-    public Text txt;
+    
     bool capitured;
     public double cannyMinThres = 140;
     public Mat mats;
@@ -63,7 +59,7 @@ public class TestScan : MonoBehaviour
     private void Start()
     {
 
-        Reporter.Instance.doShow();
+     
         _camera = Camera.main;
         _arMeshManager.enabled = false;
         _arMeshManager.density = 1f;
@@ -73,6 +69,26 @@ public class TestScan : MonoBehaviour
         CameraPositionSaver.Instance.StartSavingOneFrame();
         ScanStart();
         
+    }
+public void GetTexture(string textureURL)
+    {
+       LoadTextureFromResources(textureURL);
+    }
+    public void LoadTextureFromResources(string textureName)
+    {
+        // Загрузка текстуры из ресурсов по имени, заданному в параметре textureName
+        Texture2D loadedTexture = Resources.Load<Texture2D>(textureName);
+
+        // Проверка на успешную загрузку текстуры
+        if (loadedTexture != null)
+        {
+            // Назначить загруженную текстуру на компонент Renderer
+            texture2 = loadedTexture;
+        }
+        else
+        {
+           Debug.Log("ОШИБКА НЕТ ТЕКТУРЫ");
+        }
     }
 
    public void Combine()
@@ -129,7 +145,7 @@ public class TestScan : MonoBehaviour
             meshFilter.GenerateUV(_camera, camtexute, Vector2.zero);
             MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", camtexute);
         }
-        txt.text = "POP///" + meshFilters.Length + tex;
+
         _arMeshManager.enabled = false;
         MeshCollider meshCollider = MeshObject.GetComponent<MeshRenderer>().gameObject.GetComponent<MeshCollider>();
 
@@ -230,7 +246,7 @@ public class TestScan : MonoBehaviour
             }
 
         }
-        txt.text = "POP///" + point.ToString();
+
         return point;
     }
     private void Update()
@@ -640,8 +656,7 @@ public class TestScan : MonoBehaviour
         opencvprocessed = new Texture2D(mat.cols(), mat.rows(), TextureFormat.RGBA32, false);
         Utils.matToTexture2D(mat, opencvprocessed);
         Imgproc.circle(mat, GetPoint(), 10, circleColor, -1); // Рисует круг
-        Debug.Log("PAINT");
-        rw.texture = opencvprocessed;
+      
 
         MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", opencvprocessed);
         originalTexture= opencvprocessed;

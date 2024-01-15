@@ -1,12 +1,18 @@
 ﻿#if !(PLATFORM_LUMIN && !UNITY_EDITOR)
 
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.UnityUtils.Helper;
+using OpenCVForUnity.Calib3dModule;
+using OpenCVForUnity.ImgcodecsModule;
+using OpenCVForUnity.Structured_lightModule;
 
 namespace OpenCVForUnityExample
 {
@@ -22,6 +28,30 @@ namespace OpenCVForUnityExample
         /// The texture.
         /// </summary>
         Texture2D texture;
+    public int planeDetectionIterations = 100;
+    public double planeDetectionDistanceThreshold = 0.01;
+    Dictionary<int, Point> previousCircleCenters ;
+    Dictionary<int, double> previousDistances;
+    public Text circle;
+    private MatOfPoint3f planePoints;
+    
+    int furtherCirclesCount;
+    
+    int circlesCount;
+    int closerCirclesCount;
+    private MatOfPoint3f bestPlanePoints;
+    private MatOfPoint2f bestPlanePoints2D;
+    private MatOfPoint2f imagePoints;
+    private MatOfDouble cameraMatrix;
+    private MatOfDouble distortionCoefficients;
+
+    private bool planeDetected = false;
+    bool wasCloser;
+
+    // other fields
+   
+   
+   
 
         /// <summary>
         /// The webcam texture to mat helper.
@@ -116,34 +146,161 @@ namespace OpenCVForUnityExample
         }
 
         // Update is called once per frame
-        void Update ()
+void Update()
+{
+    if (webCamTextureToMatHelper.IsPlaying() && webCamTextureToMatHelper.DidUpdateThisFrame())
+    {
+        Mat rgbaMat = webCamTextureToMatHelper.GetMat();
+        Imgproc.cvtColor(rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
+
+        if (previousCircleCenters == null)
         {
-            if (webCamTextureToMatHelper.IsPlaying () && webCamTextureToMatHelper.DidUpdateThisFrame ()) {
+            previousCircleCenters = new Dictionary<int, Point>();
+            previousDistances = new Dictionary<int, double>();
+        }
 
-                Mat rgbaMat = webCamTextureToMatHelper.GetMat ();
+        using (Mat circles = new Mat())
+        {
+            Imgproc.HoughCircles(grayMat, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 10, 160, 50, 90, 100);
+            Point pt = new Point();
 
-                Imgproc.cvtColor (rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
+            for (int i = 0; i < circles.cols(); i++)
+            {
+                double[] data = circles.get(0, i);
+                pt.x = data[0];
+                pt.y = data[1];
+                double rho = data[2];
 
-                using (Mat circles = new Mat ()) {
-                                        
-                    Imgproc.HoughCircles (grayMat, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 10, 160, 50, 10, 40); 
-                    Point pt = new Point ();
-                                        
-                    for (int i = 0; i < circles.cols (); i++) {
-                        double[] data = circles.get (0, i);
-                        pt.x = data [0];
-                        pt.y = data [1];
-                        double rho = data [2];
-                        Imgproc.circle (rgbaMat, pt, (int)rho, new Scalar (255, 0, 0, 255), 5);
+                bool wasDetected = previousCircleCenters.ContainsKey(i);
+
+                if (wasDetected)
+                {
+                    Point previousCenter = previousCircleCenters[i];
+                    double previousDistance = previousDistances[i];
+
+                    double distance = Math.Sqrt(Math.Pow(pt.x - previousCenter.x, 2) + Math.Pow(pt.y - previousCenter.y, 2));
+
+                    if (previousDistance < distance)
+                    {
+                        if (wasCloser)
+                        {
+                            // circle got farther after being closer
+                            circlesCount++;
+                            wasCloser = false;
+                        }
+                    }
+                    else if (previousDistance > distance)
+                    {
+                        if (!wasCloser)
+                        {
+                            // circle got closer after being farther
+                            circlesCount++;
+                            wasCloser = true;
+                        }
                     }
                 }
 
-//                Imgproc.putText (rgbaMat, "W:" + rgbaMat.width () + " H:" + rgbaMat.height () + " SO:" + Screen.orientation, new Point (5, rgbaMat.rows () - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
-
-                Utils.matToTexture2D (rgbaMat, texture, webCamTextureToMatHelper.GetBufferColors ());
+                previousCircleCenters[i] = pt;
+                previousDistances[i] = Math.Sqrt(Math.Pow(pt.x - Screen.width / 2, 2) + Math.Pow(pt.y - Screen.height / 2, 2));
+                circle.text=circlesCount.ToString();
+                Imgproc.circle(rgbaMat, pt, (int)rho, new Scalar(255, 0, 0, 255), 5);
             }
         }
 
+        Utils.matToTexture2D(rgbaMat, texture, webCamTextureToMatHelper.GetBufferColors());
+    }
+}
+//DetectPlane();
+//                Imgproc.putText (rgbaMat, "W:" + rgbaMat.width () + " H:" + rgbaMat.height () + " SO:" + Screen.orientation, new Point (5, rgbaMat.rows () - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+
+    
+  
+public void DetectPlane()
+{
+    // Convert the current camera frame to a grayscale image
+    Mat rgbaMat = webCamTextureToMatHelper.GetMat();
+    Mat grayMat = new Mat();
+    Imgproc.cvtColor(rgbaMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
+
+    // Detect edges in the grayscale image
+    Mat cannyMat = new Mat();
+    Imgproc.Canny(grayMat, cannyMat, 50, 200);
+  
+    // Find contours in the binary image
+    List<MatOfPoint> contours = new List<MatOfPoint>();
+    Mat hierarchy = new Mat();
+    Imgproc.findContours(cannyMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+    // Find the largest contour
+    double maxArea = -1;
+    MatOfPoint largestContour = null;
+    for (int i = 0; i < contours.Count; i++)
+    {
+        double area = Imgproc.contourArea(contours[i]);
+        if (area > maxArea)
+        {
+            maxArea = area;
+            largestContour = contours[i];
+        }
+    }
+
+    // Fit a plane to the largest contour using least-squares regression
+    MatOfPoint3f objectPoints = new MatOfPoint3f();
+    MatOfPoint2f imagePoints = new MatOfPoint2f();
+    for (int i = 0; i < largestContour.rows(); i++)
+    {
+        Point contourPoint = largestContour.toList()[i];
+        objectPoints.push_back(new MatOfPoint3f(new Point3(contourPoint.x, contourPoint.y, 0)));
+        imagePoints.push_back(new MatOfPoint2f(contourPoint));
+    }
+    Mat rotationVector = new Mat();
+    Mat translationVector = new Mat();
+    Calib3d.solvePnP(objectPoints, imagePoints, cameraMatrix, distortionCoefficients, rotationVector, translationVector);
+    MatOfPoint3f planePoints = new MatOfPoint3f(
+        new Point3(-1, -1, 0),
+        new Point3(-1, 1, 0),
+        new Point3(1, 1, 0),
+        new Point3(1, -1, 0)
+    );
+    MatOfPoint2f projectedPoints = new MatOfPoint2f();
+    Calib3d.projectPoints(planePoints, rotationVector, translationVector, cameraMatrix, distortionCoefficients, projectedPoints);
+
+    // Draw the plane on the camera frame
+    List<Point> projectedPointsList = projectedPoints.toList();
+    Imgproc.line(rgbaMat, projectedPointsList[0], projectedPointsList[1], new Scalar(0, 255, 0), 5);
+    Imgproc.line(rgbaMat, projectedPointsList[1], projectedPointsList[2], new Scalar(0, 255, 0), 5);
+    Imgproc.line(rgbaMat, projectedPointsList[2], projectedPointsList[3], new Scalar(0, 255, 0), 5);
+    Imgproc.line(rgbaMat, projectedPointsList[3], projectedPointsList[0], new Scalar(0, 255, 0), 5);
+    using (Mat circles = new Mat())
+{
+    Imgproc.HoughCircles(grayMat, circles, Imgproc.CV_HOUGH_GRADIENT, 2, 10, 160, 50, 90, 100);
+    Point pt = new Point();
+     MatOfPoint2f projectedPolygon = new MatOfPoint2f();
+
+    int numCirclesOnPlane = 0; // Initialize a counter for circles on the plane
+
+    for (int i = 0; i < circles.cols(); i++)
+    {
+        double[] data = circles.get(0, i);
+        pt.x = data[0];
+        pt.y = data[1];
+        double rho = data[2];
+
+        // Check if the center of the circle is within the projected polygon
+        if (Imgproc.pointPolygonTest(new MatOfPoint2f(projectedPolygon.toArray()), pt, false) > 0)
+        {
+            numCirclesOnPlane++;
+        }
+
+        Imgproc.circle(rgbaMat, pt, (int)rho, new Scalar(255, 0, 0, 255), 5);
+    }
+circlesCount = numCirclesOnPlane; // Update the circles count based on the number of circles on the plane
+    
+}
+
+   
+//Utils.matToTexture2D(rgbaMat, texture, webCamTextureToMatHelper.GetBufferColors());
+}
         /// <summary>
         /// Raises the destroy event.
         /// </summary>
