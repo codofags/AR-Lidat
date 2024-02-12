@@ -456,7 +456,7 @@ public void GetTexture(string textureURL)
         List<Mat> slist = new List<Mat>();
         slist.Add(list[1]);
         Core.merge(slist, sChannelMat);
-  
+        Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
         // canny
         Mat cannyMat = new Mat();
         Imgproc.Canny(sChannelMat, cannyMat, cannyMinThres, cannyMinThres * ratio, 3);

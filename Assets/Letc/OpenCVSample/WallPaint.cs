@@ -74,8 +74,8 @@ public class WallPaint : MonoBehaviour
         //imgMat = new Mat(roomTexture.height, roomTexture.width, CvType.CV_8UC4);
         //Utils.texture2DToMat(roomTexture, imgMat);
        // Установите ServerCertificateValidationCallback в true для обхода проверки сертификата
-        newFilledPixels = new int[2048,2048];
-        newFilledPixels2 = new int[2048,2048];
+        newFilledPixels = new int[1024,1024];
+        newFilledPixels2 = new int[1024,1024];
         ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
 
 
@@ -95,7 +95,7 @@ public class WallPaint : MonoBehaviour
     }
     public void GetTexture(string textureURL)
     {
-       LoadTexture(textureURL);
+       StartCoroutine(LoadTexture(textureURL));
     }
     public void LoadTextureFromResources(string textureName)
     {
@@ -136,6 +136,7 @@ cert?.Dispose();
 
         // Устанавливаем текстуру в Renderer
         texture2 = loadedTexture;
+		TestScan.texture2=loadedTexture;
     }
     else
     {
@@ -362,6 +363,7 @@ Point GetPoint()
      meanBrightness /= totalPixels;
      // Измените это значение по своему усмотрению
        Debug.Log(dark);
+       /*
     if (dark ==false) 
     {
         cannyMinThres =50;
@@ -371,6 +373,7 @@ Point GetPoint()
     {
         cannyMinThres =100;
     }
+    */
         Imgproc.Canny(mGreyScaleMat, cannyGreyMat, cannyMinThres, cannyMinThres * ratio, 3);
         Core.normalize(cannyGreyMat, cannyGreyMat, 0, 255, Core.NORM_MINMAX);
        // Imgproc.equalizeHist(cannyGreyMat, cannyGreyMat);
@@ -385,7 +388,7 @@ Point GetPoint()
         List<Mat> slist = new List<Mat>();
         slist.Add(list[1]);
         Core.merge(slist, sChannelMat);
-        ///Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
+        Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
         // canny
         Mat cannyMat = new Mat();
         Imgproc.Canny(sChannelMat, cannyMat, cannyMinThres, cannyMinThres * ratio, 3);
