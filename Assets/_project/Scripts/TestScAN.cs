@@ -19,6 +19,7 @@ public class TestScan : MonoBehaviour
     [SerializeField] private ARMeshManager _arMeshManager;
     [SerializeField] private ARCameraManager _cameraManager;
     public GameObject MeshObject;
+    public GameObject screen;
     [SerializeField] private Material _nonWireframeMaterial;
     private Scalar circleColor = new Scalar(0, 0, 0); // Цвет окружности (BGR формат)
     public Texture2D camtexute;
@@ -137,13 +138,13 @@ public void GetTexture(string textureURL)
         {
             meshFilter.GenerateUV(_camera, tex, Vector2.zero);
             originalTexture = tex;
-            MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", tex);
+            MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", tex);
 
         }
         else
         {
             meshFilter.GenerateUV(_camera, camtexute, Vector2.zero);
-            MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", camtexute);
+            MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", camtexute);
         }
 
         _arMeshManager.enabled = false;
@@ -170,7 +171,7 @@ public void GetTexture(string textureURL)
     Texture2D TextureToTexture2D(Texture texture)
     {
         // Создание временного RenderTexture и установка его как активного
-        RenderTexture rt = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
+        RenderTexture rt = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Default);
         Graphics.Blit(texture, rt);
         RenderTexture.active = rt;
 
@@ -306,7 +307,7 @@ public void GetTexture(string textureURL)
 
 
 
-
+                    screen.SetActive(false);
                         
                         //Тут нужно делать твои действия с OpenCV
                         //if (isPiked == true)
@@ -374,7 +375,7 @@ public void GetTexture(string textureURL)
             {
                 inputRect = new RectInt(0, 0, image.width, image.height),
                 outputDimensions = new Vector2Int(image.width / _textureDevider, image.height / _textureDevider),
-                outputFormat = TextureFormat.RGB24,
+                outputFormat = TextureFormat.RGBA32,
                 transformation = XRCpuImage.Transformation.MirrorY
             });
 
@@ -456,7 +457,7 @@ public void GetTexture(string textureURL)
         List<Mat> slist = new List<Mat>();
         slist.Add(list[1]);
         Core.merge(slist, sChannelMat);
-        Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
+  
         // canny
         Mat cannyMat = new Mat();
         Imgproc.Canny(sChannelMat, cannyMat, cannyMinThres, cannyMinThres * ratio, 3);
@@ -658,7 +659,7 @@ public void GetTexture(string textureURL)
         Imgproc.circle(mat, GetPoint(), 10, circleColor, -1); // Рисует круг
       
 
-        MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", opencvprocessed);
+        MeshObject.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", opencvprocessed);
         originalTexture= opencvprocessed;
         ///Debug.Log(rend.name);
         ///rend.material.SetTexture("_BaseMap", opencvprocessed);

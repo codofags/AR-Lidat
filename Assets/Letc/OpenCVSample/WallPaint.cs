@@ -363,7 +363,6 @@ Point GetPoint()
      meanBrightness /= totalPixels;
      // Измените это значение по своему усмотрению
        Debug.Log(dark);
-       /*
     if (dark ==false) 
     {
         cannyMinThres =50;
@@ -373,7 +372,6 @@ Point GetPoint()
     {
         cannyMinThres =100;
     }
-    */
         Imgproc.Canny(mGreyScaleMat, cannyGreyMat, cannyMinThres, cannyMinThres * ratio, 3);
         Core.normalize(cannyGreyMat, cannyGreyMat, 0, 255, Core.NORM_MINMAX);
        // Imgproc.equalizeHist(cannyGreyMat, cannyGreyMat);
@@ -388,7 +386,7 @@ Point GetPoint()
         List<Mat> slist = new List<Mat>();
         slist.Add(list[1]);
         Core.merge(slist, sChannelMat);
-        Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
+        ///Imgproc.medianBlur(mRgbMat, mRgbMat, 7);
         // canny
         Mat cannyMat = new Mat();
         Imgproc.Canny(sChannelMat, cannyMat, cannyMinThres, cannyMinThres * ratio, 3);

@@ -49,7 +49,7 @@ public class VRTeleportation_TextureGetter : Singleton<VRTeleportation_TextureGe
             outputDimensions = new Vector2Int(image.width / _textureDevider, image.height / _textureDevider),
 
             // Color image format.
-            outputFormat = TextureFormat.RGB24,
+            outputFormat = TextureFormat.RGBA32,
 
             // Flip across the Y axis.
             transformation = XRCpuImage.Transformation.MirrorY
